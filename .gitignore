@@ -127,6 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+cl-ck
 cl-ck/pyvenv.cfg
 cl-ck/Scripts/activate
 cl-ck/Scripts/activate.bat

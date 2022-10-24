@@ -1,2 +1,2 @@
-"""LCK utility tools.
+"""CL-CK utility tools.
 """

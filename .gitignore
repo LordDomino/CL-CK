@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+cl-ck/pyvenv.cfg
+cl-ck/Scripts/activate
+cl-ck/Scripts/activate.bat
+cl-ck/Scripts/Activate.ps1
+cl-ck/Scripts/deactivate.bat
+cl-ck/Scripts/pip.exe
+cl-ck/Scripts/pip3.10.exe
+cl-ck/Scripts/pip3.exe
+cl-ck/Scripts/python.exe
+cl-ck/Scripts/pythonw.exe

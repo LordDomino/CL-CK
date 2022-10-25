@@ -7,6 +7,7 @@ from datatypes import *
 
 __all__ = [
     "random_generate",
+    "Generator",
     "MorphemeGenerator",
 ]
 
@@ -34,10 +35,25 @@ class Generator():
     def add_ruleset(self, ruleset: Any, index: int = None) -> None:
         """Add the :class:`Ruleset` into the ruleset list of the current
         :class:`Generator` object.
-        
+
         - :class:`ruleset` -- a :class:`Ruleset` instance to be appended to the
             ruleset list.
         - :class:`index` -- index to place the ruleset before or after.
+
+        INDEXING
+            The integer value to be passed is the index where :class:`ruleset`
+            will be added. Its integer sign determines if :class:`ruleset` will
+            be added before (if the sign is negative) or after (if the sign is
+            positive).
+
+            Examples:
+            >>> .add_ruleset(ruleset = foo, index = -1)
+                
+                Ruleset :class:`foo` will be added before index :class:`1`.
+
+            >>> .add_ruleset(ruleset = bar, index = 5)
+
+                Ruleset :class:`bar` will be added after index :class:`5`.
         """
         if index == None:
             if len(self._ruleset_list) == 0:
@@ -57,6 +73,28 @@ class Generator():
         self._ruleset_list[index] = new_ruleset
 
     def add_inventory(self, inventory: Inventory, index: str = "+") -> None:
+        """Add :class:`Inventory` into the inventory list of the current
+        :class:`Generator` object.
+
+        - :class:`inventory` -- an :class:`Inventory` instance to be appended to
+            the inventory list.
+        - :class:`index` -- index to place the ruleset before or after.
+
+        INDEXING
+            The integer value to be passed is the index where :class:`inventory`
+            will be added. Its integer sign determines if :class:`inventory`
+            will be added before (if the sign is negative) or after (if the sign
+            is positive).
+
+            Examples:
+            >>> .add_inventory(inventory = foo, index = -6)
+                
+                Inventory :class:`foo` will be added before index :class:`-6`.
+
+            >>> .add_inventory(inventory = bar, index = 5)
+
+                Inventory :class:`bar` will be added after index :class:`5`.
+        """
         if index == None:
             if len(self._inventory_list) == 0:
                 index = 0

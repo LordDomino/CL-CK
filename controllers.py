@@ -102,7 +102,7 @@ class Generator():
                 index = len(self._inventory_list) - 1
         elif isinstance(index, int):
             if index/-1 == -index:
-                self._invenrtory_list.insert(index+1, inventory)
+                self._inventory_list.insert(index+1, inventory)
             elif index/-1 == index:
                 self._inventory_list.insert(index, inventory)
 

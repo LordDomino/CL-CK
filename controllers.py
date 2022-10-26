@@ -2,6 +2,7 @@
 """
 
 import random
+from types import NoneType
 from typing import Any
 from datatypes import *
 
@@ -25,12 +26,25 @@ class Generator():
     """A generator object to generate from a given set of inventories."""
     def __init__(self, *inventory: Inventory) -> None:
         self._inventory_list = inventory
-        self._ruleset_list: list = []
+        self._ruleset_list: list[Ruleset] = []
+        self._generated: list = None
 
-    def generate(self) -> Any:
-        """Generate from a set of given inventories."""
+    def generate(self) -> list:
+        """Generate a list from the set of given inventories. Returns a list of all the
+        generated outputs from different inventories."""
+
+        if self._generated == None:
+            for _inv in self._inventory_list:
+                self._generated.append(random.choices(_inv.elements, _inv.weights)[0])
+        else:
+            for _rule in self._ruleset_list:
+                _rule.execute()
+
+        return(self._generated)
     
-    def fresh_generate(self) -> Any:...
+    def fresh_generate(self) -> list:
+        """Generates a list from the set of given inventories. Returns a
+        list of all the generated outputs from different inventories."""
 
     def add_ruleset(self, ruleset: Any, index: int = None) -> None:
         """Add the :class:`Ruleset` into the ruleset list of the current
@@ -46,14 +60,15 @@ class Generator():
             be added before (if the sign is negative) or after (if the sign is
             positive).
 
-            Examples:
+            EXAMPLES
+            
             >>> .add_ruleset(ruleset = foo, index = -1)
                 
-                Ruleset :class:`foo` will be added before index :class:`1`.
+                Ruleset :class:`foo` will be added before index :class:`1`
 
             >>> .add_ruleset(ruleset = bar, index = 5)
 
-                Ruleset :class:`bar` will be added after index :class:`5`.
+                Ruleset :class:`bar` will be added after index :class:`5`
         """
         if index == None:
             if len(self._ruleset_list) == 0:

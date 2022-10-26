@@ -1,6 +1,9 @@
 """CL-CK datatypes and containers.
 """
 
+from email import message
+from email.generator import Generator
+from errors import ClCkControllerError
 from typing import Any
 from dataclasses import dataclass
 from dataclasses import field
@@ -79,6 +82,15 @@ class Inventory:
         if len(self.elements) == len(self._dict):
             for _e, _w in zip(self.elements, self.weights):
                 self._dict[_e] = _w
+
+    def __call__(self) -> list:
+        return(self.elements)
+
+    def get_elements(self) -> list:
+        return(self.elements)
+
+    def get_weights(self) -> list:
+        return(self.weights)
 
 
 @dataclass
@@ -313,4 +325,14 @@ class Word:
         """
 
 
-class Ruleset:...
+class Ruleset():
+    def __init__(self) -> None:
+        self._parent_generator: Generator = None
+
+    def execute(self):
+        """Executes the ruleset."""
+        if self._parent_generator == None:
+            raise ClCkControllerError("Ruleset cannot execute without parent generator")
+
+if __name__ == "__main__":
+    Ruleset().execute()

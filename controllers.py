@@ -62,11 +62,11 @@ class Generator():
 
             EXAMPLES
             
-            >>> .add_ruleset(ruleset = foo, index = -1)
+            >>> Generator().add_ruleset(ruleset = foo, index = -1)
                 
                 Ruleset :class:`foo` will be added before index :class:`1`
 
-            >>> .add_ruleset(ruleset = bar, index = 5)
+            >>> Generator().add_ruleset(ruleset = bar, index = 5)
 
                 Ruleset :class:`bar` will be added after index :class:`5`
         """

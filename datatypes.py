@@ -30,7 +30,6 @@ __all__ = [
     "Termination",
     "Declension",
     "Word",
-    "Ruleset",
 ]
 
 """

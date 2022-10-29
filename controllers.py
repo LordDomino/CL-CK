@@ -8,6 +8,7 @@ from datatypes import *
 
 __all__ = [
     "random_generate",
+    "Ruleset",
     "Generator",
     "MorphemeGenerator",
 ]
@@ -22,7 +23,7 @@ def random_generate(*inventory: Inventory) -> list[str]:
     return _returnlist
 
 
-class Ruleset():
+class Ruleset:
     def __init__(self) -> None:
         self._parent_generator: Generator = None
 
@@ -32,7 +33,7 @@ class Ruleset():
             raise ClCkControllerError("Ruleset cannot execute without parent generator")
 
 
-class Generator():
+class Generator:
     """A generator object to generate from a given set of inventories."""
     def __init__(self, *inventory: Inventory) -> None:
         self._inventory_list = inventory
@@ -135,5 +136,10 @@ class Generator():
 class MorphemeGenerator(Generator):
     """Generates morphemes from a given set of inventories."""
     def __init__(self, *inventory: Inventory) -> None:
-        super().__init__()
-        self.inventory_list = inventory
+        super().__init__(*inventory)
+
+
+if __name__ == "__main__":
+    gen = Generator(Inventory(["fee"]), Inventory(["foo"]))
+    gen2 = MorphemeGenerator(Inventory(["fee"]), Inventory(["foo"]))
+    print(gen2._inventory_list)

@@ -22,6 +22,16 @@ def random_generate(*inventory: Inventory) -> list[str]:
     return _returnlist
 
 
+class Ruleset():
+    def __init__(self) -> None:
+        self._parent_generator: Generator = None
+
+    def execute(self):
+        """Executes the ruleset."""
+        if self._parent_generator == None:
+            raise ClCkControllerError("Ruleset cannot execute without parent generator")
+
+
 class Generator():
     """A generator object to generate from a given set of inventories."""
     def __init__(self, *inventory: Inventory) -> None:
@@ -127,13 +137,3 @@ class MorphemeGenerator(Generator):
     def __init__(self, *inventory: Inventory) -> None:
         super().__init__()
         self.inventory_list = inventory
-
-
-class Ruleset():
-    def __init__(self) -> None:
-        self._parent_generator = None
-
-    def execute(self):
-        """Executes the ruleset."""
-        if self._parent_generator == None:
-            raise ClCkControllerError("Ruleset cannot execute without parent generator")

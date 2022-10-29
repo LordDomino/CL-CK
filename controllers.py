@@ -2,7 +2,7 @@
 """
 
 import random
-from types import NoneType
+from errors import *
 from typing import Any
 from datatypes import *
 
@@ -127,3 +127,13 @@ class MorphemeGenerator(Generator):
     def __init__(self, *inventory: Inventory) -> None:
         super().__init__()
         self.inventory_list = inventory
+
+
+class Ruleset():
+    def __init__(self) -> None:
+        self._parent_generator = None
+
+    def execute(self):
+        """Executes the ruleset."""
+        if self._parent_generator == None:
+            raise ClCkControllerError("Ruleset cannot execute without parent generator")

@@ -55,6 +55,7 @@ ________________________________________________________________________________
 
 
 class UnapplicableType:...
+
 @dataclass
 class GrammaticalAttribute:
     str_val: str
@@ -221,7 +222,7 @@ class Number(GrammaticalAttribute):...
 
 
 """
-Here are the defaults classes (representations of the parts of speech) 
+Here are the default classes (representations of the parts of speech) 
 inheriting from :Category: class to serve as category identifiers of instances
 of the :Word: class.
 """

@@ -1,6 +1,7 @@
 """CL-CK controllers.
 """
 
+import re
 import random
 from errors import *
 from typing import Any
@@ -12,6 +13,7 @@ __all__ = [
     "Generator",
     "MorphemeGenerator",
 ]
+
 
 def random_generate(*inventory: Inventory) -> list[str]:
     """Randomly generates an element per Inventory from a set of given
@@ -35,35 +37,68 @@ class Ruleset:
 
 class Generator:
     """A generator object to generate from a given set of inventories."""
+
+    String_Label = str
+
     def __init__(self, *inventory: Inventory) -> None:
         self._inventory_list = inventory
         self._ruleset_list: list[Ruleset] = []
-        self._generated: list = None
+        self._generations: dict[list] = None
+        self._generation_index: int = 0
 
-    def generate(self) -> list:
-        """Generate a list from the set of given inventories. Returns a list of all the
-        generated outputs from different inventories."""
+    def generate(self, generation_label: str = None) -> dict:
+        """Generate a list from the set of given inventories. Returns a list of
+        all the generated outputs from different inventories. All generated
+        instances are stored and can be accessed via :method:`get_generation()`.
+        
+        - :param:`generation_label` -- string to label generation instance
 
-        if self._generated == None:
+        An element will be randomly chosen from each inventory and will be
+        returned in the list.
+        """
+
+        # Format generation label to only all caps and alphanumeric characters
+        if generation_label != None:
+            generation_label = generation_label.upper()
+            generation_label = re.sub(r'[^a-zA-Z0-9]', '_', generation_label)
+
+            labels = []
+
+            for key in self._generations.keys():
+                labels.append(key.partition("_generation")[0])
+
+            if generation_label in labels:
+                raise NameError(f"Label \'{generation_label}\' already exists in dictionary!")
+
+        generated_list = []
+        
+        if self._generations == None:
+            self._generations = {}
             for _inv in self._inventory_list:
-                self._generated.append(random.choices(_inv.elements, _inv.weights)[0])
+                generated_list.append(random.choices(_inv.elements, _inv.weights)[0])
         else:
-            for _rule in self._ruleset_list:
-                _rule.execute()
+            for _inv in self._inventory_list:
+                generated_list.append(random.choices(_inv.elements, _inv.weights)[0])
+        
+        if generation_label == None:
+            self._generations.update({f"_generation{self._generation_index:003}": generated_list})
+        else:
+            self._generations.update({f"{generation_label}_generation{self._generation_index:003}": generated_list})
+        self._generation_index += 1
 
-        return(self._generated)
+        return(self._generations)
     
     def fresh_generate(self) -> list:
-        """Generates a list from the set of given inventories. Returns a
-        list of all the generated outputs from different inventories."""
+        """Generates a list from the set of given inventories. Returns a list of
+        all the generated outputs from different inventories."""
 
     def add_ruleset(self, ruleset: Any, index: int = None) -> None:
         """Add the :class:`Ruleset` into the ruleset list of the current
         :class:`Generator` object.
 
-        - :class:`ruleset` -- a :class:`Ruleset` instance to be appended to the
+        - :param:`ruleset` -- a :class:`Ruleset` instance to be appended to the
             ruleset list.
-        - :class:`index` -- index to place the ruleset before or after.
+        - :param:`index` -- index to place the ruleset before or after.
 
         INDEXING
             The integer value to be passed is the index where :class:`ruleset`
@@ -99,7 +134,7 @@ class Generator:
         self._ruleset_list[index] = new_ruleset
 
     def add_inventory(self, inventory: Inventory, index: str = "+") -> None:
-        """Add :class:`Inventory` into the inventory list of the current
+        """Adds :class:`Inventory` into the inventory list of the current
         :class:`Generator` object.
 
         - :class:`inventory` -- an :class:`Inventory` instance to be appended to
@@ -132,6 +167,32 @@ class Generator:
             elif index/-1 == index:
                 self._inventory_list.insert(index, inventory)
 
+    def get_generation(self, index: String_Label | int, return_as_dict: bool = False) -> list | dict:
+        values = None
+        
+        if isinstance(index, str):
+            for gen_index in self._generations.keys():
+                label_parts = gen_index.partition("_generation")
+                if index == label_parts[0]:
+                    values = self._generations[gen_index]
+                    break
+
+        elif isinstance(index, int):
+            gen_index_int = f"_generation{index:003}"
+
+            for gen_index in self._generations.keys():
+                if gen_index_int in gen_index:
+                    values = self._generations[gen_index]
+                    break
+
+        if values == None:
+            raise KeyError(f"No label clue such as \"{index}\" found in dictionary!")
+
+        if return_as_dict is False:
+            return(values)
+        elif return_as_dict is True:
+            return({f"{gen_index}": values})
+
 
 class MorphemeGenerator(Generator):
     """Generates morphemes from a given set of inventories."""
@@ -140,6 +201,12 @@ class MorphemeGenerator(Generator):
 
 
 if __name__ == "__main__":
-    gen = Generator(Inventory(["fee"]), Inventory(["foo"]))
     gen2 = MorphemeGenerator(Inventory(["fee"]), Inventory(["foo"]))
-    print(gen2._inventory_list)
+    gen2.generate()
+    gen2.generate("First Gen")
+    gen2.generate("First en")
+    gen2.generate()
+    gen2.generate("First ")
+    gen2.generate("Firt")
+    gen2.generate("Firs")
+    print(gen2._generations)

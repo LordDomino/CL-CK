@@ -116,6 +116,7 @@ class Generator:
 
                 Ruleset :class:`bar` will be added after index :class:`5`
         """
+
         if index == None:
             if len(self._ruleset_list) == 0:
                 index = 0
@@ -168,6 +169,8 @@ class Generator:
                 self._inventory_list.insert(index, inventory)
 
     def get_generation(self, index: String_Label | int, return_as_dict: bool = False) -> list | dict:
+        """Returns either a list or dictionary of specified generation with the
+        label clue :param:`index`."""
         values = None
         
         if isinstance(index, str):
@@ -200,13 +203,4 @@ class MorphemeGenerator(Generator):
         super().__init__(*inventory)
 
 
-if __name__ == "__main__":
-    gen2 = MorphemeGenerator(Inventory(["fee"]), Inventory(["foo"]))
-    gen2.generate()
-    gen2.generate("First Gen")
-    gen2.generate("First en")
-    gen2.generate()
-    gen2.generate("First ")
-    gen2.generate("Firt")
-    gen2.generate("Firs")
-    print(gen2._generations)
+if __name__ == "__main__": ...

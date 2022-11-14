@@ -140,3 +140,4 @@ cl-ck/Scripts/python.exe
 cl-ck/Scripts/pythonw.exe
 _testing_ground.py
 .vscode/settings.json
+.vscode

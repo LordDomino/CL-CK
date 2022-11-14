@@ -51,10 +51,10 @@ class Generator:
         all the generated outputs from different inventories. All generated
         instances are stored and can be accessed via :method:`get_generation()`.
         
-        - :param:`generation_label` -- string to label generation instance
-
         An element will be randomly chosen from each inventory and will be
         returned in the list.
+
+        - :param:`generation_label` -- string to label generation instance
         """
 
         # Format generation label to only all caps and alphanumeric characters
@@ -72,6 +72,7 @@ class Generator:
 
         generated_list = []
         
+        # Generate morpheme
         if self._generations == None:
             self._generations = {}
             for _inv in self._inventory_list:
@@ -81,7 +82,7 @@ class Generator:
                 generated_list.append(random.choices(_inv.elements, _inv.weights)[0])
         
         if generation_label == None:
-            self._generations.update({f"_generation{self._generation_index:003}": generated_list})
+            self._generations.update({f"generation{self._generation_index:003}": generated_list})
         else:
             self._generations.update({f"{generation_label}_generation{self._generation_index:003}": generated_list})
         self._generation_index += 1
@@ -168,18 +169,21 @@ class Generator:
             elif index/-1 == index:
                 self._inventory_list.insert(index, inventory)
 
-    def get_generation(self, index: String_Label | int, return_as_dict: bool = False) -> list | dict:
+    def get_generations(self) -> dict:
+        """Returns a dictionary of all the generations."""
+        return(self._generations)
+
+    def get_generation_by_index(self, index: String_Label | int, return_as_dict: bool = False) -> list | dict:
         """Returns either a list or dictionary of specified generation with the
         label clue :param:`index`."""
         values = None
-        
+
         if isinstance(index, str):
             for gen_index in self._generations.keys():
                 label_parts = gen_index.partition("_generation")
                 if index == label_parts[0]:
                     values = self._generations[gen_index]
                     break
-
         elif isinstance(index, int):
             gen_index_int = f"_generation{index:003}"
 

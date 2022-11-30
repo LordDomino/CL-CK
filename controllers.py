@@ -38,8 +38,6 @@ class Ruleset:
 class Generator:
     """A generator object to generate from a given set of inventories."""
 
-    String_Label = str
-
     def __init__(self, *inventory: Inventory) -> None:
         self._inventory_list = inventory
         self._ruleset_list: list[Ruleset] = []
@@ -173,7 +171,7 @@ class Generator:
         """Returns a dictionary of all the generations."""
         return(self._generations)
 
-    def get_generation_by_index(self, index: String_Label | int, return_as_dict: bool = False) -> list | dict:
+    def get_generation_by_index(self, index: str | int, return_as_dict: bool = False) -> list | dict:
         """Returns either a list or dictionary of specified generation with the
         label clue :param:`index`."""
         values = None

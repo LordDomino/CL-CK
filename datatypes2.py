@@ -12,27 +12,29 @@ _prefixes_ = {
 }
 
 
+
 class Emic:
 	"""Base class for all emic units in CL-CK."""
 
 	# Class variables: statics
 	__emic_size: int = 0
+	__emic_elements: list["Emic"] = []
 
 	# Class variables: inheritables
-	_elements: list = []
+	_elements: list["Emic"] = []
 	_strs: list[str] = []
 	_size: int = 0
 	_cls_prefix = _prefixes_["Emic"]
 
 	# __repr__ configurations
 	_repr_id = True
-	_repr_type = True
+	_repr_type = False
 
-	def __init__(self, *objs: Any) -> None:
+	def __init__(self, str: str) -> None:
 		Emic.__emic_size += 1
-		Emic._elements.append(self)
+		Emic.__emic_elements.append(self)
 		self.__class__._elements = self.__class__._elements + [self]
-		self.__class__._strs = self.__class__._strs + [*objs]
+		self.__class__._strs = self.__class__._strs + [str]
 		self.__class__._size += 1
 
 		self._str = str
@@ -53,7 +55,7 @@ class Emic:
 
 	@classmethod
 	@property
-	def emics(cls) -> tuple:
+	def emics(cls) -> tuple["Emic"]:
 		"""All emic units of the same type."""
 		return tuple(cls._elements)
 
@@ -66,33 +68,62 @@ class Emic:
 		else:
 			return cls._size
 
+	@classmethod
+	@property
+	def strvals(cls) -> tuple[str]:
+		"""All the string values used for this type of Emic."""
+		return tuple(cls._strs)
+
 	def _is_duplicate(self, obj: Any, set: list | tuple) -> bool:
-		if str in set:
+		if obj in set:
 			return True
 		else:
 			return False
 
+	def _get_component_str(self) -> str:
+		return self._str
+
+	def print_clean(self) -> str:
+		return self._str
+
+
 
 class PrimaryEmic(Emic):
 	def __init__(self, str: str) -> None:
-		super().__init__(str)
-		if self._is_duplicate(str, self._strs):
+		if self._is_duplicate(str, self.__class__._strs):
 			raise ClCkDuplicateError(f"{self.__class__.__name__} \"{str}\" already exists! Use another str instead.")
-
-		self.__class__._elements = self.__class__._elements + [self]
-		self.__class__._strs = self.__class__._strs + [str]
-
-		self._str = str
-		self._emicval = None
-		self._id = self.__class__._size
+		super().__init__(str)
 
 
 
 class ConstructiveEmic(Emic):
-	def __init__(self, *objs: Any) -> None:
-		super().__init__(*objs)
-		self._components: list = [*objs]
 
+	_emicval_strsep: str = ""
+
+	def __init__(self, *objs: Any) -> None:
+		self._components: list[Emic] = [*objs]
+		pass_str = self.__class__._emicval_strsep.join(self._get_component_str())
+		super().__init__(pass_str)
+
+		self._emicval = f"{pass_str}"
+
+	def _get_component_str(self) -> list[str]:
+		return_list: list[str] = []
+		for c in self._components:
+			return_list.append(c._get_component_str())
+		
+		return return_list
+
+	def print_clean(self) -> str:
+		str_list: list[str] = []
+
+		for c in self._components:
+			str_list.append(c.print_clean())
+
+		return_str: str = "".join(str_list)
+
+		return return_str
+		
 
 
 class Grapheme(PrimaryEmic):
@@ -141,17 +172,11 @@ class Phoneme(PrimaryEmic):
 class Morpheme(ConstructiveEmic):
 
 	_cls_prefix = _prefixes_["Morpheme"]
+	_emicval_strsep = "."
 
 	def __init__(self, *phonemes: Phoneme) -> None:
+		self._components: list[Phoneme] = [*phonemes]
 		super().__init__(*phonemes)
-
-		emicval: str = ""
-		for ph in phonemes:
-			emicval += f"{ph._str}."
-
-		self._emicval = emicval
-
-
 
 
 
@@ -203,6 +228,9 @@ class Inventory:
 	def add(self, *args: list | str | Emic) -> None:
 		self._e += self._emicize(*self._collect_args(*args))
 
+	def __str__(self) -> str:
+		return f"<{self.__class__.__name__} {str(self.elements)}>"
+
 
 
 class PhonemeInventory(Inventory):
@@ -224,6 +252,7 @@ class GraphemeInventory(Inventory):
 		super().__init__(*args)
 		self._e: list[Grapheme] = []
 		self.add(*args)
+
 
 
 def bind(grapheme: Grapheme, *phonemes: Phoneme) -> list[Phoneme]:
@@ -248,6 +277,45 @@ def bind_pairs(graphemes: list[Grapheme] | tuple[Grapheme], *phonemes: list[Phon
 		return_list.append(ret_set)
 
 	return return_list
+
+
+def extract(emictype: Type[Emic]) -> list[Emic]:
+	return list(emictype.emics)
+
+
+def find(emictype: Type[Emic], str: str) -> Emic | None:
+	emics = emictype.emics
+	for e in emics:
+		if e._str == str:
+			return e
+	return None
+
+
+def Output(emics: list[Emic], quoted: bool = False, spaced: bool = True, stacked: bool = False) -> str:
+	r_str = ""
+	str_util_left = ""
+	str_util_right = ""
+
+	if quoted:
+		str_util_left += "\""
+		str_util_right += "\""
+	if spaced:
+		str_util_right += " "
+	if stacked:
+		str_util_right += "\n"
+
+	r_str = str_util_right + str_util_left
+	print_clean_strs: list[str] = []
+
+	for e in emics:
+		print_clean_strs.append(e.print_clean())
+
+	return_str = final = r_str.join(print_clean_strs)
+
+	if quoted:
+		return_str = "\"" + final + "\""
+
+	return return_str
 
 
 def randomizer(set: list | tuple, repeats: int = 1) -> list:

@@ -5,7 +5,9 @@ import re
 import random
 from errors import *
 from typing import Any
-from datatypes import *
+from datatypes2 import *
+
+
 
 __all__ = [
     "random_generate",
@@ -15,19 +17,20 @@ __all__ = [
 ]
 
 
-def random_generate(*inventory: Inventory) -> list[str]:
-    """Randomly generates an element per Inventory from a set of given
-    :class:`Inventory` instances.
+
+def random_generate(set: list | tuple, repeats: int = 1) -> list:
+	return random.choices(set, k=repeats)
+
+
+def random_from_inventory(inventory: Inventory, repeats: int = 1) -> list[str]:
+    """Randomly generates an element from an :class:`Inventory` class.
     """
-    _returnlist: list = []
-    for _i in inventory:
-        _returnlist.append(random.choices(_i, weights=_i.weights)[0])
-    return _returnlist
+    return random.choices(inventory.elements, k=repeats)[0]
 
 
 class Ruleset:
     def __init__(self) -> None:
-        self._parent_generator: Generator = None
+        self._parent_generator: Generator | None = None
 
     def execute(self):
         """Executes the ruleset."""

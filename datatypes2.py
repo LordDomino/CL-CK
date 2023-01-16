@@ -1,5 +1,5 @@
 import random
-from typing import Any, Iterable, Type
+from typing import Any, Type
 from errors import ClCkDuplicateError
 
 
@@ -20,7 +20,7 @@ class Emic:
 	__emic_size: int = 0
 	__emic_elements: list["Emic"] = []
 
-	# Class variables: inheritables
+	# Class variables: class inheritables
 	_elements: list["Emic"] = []
 	_strs: list[str] = []
 	_size: int = 0
@@ -83,8 +83,8 @@ class Emic:
 	def _get_component_str(self) -> str:
 		return self._str
 
-	def print_clean(self) -> str:
-		return self._str
+	def print_clean(self) -> None:
+		print(self._str)
 
 
 
@@ -114,7 +114,7 @@ class ConstructiveEmic(Emic):
 		
 		return return_list
 
-	def print_clean(self) -> str:
+	def print_clean(self) -> None:
 		str_list: list[str] = []
 
 		for c in self._components:
@@ -122,7 +122,7 @@ class ConstructiveEmic(Emic):
 
 		return_str: str = "".join(str_list)
 
-		return return_str
+		print(return_str + "\n")
 		
 
 
@@ -191,6 +191,9 @@ class Inventory:
 	def __init__(self, *args: list | str | Emic) -> None:
 		self._e: list = []
 
+	def __str__(self) -> str:
+		return f"<{self.__class__.__name__} {str(self.elements)}>"
+
 	@property
 	def elements(self) -> tuple:
 		"""Returns a tuple of all the elements of the inventory."""
@@ -228,8 +231,22 @@ class Inventory:
 	def add(self, *args: list | str | Emic) -> None:
 		self._e += self._emicize(*self._collect_args(*args))
 
-	def __str__(self) -> str:
-		return f"<{self.__class__.__name__} {str(self.elements)}>"
+	def print_clean(self) -> None:
+		printlist: list[str] = []
+		for e in self.elements:
+			if isinstance(e, Emic):
+				printlist.append(e._emicval)
+			else:
+				printlist.append(e)
+
+		print(printlist)
+
+
+
+
+class EmicGroup(Inventory):
+	def __init__(self, *args: list | str | Emic) -> None:
+		super().__init__(*args)
 
 
 
@@ -316,7 +333,3 @@ def Output(emics: list[Emic], quoted: bool = False, spaced: bool = True, stacked
 		return_str = "\"" + final + "\""
 
 	return return_str
-
-
-def randomizer(set: list | tuple, repeats: int = 1) -> list:
-	return random.choices(set, k=repeats)

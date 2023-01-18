@@ -245,7 +245,7 @@ class Inventory:
 
 
 class EmicGroup(Inventory):
-	def __init__(self, *args: list | str | Emic) -> None:
+	def __init__(self, *args: Emic) -> None:
 		super().__init__(*args)
 
 

@@ -1,5 +1,4 @@
 Pattern creation
 
-(((abc)yui)et)a
-
-(
+In pattern synthesis, parenthicals are of highest priority, followed by value
+multipliers, then selection separators.

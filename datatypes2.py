@@ -1,4 +1,6 @@
 import random
+import string
+import time
 from typing import Any, Type
 from errors import ClCkDuplicateError
 
@@ -6,7 +8,7 @@ from errors import ClCkDuplicateError
 
 _prefixes_ = {
 	"Emic": "dE",
-	"Phoneme": "PH",
+	"Phoneme":  "PH",
 	"Grapheme": "GH",
 	"Morpheme": "MH",
 }
@@ -30,16 +32,17 @@ class Emic:
 	_repr_id = True
 	_repr_type = False
 
-	def __init__(self, str: str) -> None:
+	def __init__(self, string: str, weight: int | float = 1) -> None:
 		Emic.__emic_size += 1
 		Emic.__emic_elements.append(self)
 		self.__class__._elements = self.__class__._elements + [self]
-		self.__class__._strs = self.__class__._strs + [str]
+		self.__class__._strs = self.__class__._strs + [string]
 		self.__class__._size += 1
 
-		self._str = str
-		self._emicval = None
+		self._str = string
+		self._emicval: str = ""
 		self._id = self.__class__._size
+		self._weight: int | float = weight
 
 	def __repr__(self) -> str:
 		repr_str = f"{self._cls_prefix}"
@@ -80,19 +83,24 @@ class Emic:
 		else:
 			return False
 
+	@property
+	def weight(self) -> int | float:
+		return self._weight
+
 	def _get_component_str(self) -> str:
 		return self._str
 
-	def print_clean(self) -> None:
+	def print_clean(self) -> str:
 		print(self._str)
+		return self._str
 
 
 
 class PrimaryEmic(Emic):
-	def __init__(self, str: str) -> None:
+	def __init__(self, str: str, weight: int | float = 1) -> None:
 		if self._is_duplicate(str, self.__class__._strs):
 			raise ClCkDuplicateError(f"{self.__class__.__name__} \"{str}\" already exists! Use another str instead.")
-		super().__init__(str)
+		super().__init__(str, weight)
 
 
 
@@ -155,8 +163,8 @@ class Phoneme(PrimaryEmic):
 	# _repr_id = False
 	# _repr_id = False
 
-	def __init__(self, str: str) -> None:
-		super().__init__(str)
+	def __init__(self, str: str, weight: int | float = 1) -> None:
+		super().__init__(str, weight)
 
 		self._emicval = f"/{str}/"
 		self._bound_grapheme: Grapheme | None = None
@@ -166,6 +174,7 @@ class Phoneme(PrimaryEmic):
 		"""Returns the grapheme bound to the current phoneme. Returns None if no 
 		grapheme is bound."""
 		return self._bound_grapheme
+
 
 
 
@@ -271,6 +280,83 @@ class GraphemeInventory(Inventory):
 		self.add(*args)
 
 
+
+class Pattern:
+	def __init__(self, patternstring: str, grouped: bool = False) -> None:
+		self._is_grouped: bool = grouped
+		self.patternstring: str = patternstring
+		self.fragments: list[Phoneme | Pattern] = []
+
+		self.syntaxize(self.patternstring)
+
+	def __repr__(self) -> str:
+		return f"PATTERN \"{self.patternstring}\""
+
+	def syntaxize(self, patternstring: str) -> None:
+		
+		SYN_OPENINGS: str = "[("
+		SYN_CLOSINGS: str = "])"
+		SYN_GROUPERS: str = SYN_OPENINGS + SYN_CLOSINGS
+		SYN_COMPARATORS: str = "|"
+
+		specimen: str = patternstring
+		unit: str = ""
+		nest: int = 0
+		is_nested: bool = False
+		is_single: bool = True
+		is_adding: bool = True
+
+		if self._is_grouped:
+			specimen = specimen[1:-1]
+
+		for i, c in enumerate(specimen):
+			if c in SYN_GROUPERS:
+				if c in SYN_OPENINGS:
+					if specimen[i] == specimen[-1]: # Check if opening is at the end
+						raise IndexError("Cannot have opening nest at the end!")
+					elif specimen[i + 1] in SYN_CLOSINGS: # Check if group is empty
+						raise IndexError("Cannot have empty groupings!")
+					
+					# If opening character succeeds error tests, then add it to the character
+					if nest == 0 and unit != "": # Ensures that unit is saved before nesting
+						if is_single: # Check if pattern is a sole string of alphabets,
+							self.fragments.append(Phoneme(unit))
+						else: # otherwise, append it as a another pattern
+							self.fragments.append(Pattern(unit))
+						unit = ""
+					nest += 1
+					unit += c
+					print(unit)
+				elif c in SYN_CLOSINGS:
+					nest -= 1
+					unit += c
+					print(unit)
+					if nest == 0 and unit != "":
+						self.fragments.append(Pattern(unit, True))
+						unit = ""
+			elif c in SYN_COMPARATORS:
+				unit += c
+				is_single = False
+				print(unit)
+			elif c in list(string.ascii_letters):
+				unit += c
+				print(unit)
+
+				# Check if next character is a comparator only in topmost level
+				if nest == 0 and unit != "":
+					if specimen[i + 1] in SYN_COMPARATORS:
+						pass
+			
+			if nest == 0 and unit != "":
+				if specimen[i + 1] in SYN_COMPARATORS:
+					pass
+
+		
+		if unit != "":
+			if is_single:
+				self.fragments.append(Phoneme(unit))
+			else:
+				self.fragments.append(Pattern(unit))
 
 def bind(grapheme: Grapheme, *phonemes: Phoneme) -> list[Phoneme]:
 	"""Binds one or more phonemes to a grapheme, then returns all the bound

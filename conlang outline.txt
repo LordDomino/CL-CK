@@ -1,5 +1,5 @@
-Prompts:
-- Alphabetic inventory (i.e. consonants vs vowels)
-- Raw strings comprise an alphabetic inventory
+Pattern creation
 
-a. From the alphabetic inventory, a list of phonemes can be derived and stored as another set (another inventory) which is now called a Phonological inventory.
+(((abc)yui)et)a
+
+(

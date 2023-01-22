@@ -286,21 +286,24 @@ class Pattern:
 	SYN_OPENINGS: str = "([{"
 	SYN_CLOSINGS: str = ")]}"
 	SYN_GROUPERS: str = SYN_OPENINGS + SYN_CLOSINGS
-	SYN_COMPARATORS: str = "|"
-	SYN_OPERATORS: str = SYN_COMPARATORS + SYN_GROUPERS
+	SYN_SPLITTERS: str = "|"
+	SYN_OPERATORS: str = SYN_SPLITTERS + SYN_GROUPERS
 	VALIDS: str = SYN_OPERATORS + string.ascii_letters
 
-	def __init__(self, patternstring: str, chance: str = "always", singular: bool = True, grouped: bool = False) -> None:
-		self._is_singular: bool = singular
+	def __init__(self, pattern_string: str, chance: str = "A", split: bool = False, grouped: bool = False, top: bool = True) -> None:
+		self._is_split: bool = split
 		self._is_grouped: bool = grouped
-		self.patternstring: str = patternstring
-		self.chance: str = chance
-		self.fragments: list[Phoneme | Pattern] = []
+		self._is_top: bool = top
+		self._phonemes: list[Phoneme] = []
+		self._fragments: list[Phoneme | Pattern] = []
 
-		self.syntaxize(self.patternstring)
+		self.pattern_string: str = pattern_string
+		self.chance: str = chance
+
+		self.syntaxize(self.pattern_string)
 
 	def __repr__(self) -> str:
-		return f"PATTERN \"{self.patternstring}\""
+		return f"PATTERN \"{self.pattern_string}\""
 
 	def validate_match(self, openers: str, closers: str) -> bool:
 		if len(openers) != len(closers):
@@ -320,105 +323,91 @@ class Pattern:
 			return True
 
 
+	def syntaxize(self, pattern_string: str) -> None:
 
-	def syntaxize(self, patternstring: str) -> None:
-
-		specimen: str = patternstring
+		specimen: str = pattern_string
 		unit: str = ""
 		nest: int = 0
-		is_end: bool = False
+		split: int = -1
 
-		# Refine specimen
-		if self._is_grouped or f"{self.patternstring[0]}{self.patternstring[-1]}" in ("()", "[]", "{}"):
+		# Refine specimen by checking if the pattern is grouped
+		spec_ends: str = f"{self.pattern_string[0]}{self.pattern_string[-1]}"
+
+		if self._is_grouped or spec_ends in ("()", "[]", "{}"):
 			self._is_grouped = True
-			specimen = specimen[1:-1]
+
+			if self._is_top is False:
+				specimen = specimen[1:-1]
 			
-			if f"{self.patternstring[0]}{self.patternstring[-1]}" == "()":
-				self.chance = "always"
-			elif f"{self.patternstring[0]}{self.patternstring[-1]}" == "[]":
-				self.chance = "random"
+			if f"{self.pattern_string[0]}{self.pattern_string[-1]}" == "()":
+				self.chance = "A"
+			elif f"{self.pattern_string[0]}{self.pattern_string[-1]}" == "[]":
+				self.chance = "R"
 
-		test_nest: int = 0
-		test_comp: int = -1
-		test_split_count: int = 0
-		test_nest_open: str = ""
-		test_nest_close: str = ""
+		# Search for top-level operations
+		_fragments: list = []
 
-		# Get operator indicators
 		for c in specimen:
-			# If parenthicals open, add 1, while if parenthicals close, add -1.
-			if c in Pattern.SYN_OPENINGS:
-				test_nest += 1
-				test_nest_open += c
-			elif c in Pattern.SYN_CLOSINGS:
-				test_nest -= 1
-				test_nest_close += c
-			
-			# If comparator is between parenthicals, multiply -1,
-			# while if comparator is outside parenthicals, multiply 1.
-			elif c in Pattern.SYN_COMPARATORS and test_nest == 0:
-				test_split_count += 1
-				test_comp *= -1
-			elif c in Pattern.SYN_COMPARATORS and test_nest > 0:
-				test_split_count += 1
-				test_comp *= 1
-			elif c in Pattern.VALIDS: pass
-			else:
-				raise ValueError(f"Unknown symbol \"{c}\"")
+			if c in Pattern.VALIDS:
+				if c in Pattern.SYN_OPENINGS:
+					nest += 1
+				elif c in Pattern.SYN_CLOSINGS:
+					nest -= 1
+				
+				if c in Pattern.SYN_SPLITTERS and nest > 0:
+					split *= 1
+				elif c in Pattern.SYN_SPLITTERS and nest == 0:
+					split *= -1
+
+		for c in specimen:
+			if c in Pattern.VALIDS:
+				unit += c
+
+				if c in Pattern.SYN_SPLITTERS:
+					self._is_split = True
+
+					if nest == 0:
+						_fragments.append(unit[0:-1])
+						unit = ""
+
+				elif c in Pattern.SYN_OPENINGS:
+					self._is_grouped = True
+
+					nest += 1
+					if split != 1 and nest == 0:
+						_fragments.append(unit[0:-1])
+						unit = ""
+
+				elif c in Pattern.SYN_CLOSINGS:
+					nest -= 1
+					if split != 1 and nest == 0:
+						_fragments.append(unit)
+						unit = ""
 		
-		# Determine which operator to expect first.
-		expectant: str = ""
-
-		if test_comp > 0:
-			expectant = Pattern.SYN_COMPARATORS
-		elif test_comp < 0:
-			expectant = Pattern.SYN_OPENINGS
-
-		# Check if parenthicals pair correctly.
-		# This is done by checking if the nest value is equal to zero.
-		if nest == 0 and self.validate_match(test_nest_open, test_nest_close) is False:
-			raise ValueError("String pattern has mismatching parenthicals!")
-
-		# Check singularity of the string
-		for c in specimen:
-			if c in Pattern.SYN_OPERATORS:
-				self._is_singular = False
-
-		if self._is_singular:
-			self.fragments.append(Phoneme(specimen))
-		else:
-			for i, c in enumerate(specimen):
-				if i == len(specimen) - 1: is_end = True
-
-				# If the current character is the expected top-level operation,
-				# then wrap unit string as a Pattern,
-				if c in expectant and expectant in Pattern.SYN_GROUPERS:
-					self.fragments.append(Pattern(unit))
-					unit = ""
-				elif c in expectant and expectant in Pattern.SYN_COMPARATORS:
-					self.fragments.append(Pattern(unit, chance="random"))
-
-				# otherwise, still add the character as long as it is valid.
-				elif c in Pattern.VALIDS:
-					unit += c
-
-				# Check if character is at the end of the string.
-				if is_end is False:
-					# If the next character begins a top-level nest,
-					# then enclose the unit as a Pattern.
-					if specimen[i + 1] in Pattern.SYN_OPENINGS and nest == 0:
-						self.fragments.append(Pattern(unit))
-						unit = ""
-					
-					# If the next character begins a comparator,
-					# then enclose the unit as a Pattern.
-					elif specimen[i + 1] in Pattern.SYN_COMPARATORS and nest == 0:
-						self.fragments.append(Pattern(unit, chance="random"))
-						unit = ""
-
+		if unit != "":
+			if self._is_split:
+				_fragments.append(unit)
+			else:
+				if self._is_grouped:
+					_fragments.append(unit)
 				else:
-					self.fragments.append(Pattern(unit, singular=True))
-					unit = ""
+					self._fragments.append(Phoneme(unit))
+
+		for unit in _fragments:
+			_is_protophoneme: bool = True
+			if self._is_split:
+				_chance: str = "R"
+			else:
+				_chance: str = "A"
+			
+			for c in unit:
+				if c in Pattern.SYN_OPERATORS:
+					_is_protophoneme = False
+					self._fragments.append(Pattern(unit, chance=_chance, top=False))
+					break
+
+			if _is_protophoneme:
+				self._fragments.append(Pattern(unit, chance=_chance, top=False))
 
 
 def bind(grapheme: Grapheme, *phonemes: Phoneme) -> list[Phoneme]:

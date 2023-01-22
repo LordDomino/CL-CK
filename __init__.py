@@ -1,1 +1,1 @@
-from datatypes2 import PhonemeInventory
+from emics import PhonemeInventory

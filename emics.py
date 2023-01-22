@@ -300,12 +300,12 @@ class Pattern:
 		self.pattern_string: str = pattern_string
 		self.chance: str = chance
 
-		self.syntaxize(self.pattern_string)
+		self._syntaxize(self.pattern_string)
 
 	def __repr__(self) -> str:
 		return f"PATTERN \"{self.pattern_string}\""
 
-	def validate_match(self, openers: str, closers: str) -> bool:
+	def _validate_match(self, openers: str, closers: str) -> bool:
 		if len(openers) != len(closers):
 			return False
 
@@ -323,7 +323,7 @@ class Pattern:
 			return True
 
 
-	def syntaxize(self, pattern_string: str) -> None:
+	def _syntaxize(self, pattern_string: str) -> None:
 
 		specimen: str = pattern_string
 		unit: str = ""

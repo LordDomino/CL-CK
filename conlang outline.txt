@@ -2,3 +2,8 @@ Pattern creation
 
 In pattern synthesis, parenthicals are of highest priority, followed by value
 multipliers, then selection separators.
+
+
+(()()) -> grouped
+()()	 -> not grouped
+()		 -> 

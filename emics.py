@@ -1,6 +1,4 @@
-import random
 import string
-import difflib
 from typing import Any, Type
 from errors import ClCkDuplicateError
 
@@ -18,33 +16,44 @@ _prefixes_ = {
 class Emic:
 	"""Base class for all emic units in CL-CK."""
 
-	# Class variables: statics
-	__emic_size: int = 0
+	# >>> STATIC CLASS VARIABLES
+	# These variables are uninheritable and shouldn't be overriden.
 	__emic_elements: list["Emic"] = []
 
-	# Class variables: class inheritables
-	_elements: list["Emic"] = []
-	_strs: list[str] = []
-	_size: int = 0
-	_cls_prefix = _prefixes_["Emic"]
+	# >>> NONSTATIC CLASS VARIABLES
+	# These are variables that are inherited when extending this Emic class for 
+	# different children classes.
+	_elements: list["Emic"] = [] # set of all unique Emic units
+	_strs: list[str] = [] # set of all unique strings used during instantiations
+	_cls_prefix = _prefixes_["Emic"] # This variable must be overriden in the child class
 
-	# __repr__ configurations
-	_repr_id = True
-	_repr_type = False
+	# >>> __repr__ METHOD CONFIGURATIONS
+	# These are default variables for the default representation of the class.
+	_repr_id = True # If set to True, the emic unit's ID value is shown.
+	_repr_type = False # If set to True, the emic unit's parent class is shown.
+		# This also shows if the object is an Emic.
 
 	def __init__(self, string: str, weight: int | float = 1) -> None:
-		Emic.__emic_size += 1
+
+		# During instantiation, the emic object is appended to a base list of all
+		# emics.
 		Emic.__emic_elements.append(self)
+
+		# The instance of some Emic type will be appended to a class-list of all its
+		# emics, a different list from the base-list of elements
 		self.__class__._elements = self.__class__._elements + [self]
 		self.__class__._strs = self.__class__._strs + [string]
-		self.__class__._size += 1
 
-		self._str = string
+		self._str: str = string
 		self._emicval: str = ""
-		self._id = self.__class__._size
+		self._id: int = len(self.__class__._elements)
 		self._weight: int | float = weight
 
 	def __repr__(self) -> str:
+		"""Sets the representation string of the entire class.
+		
+		This also defaults other __repr__ methods inherited by children classes."""
+		
 		repr_str = f"{self._cls_prefix}"
 
 		if self._repr_id:
@@ -67,21 +76,15 @@ class Emic:
 	def size(cls) -> int:
 		"""The number of emic units already registered of the same type."""
 		if cls == Emic:
-			return cls.__emic_size
+			return len(cls.__emic_elements)
 		else:
-			return cls._size
+			return len(cls._elements)
 
 	@classmethod
 	@property
 	def strvals(cls) -> tuple[str]:
 		"""All the string values used for this type of Emic."""
 		return tuple(cls._strs)
-
-	def _is_duplicate(self, obj: Any, set: list | tuple) -> bool:
-		if obj in set:
-			return True
-		else:
-			return False
 
 	@property
 	def weight(self) -> int | float:
@@ -90,13 +93,27 @@ class Emic:
 	def _get_component_str(self) -> str:
 		return self._str
 
-	def print_clean(self) -> str:
-		print(self._str)
+	def _is_duplicate(self, obj: Any, set: list | tuple) -> bool:
+		"""Checks if given object already exists in the given set of objects."""
+		if obj in set:
+			return True
+		else:
+			return False
+
+	def get_clean_str(self) -> str:
+		"""Returns this emic's clean string value which has been used during
+		instantiation."""
 		return self._str
 
 
 
 class PrimaryEmic(Emic):
+	"""A PrimaryEmic is an emic object which are building block foundations in the
+	emic system of CL-CK.
+	
+	These emics do not contain other emics within them, and they
+	are containable only be ConstructiveEmics."""
+
 	def __init__(self, str: str, weight: int | float = 1) -> None:
 		if self._is_duplicate(str, self.__class__._strs):
 			raise ClCkDuplicateError(f"{self.__class__.__name__} \"{str}\" already exists! Use another str instead.")
@@ -105,6 +122,8 @@ class PrimaryEmic(Emic):
 
 
 class ConstructiveEmic(Emic):
+	"""A ConstructiveEmic is an emic object allowing encapsulation or containment
+	of primary emics or other constructive emics."""
 
 	_emicval_strsep: str = ""
 
@@ -116,17 +135,18 @@ class ConstructiveEmic(Emic):
 		self._emicval = f"{pass_str}"
 
 	def _get_component_str(self) -> list[str]:
+		"""Returns a list of this emic's children component strings."""
 		return_list: list[str] = []
 		for c in self._components:
 			return_list.append(c._get_component_str())
 		
 		return return_list
 
-	def print_clean(self) -> None:
+	def get_clean_str(self) -> None:
 		str_list: list[str] = []
 
 		for c in self._components:
-			str_list.append(c.print_clean())
+			str_list.append(c.get_clean_str())
 
 		return_str: str = "".join(str_list)
 
@@ -153,8 +173,8 @@ class Grapheme(PrimaryEmic):
 class Phoneme(PrimaryEmic):
 	"""Class for a single phoneme unit.
 	
-	A phoneme is a representation of sound. In CL-CK, it is expressed as a
-	string."""
+	A phoneme is a representation of sound. In CL-CK, it is expressed as a string.
+	"""
 
 	# Class variables
 	_cls_prefix = _prefixes_["Phoneme"]
@@ -171,15 +191,15 @@ class Phoneme(PrimaryEmic):
 
 	@property
 	def bound_grapheme(self) -> Grapheme | None:
-		"""Returns the grapheme bound to the current phoneme. Returns None if no 
-		grapheme is bound."""
+		"""Grapheme bound to the current phoneme. Returns None if no grapheme is
+		bound."""
 		return self._bound_grapheme
-
 
 
 
 class Morpheme(ConstructiveEmic):
 
+	# Class variables
 	_cls_prefix = _prefixes_["Morpheme"]
 	_emicval_strsep = "."
 
@@ -198,7 +218,7 @@ class Inventory:
 	_emicize_type: Type[Emic] | None = None
 
 	def __init__(self, *args: list | str | Emic) -> None:
-		self._e: list = []
+		self._e: list = [*args]
 
 	def __str__(self) -> str:
 		return f"<{self.__class__.__name__} {str(self.elements)}>"
@@ -263,10 +283,16 @@ class PhonemeInventory(Inventory):
 
 	_emicize_type = Phoneme
 
-	def __init__(self, *args: list | str | Emic) -> None:
-		super().__init__(*args)
+	def __init__(self, *args: "list | str | Phoneme | Pattern") -> None:
+		pass_list: list[list | str | Phoneme] = []
+		
+		for e in args:
+			if isinstance(e, Pattern):
+				pass_list.extend(e.phonemes)
+
+		super().__init__(*pass_list)
 		self._e: list[Phoneme] = []
-		self.add(*args)
+		self.add(*pass_list)
 
 
 
@@ -282,28 +308,47 @@ class GraphemeInventory(Inventory):
 
 
 class Pattern:
+	"""Class for all CL-CK patterns.
+	
+	A pattern is a sequence of phonemes and values ordered in the correct syntax,
+	indicating how a morpheme could be formed."""
 
 	SYN_OPENINGS: str = "([{"
 	SYN_CLOSINGS: str = ")]}"
 	SYN_GROUPERS: str = SYN_OPENINGS + SYN_CLOSINGS
 	SYN_SPLITTERS: str = "|"
-	SYN_OPERATORS: str = SYN_SPLITTERS + SYN_GROUPERS
-	VALIDS: str = SYN_OPERATORS + string.ascii_letters
+	SYN_SEPARATOR: str = "."
+	SYN_OPERATORS: str = "+-"
+	SYN_OTHERS: str = "\\"
+	SYN_SYMBOLS: str = SYN_SPLITTERS + SYN_GROUPERS + SYN_OPERATORS + SYN_OTHERS + SYN_SEPARATOR
+	VALIDS: str = SYN_SYMBOLS + string.ascii_letters
 
-	def __init__(self, pattern_string: str, chance: str = "A", split: bool = False, grouped: bool = False, top: bool = True) -> None:
+	def __init__(self, pattern_string: str, chance: str = "A", split: bool = False,
+	grouped: bool = False, top: bool = True) -> None:
 		self._is_split: bool = split
 		self._is_grouped: bool = grouped
 		self._is_top: bool = top
-		self._phonemes: list[Phoneme] = []
 		self._fragments: list[Phoneme | Pattern] = []
 
+		self.phonemes: list[Phoneme] = []
 		self.pattern_string: str = pattern_string
 		self.chance: str = chance
 
 		self._syntaxize(self.pattern_string)
+		self.phonemes = self._extract_phonemes()
 
 	def __repr__(self) -> str:
 		return f"PATTERN \"{self.pattern_string}\""
+
+	def _extract_phonemes(self) -> list[Phoneme]:
+		return_list: list[Phoneme] = []
+		for _f in self._fragments:
+			if isinstance(_f, Pattern):
+				return_list.extend(_f._extract_phonemes())
+			elif isinstance(_f, Phoneme):
+				return_list.append(_f)
+
+		return return_list
 
 	def _validate_match(self, openers: str, closers: str) -> bool:
 		if len(openers) != len(closers):
@@ -333,16 +378,36 @@ class Pattern:
 		# Refine specimen by checking if the pattern is grouped
 		spec_ends: str = f"{self.pattern_string[0]}{self.pattern_string[-1]}"
 
+		# Checks if the pattern is 
 		if self._is_grouped or spec_ends in ("()", "[]", "{}"):
-			self._is_grouped = True
+			_ind = 0
+			_n = 0
+			for _i, c in enumerate(specimen):
+				if c in Pattern.VALIDS:
+					if c in Pattern.SYN_OPENINGS:
+						_n += 1
+					elif c in Pattern.SYN_CLOSINGS:
+						_n -= 1
+					
+					if _n == 0:
+						_ind = _i
+						break
 
-			if self._is_top is False:
-				specimen = specimen[1:-1]
-			
-			if f"{self.pattern_string[0]}{self.pattern_string[-1]}" == "()":
-				self.chance = "A"
-			elif f"{self.pattern_string[0]}{self.pattern_string[-1]}" == "[]":
-				self.chance = "R"
+			if _ind == len(specimen) - 1:
+				self._is_grouped = True
+
+				if self._is_top is False:
+					specimen = specimen[1:-1]
+				
+				if f"{self.pattern_string[0]}{self.pattern_string[-1]}" == "()":
+					self.chance = "A"
+				elif f"{self.pattern_string[0]}{self.pattern_string[-1]}" == "[]":
+					self.chance = "R"
+
+		for p in Pattern.SYN_GROUPERS:
+			if p in specimen:
+				nest = 0
+				break
 
 		# Search for top-level operations
 		_fragments: list = []
@@ -356,32 +421,41 @@ class Pattern:
 				
 				if c in Pattern.SYN_SPLITTERS and nest > 0:
 					split *= 1
-				elif c in Pattern.SYN_SPLITTERS and nest == 0:
+				elif c in Pattern.SYN_SPLITTERS and nest == 0 and split < 0:
 					split *= -1
+			
+			else:
+				raise ValueError(f"Unknown symbol \"{c}\"")	
 
 		for c in specimen:
 			if c in Pattern.VALIDS:
 				unit += c
 
-				if c in Pattern.SYN_SPLITTERS:
+				if c in Pattern.SYN_SPLITTERS + ".":
 					self._is_split = True
 
-					if nest == 0:
+					if nest == 0 and unit != "":
 						_fragments.append(unit[0:-1])
 						unit = ""
 
 				elif c in Pattern.SYN_OPENINGS:
 					self._is_grouped = True
 
-					nest += 1
 					if split != 1 and nest == 0:
-						_fragments.append(unit[0:-1])
-						unit = ""
+						if unit[0:-1] != "":
+							_fragments.append(unit[0:-1])
+						unit = unit[-1]
+					nest += 1
 
 				elif c in Pattern.SYN_CLOSINGS:
 					nest -= 1
 					if split != 1 and nest == 0:
 						_fragments.append(unit)
+						unit = ""
+				
+				elif c in Pattern.SYN_SEPARATOR:
+					if nest == 0 and unit != "":
+						_fragments.append(unit[0:-1])
 						unit = ""
 		
 		if unit != "":
@@ -401,7 +475,7 @@ class Pattern:
 				_chance: str = "A"
 			
 			for c in unit:
-				if c in Pattern.SYN_OPERATORS:
+				if c in Pattern.SYN_SYMBOLS:
 					_is_protophoneme = False
 					self._fragments.append(Pattern(unit, chance=_chance, top=False))
 					break
@@ -463,7 +537,7 @@ def Output(emics: list[Emic], quoted: bool = False, spaced: bool = True, stacked
 	print_clean_strs: list[str] = []
 
 	for e in emics:
-		print_clean_strs.append(e.print_clean())
+		print_clean_strs.append(e.get_clean_str())
 
 	return_str = final = r_str.join(print_clean_strs)
 

@@ -1,1 +1,3 @@
-from emics import PhonemeInventory
+from emics import *
+from pattern import *
+from inventory import *

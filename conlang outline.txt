@@ -1,9 +1,114 @@
-Pattern creation
+PATTERN IDENTIFICATION
 
-In pattern synthesis, parenthicals are of highest priority, followed by value
-multipliers, then selection separators.
+Sample pattern:
+	a|(e|i)|(o.u)
 
 
-(()()) -> grouped
-()()	 -> not grouped
-()		 -> 
+===== PSUEDO ALGORITHM =========================================================
+
+1. ENCLOSURE IDENTIFICATION
+Identify if entire pattern is ENCLOSED. Enclosed patterns are patterns
+surrounded by GROUPERS. If the pattern is enclosed, set the boolean flag
+IS_ENCLOSED to TRUE.
+
+	a|(e|i)|(o.u)			--> pattern is NOT ENCLOSED
+
+
+2. TOOPER IDENTIFICATION
+Identify which TOP-ORDER OPERATION (tooper) is dominant. The SELECTOR operator
+is only dominant when it is NOT ENCLOSED by groupings.
+
+	a|(e|i)|(o.u)			--> top-order operation is SELECTION
+
+Consequentially, when the tooper is SELECTION, set boolean flag IS_SELECT to
+TRUE.
+
+
+3. PATTERN FRAGMENTATION
+Pattern fragmentation occurs by dividing the pattern into FRAGMENTS, determined
+by the dominant tooper. If the flag IS_SELECT is true, the pattern is fragmented
+by SELECTOR symbols. Else if the flag IS_SELECT is false and IS_GROUPED is true,
+the pattern is fragmented by the subpatterns based on the groupings.
+
+	a|(e|i)|(o.u)			--> tooper is SELECTION, thus fragmentation is
+												selector-sensitive
+	
+Fragmentation shall look like below:
+
+	a									--> fragment 1
+	(e|i)							--> fragment 2
+	(o.u)							--> fragment 3
+
+Fragmentation samples:
+
+	a									--> a
+	a(e)							--> a,  (e)
+	a.e								--> a,  e
+	(a.e)							--> (a.e)
+	(a|e)							-->	(a|e)
+	a|e								--> a,  e
+	a(e)i							--> a,  (e),  i
+	a.e(i)						--> a,  e(i)
+	a.e.(i)						--> a,  e,  (i)
+	ae(i)							--> ae,  (i)
+	ae(i)|ou					--> ae(i),  ou
+	a.e|(i(ou))				--> a.e,  (i(ou))
+
+
+Comprehensive fragmentation process during fragmentation:
+
+3.1. VALIDITY CHECK -- Check if all characters are valid. Perform this through
+a basic loop that checks if the character is in a string of the valid
+characters.
+
+3.2. COLLECTION LOOP -- Loop through the characters of the pattern string. Check
+if the character belongs to one of the following:
+
+	a) ALPHABET LETTERS -- If so, add the character to a temporary fragment
+		collector.
+
+	b) SELECTOR -- If IS_SELECT is true, then only proceed to the subprocesses:
+
+			--> Is it currently nesting? If yes, add the character to the collector.
+					If no, append the collected unit, ONLY IF the unit is not empty, to
+					the list of fragments, then clear the collector.
+
+		Otherwise, append the collected units, ONLY IF the unit is not empty, to the
+		list of fragments, then clear the collector.
+
+		Examples:
+			a|e|i|o|u				--> 		a,  e,  i,  o,  u
+			IS_SELECT is true.
+
+			(a|e|i|o|u)			--> 		(a|e|i|o|u)
+			IS_SELECT is true.
+
+			(a|e)|i|(o|u)		--> 		(a|e),  i,  (o|u)
+			IS_SELECT is true.
+	
+	c) OPENING GROUPERS -- If it is currently nesting or IS_SELECT is true, add
+		the character to the collector, otherwise, the nesting is just about to
+		start, thus append the collected unit, ONLY IF the unit is not empty, to the
+		list of fragments, then clear the collector. Increment nesting index by 1.
+
+		Examples:
+			(a)(e)(i)(o)(u)		-->			(a),  (e),  (i),  (o),  (u)
+			(a)(e)|(i)(o(u))	-->			(a)(e),  (i)(o(u))
+	
+	d) CLOSING GROUPERS -- Decrement nesting index by 1. If it is currently
+		nesting or IS_SELECT is true, add the character to the collector, otherwise,
+		the nesting has just completed, thus append the collected unit, ONLY IF the
+		unit is not empty, to	the list of fragments, then clear the collector.
+	
+		Examples:
+			((a)ei)ou				-->			((a)ei),  ou
+
+	e) COMBINERS -- If it is currently nesting or IS_SELECT is true, add the
+		character to the collector. If false, then append the collected unit, ONLY
+		IF the unit is not empty, to the list of fragments, then clear the
+		collector.
+
+		Examples:
+			a + e(i(o|u))		-->			a,  e(i(o|u))
+
+4. 

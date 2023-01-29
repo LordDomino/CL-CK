@@ -1,5 +1,6 @@
-import string
-from typing import Any, Type
+import re
+import random
+from typing import Any, Type, Literal
 from errors import ClCkDuplicateError
 
 
@@ -178,12 +179,14 @@ class Phoneme(PrimaryEmic):
 
 	# Class variables
 	_cls_prefix = _prefixes_["Phoneme"]
+	_elements: list["Phoneme"] = []
 
 	# __repr__ configurations
 	# _repr_id = False
 	# _repr_id = False
 
 	def __init__(self, str: str, weight: int | float = 1) -> None:
+		str = re.sub(re.compile(r'\s+'), '', str)
 		super().__init__(str, weight)
 
 		self._emicval = f"/{str}/"
@@ -272,7 +275,6 @@ class Inventory:
 
 
 
-
 class EmicGroup(Inventory):
 	def __init__(self, *args: Emic) -> None:
 		super().__init__(*args)
@@ -313,32 +315,228 @@ class Pattern:
 	A pattern is a sequence of phonemes and values ordered in the correct syntax,
 	indicating how a morpheme could be formed."""
 
-	SYN_OPENINGS: str = "([{"
-	SYN_CLOSINGS: str = ")]}"
-	SYN_GROUPERS: str = SYN_OPENINGS + SYN_CLOSINGS
-	SYN_SPLITTERS: str = "|"
-	SYN_SEPARATOR: str = "."
-	SYN_OPERATORS: str = "+-"
-	SYN_OTHERS: str = "\\"
-	SYN_SYMBOLS: str = SYN_SPLITTERS + SYN_GROUPERS + SYN_OPERATORS + SYN_OTHERS + SYN_SEPARATOR
-	VALIDS: str = SYN_SYMBOLS + string.ascii_letters
+	# Syntax constants defining valid characters in Pattern syntax
 
-	def __init__(self, pattern_string: str, chance: str = "A", split: bool = False,
-	grouped: bool = False, top: bool = True) -> None:
-		self._is_split: bool = split
-		self._is_grouped: bool = grouped
-		self._is_top: bool = top
+	# Alphabet letters
+	SYNTAX_UPPERCASE: str = "abcdefghijklmnopqrstuvwxyz"
+	SYNTAX_LOWERCASE: str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	SYNTAX_LETTERS: str = SYNTAX_UPPERCASE + SYNTAX_LOWERCASE
+
+	# Whitespaces
+	SYNTAX_WHITESPACE: str = " \t\v\n\r\f"
+
+	# Parenthicals
+	SYNTAX_OPENINGS: str = "([{"
+	SYNTAX_CLOSINGS: str = ")]}"
+	SYNTAX_GROUPERS: str = SYNTAX_OPENINGS + SYNTAX_CLOSINGS
+
+	# Selector
+	SYNTAX_SELECTOR: str = "|"
+
+	# Separator/splitter
+	SYNTAX_SEPARATOR: str = "."
+
+	# Combiner and dropper
+	SYNTAX_OPERATORS: str = "+-"
+
+	# Other miscellaneous symbols for future use
+	SYNTAX_OTHERS: str = "\\"
+
+	# All pattern symbols
+	SYNTAX_SYMBOLS: str = SYNTAX_GROUPERS + SYNTAX_SELECTOR + SYNTAX_SEPARATOR + SYNTAX_OPERATORS + SYNTAX_OTHERS
+
+	# All valid characters
+	SYNTAX_VALIDS: str = SYNTAX_SYMBOLS + SYNTAX_LETTERS + SYNTAX_WHITESPACE
+
+	def __init__(self, pattern_string: str, _is_enclosed: bool = False,
+	_is_partitioned: bool = False, _is_protophoneme: bool = True,
+	_is_main_pattern: bool = True, _generation_chance: Literal["A", "R", "S"] = "A") -> None:
+		
+		# Default pattern properties
+		self._is_enclosed: bool = _is_enclosed # determines whether or not the pattern is enclosed by any grouping pair
+		self._is_partitioned: bool = _is_partitioned # determines whether or not the pattern is partitioned by selector operations
+		self._is_protophoneme: bool = _is_protophoneme # determines whether or not the pattern is purely alphabetic, thus, ready to be converted to a phoneme
+		self._is_main_pattern: bool = _is_main_pattern # determines whether or not the pattern is the topmost pattern
+		self._generation_chance: Literal["A", "R", "S"] = _generation_chance # determines if the generation of this pattern is selected (as in "S") or always (as in "A")
+
 		self._fragments: list[Phoneme | Pattern] = []
-
 		self.phonemes: list[Phoneme] = []
 		self.pattern_string: str = pattern_string
-		self.chance: str = chance
 
-		self._syntaxize(self.pattern_string)
+		self._compile(self.pattern_string)
 		self.phonemes = self._extract_phonemes()
 
 	def __repr__(self) -> str:
 		return f"PATTERN \"{self.pattern_string}\""
+
+	def _compile(self, pattern_string: str) -> None:
+
+		spcm: str = pattern_string # specimen string
+		cltr: str = "" # collector string
+		nest: int = 0 # nesting index
+		slct: int = -1 # selection index
+		c: str = "" # character loop-through variable
+
+		# 0. VALIDITY CHECK
+		# Basic loop-through to see if any invalid characters are present in the pattern.
+		for c in spcm:
+			if c not in Pattern.SYNTAX_VALIDS:
+				raise ValueError("Unknown character " + c)
+
+		# Check if this pattern is a protophoneme
+		for c in pattern_string:
+			if c in Pattern.SYNTAX_SYMBOLS:
+				self._is_protophoneme = False
+				break
+		
+		# If this pattern is a protophoneme, already append it as a phoneme
+		if self._is_protophoneme:
+			try:
+				self._fragments.append(Phoneme(pattern_string))
+			except:
+				for phoneme in Phoneme._elements:
+					if pattern_string == phoneme._str:
+						self._fragments.append(phoneme)
+			return
+
+		# Check if the pattern has paired parenthicals
+		if _is_parenthicals_paired(pattern_string, Pattern.SYNTAX_OPENINGS, Pattern.SYNTAX_CLOSINGS) is False:
+			raise ValueError("Parenthicals not paired correctly!")
+
+
+		# 1. ENCLOSURE IDENTIFICATION
+		# Retrieve the first and last char of the pattern
+		spcm_ends: str = f"{self.pattern_string[0]}{self.pattern_string[-1]}"
+		
+		# Compare the retrieved string to the pairings
+		if self._is_enclosed or spcm_ends in ("()", "[]", "{}"):
+			stop_index = 0 # index at which the parenthicals fully close
+
+			# Loop through the specimen and check if the first opening parenthesis
+			# fully closes in the middle.
+			for i, c in enumerate(spcm):
+				if c in Pattern.SYNTAX_OPENINGS:
+					nest += 1
+				elif c in Pattern.SYNTAX_CLOSINGS:
+					nest -= 1
+				
+				# If nesting index reaches 0, then the parenthicals have fully closed.
+				# Break the loop and proceed.
+				if nest == 0:
+					stop_index = i
+					break
+
+			# Check if the nest have fully closed right at the end of the pattern.
+			if stop_index == len(spcm) - 1:
+				self._is_enclosed = True # Set IS_ENCLOSED if the stop index is the same as the index of the end parenthicals
+
+				# If the pattern is not the main pattern, then clear the enclosure groupings.
+				if self._is_main_pattern is False:
+					spcm = spcm[1:-1]
+				
+				if spcm_ends == "()": # parenthesis indicate an "always" generation chance
+					self._generation_chance = "A"
+				elif spcm_ends == "[]": # meanwhile square brackets indicate a "selected" generation chance
+					self._generation_chance = "R"
+
+		del spcm_ends
+
+		if spcm == "":
+			raise ValueError("Cannot have empty parenthical!")
+
+		# 2. TOP-ORDER OPERATION (TOOPER) IDENTIFICATION
+		# Loop through the characters of the specimen.
+		for c in spcm:
+			# Perform nest indexing by incrementing or decrementing the nest index
+			# every time an opening or closing grouper is found.
+			if c in Pattern.SYNTAX_OPENINGS:
+				nest += 1
+			elif c in Pattern.SYNTAX_CLOSINGS:
+				nest -= 1
+			
+			# If the nesting is ongoing and a selector is found, keep the value of
+			# selector index as -1 by multiplying 1 to its initial -1 value.
+			if c in Pattern.SYNTAX_SELECTOR and nest > 0:
+				slct *= 1
+			
+			# Otherwise, if a selector is found and its index is -1 outside any nests,
+			# set its index as 1 by multiplying -1 to its -1 value.
+			elif c in Pattern.SYNTAX_SELECTOR and nest == 0 and slct == -1:
+				slct *= -1
+
+		# Set the boolean IS_PARTITIONED to true if the selector operator is dominant
+		# over the parenthicals, otherwise, it should remain as false.
+		if slct == 1:
+			self._is_partitioned = True
+		else:
+			self._is_partitioned = False
+
+		# 3. PATTERN FRAGMENTATION
+		# Perform a loop-through of the specimen to analyze the pattern character by
+		# character.
+
+		fragments: list[str] = []
+
+		for c in spcm:
+			if c in Pattern.SYNTAX_WHITESPACE:
+				continue
+			cltr += c # add the character to the collector dump. All alphabet letters are unconditionally added.
+
+			if c in Pattern.SYNTAX_SELECTOR: # CASE A: The encountered character is a selector.
+				if self._is_partitioned: # If the pattern is partitioned at the top-order,
+					if nest == 0 and cltr != "": # check if currently not nesting and if unit is not empty,
+						if cltr != c:
+							fragments.append(cltr[0:-1]) # then append.
+							cltr = ""
+						else:
+							raise ValueError("Selector operator must have one unit on both left and right side!")
+
+			elif c in Pattern.SYNTAX_OPENINGS: # CASE B: The encountered character is a parenthical opening.	
+				if nest == 0:
+					if self._is_partitioned is False:
+						if cltr != c:
+							fragments.append(cltr[0:-1])
+							cltr = cltr[-1]
+				nest += 1
+
+			elif c in Pattern.SYNTAX_CLOSINGS: # CASE C: The encountered character is a parenthical closing.
+				nest -= 1	
+				if nest == 0:
+					if self._is_partitioned is False:
+						if cltr != "":
+							fragments.append(cltr)
+							cltr = ""
+			
+			elif c in Pattern.SYNTAX_SEPARATOR + "+": # CASE D: The encountered character is a unit separator.
+				if nest > 0 or self._is_partitioned:
+					pass
+				else:
+					if cltr != c:
+						fragments.append(cltr[0:-1])
+					cltr = ""
+
+		# 3. LEFTOVER COLLECTION
+		if cltr != "":
+			fragments.append(cltr)
+
+		del c, nest, cltr, slct, spcm
+
+		# 4. FRAGMENT CONVERSION
+		for frag in fragments:
+			is_protophoneme: bool = True
+
+			# Check if fragment is a protophoneme
+			for c in frag:
+				if c in Pattern.SYNTAX_SYMBOLS:
+					is_protophoneme = False # If any symbol is found, then the fragment is not a protophoneme
+					break
+			
+			if self._is_partitioned:
+				pattern = Pattern(frag, _is_protophoneme = is_protophoneme, _is_main_pattern = False, _generation_chance = "S")
+				self._fragments.append(pattern)
+			else:
+				pattern = Pattern(frag, _is_protophoneme = is_protophoneme, _is_main_pattern = False, _generation_chance = "A")
+				self._fragments.append(pattern)
 
 	def _extract_phonemes(self) -> list[Phoneme]:
 		return_list: list[Phoneme] = []
@@ -356,7 +554,7 @@ class Pattern:
 
 		validity: str = ""
 
-		for o, c in zip(openers, closers[::-1]):
+		for o, c in zip(openers, closers):
 			if f"{o}{c}" in ("()", "[]", "{}"):
 				validity += "1"
 			else:
@@ -366,122 +564,40 @@ class Pattern:
 			return False
 		else:
 			return True
+	
+	def execute(self) -> str:
+		return_string: str = ""
 
+		if self._is_partitioned:
+			selector_list: list[str] = []
 
-	def _syntaxize(self, pattern_string: str) -> None:
+			for frag in self._fragments:
+				if isinstance(frag, Pattern):
+					selector_list.append(frag.execute())
+				elif isinstance(frag, Phoneme):
+					selector_list.append(frag.get_clean_str())
 
-		specimen: str = pattern_string
-		unit: str = ""
-		nest: int = 0
-		split: int = -1
+			return_string = random.choice(selector_list)
+			return return_string
 
-		# Refine specimen by checking if the pattern is grouped
-		spec_ends: str = f"{self.pattern_string[0]}{self.pattern_string[-1]}"
+		else:
+			random_chance: bool = False
 
-		# Checks if the pattern is 
-		if self._is_grouped or spec_ends in ("()", "[]", "{}"):
-			_ind = 0
-			_n = 0
-			for _i, c in enumerate(specimen):
-				if c in Pattern.VALIDS:
-					if c in Pattern.SYN_OPENINGS:
-						_n += 1
-					elif c in Pattern.SYN_CLOSINGS:
-						_n -= 1
-					
-					if _n == 0:
-						_ind = _i
-						break
-
-			if _ind == len(specimen) - 1:
-				self._is_grouped = True
-
-				if self._is_top is False:
-					specimen = specimen[1:-1]
-				
-				if f"{self.pattern_string[0]}{self.pattern_string[-1]}" == "()":
-					self.chance = "A"
-				elif f"{self.pattern_string[0]}{self.pattern_string[-1]}" == "[]":
-					self.chance = "R"
-
-		for p in Pattern.SYN_GROUPERS:
-			if p in specimen:
-				nest = 0
-				break
-
-		# Search for top-level operations
-		_fragments: list = []
-
-		for c in specimen:
-			if c in Pattern.VALIDS:
-				if c in Pattern.SYN_OPENINGS:
-					nest += 1
-				elif c in Pattern.SYN_CLOSINGS:
-					nest -= 1
-				
-				if c in Pattern.SYN_SPLITTERS and nest > 0:
-					split *= 1
-				elif c in Pattern.SYN_SPLITTERS and nest == 0 and split < 0:
-					split *= -1
+			if self._is_enclosed:
+				if self._generation_chance == "R":
+					random_chance = True
 			
-			else:
-				raise ValueError(f"Unknown symbol \"{c}\"")	
-
-		for c in specimen:
-			if c in Pattern.VALIDS:
-				unit += c
-
-				if c in Pattern.SYN_SPLITTERS + ".":
-					self._is_split = True
-
-					if nest == 0 and unit != "":
-						_fragments.append(unit[0:-1])
-						unit = ""
-
-				elif c in Pattern.SYN_OPENINGS:
-					self._is_grouped = True
-
-					if split != 1 and nest == 0:
-						if unit[0:-1] != "":
-							_fragments.append(unit[0:-1])
-						unit = unit[-1]
-					nest += 1
-
-				elif c in Pattern.SYN_CLOSINGS:
-					nest -= 1
-					if split != 1 and nest == 0:
-						_fragments.append(unit)
-						unit = ""
-				
-				elif c in Pattern.SYN_SEPARATOR:
-					if nest == 0 and unit != "":
-						_fragments.append(unit[0:-1])
-						unit = ""
+			for frag in self._fragments:
+				if isinstance(frag, Pattern):
+					return_string += frag.execute()
+				elif isinstance(frag, Phoneme):
+					return_string += frag.get_clean_str()
 		
-		if unit != "":
-			if self._is_split:
-				_fragments.append(unit)
-			else:
-				if self._is_grouped:
-					_fragments.append(unit)
-				else:
-					self._fragments.append(Phoneme(unit))
+			if random_chance:
+				return_string = random.choice(["", return_string])
 
-		for unit in _fragments:
-			_is_protophoneme: bool = True
-			if self._is_split:
-				_chance: str = "R"
-			else:
-				_chance: str = "A"
-			
-			for c in unit:
-				if c in Pattern.SYN_SYMBOLS:
-					_is_protophoneme = False
-					self._fragments.append(Pattern(unit, chance=_chance, top=False))
-					break
+			return return_string
 
-			if _is_protophoneme:
-				self._fragments.append(Pattern(unit, chance=_chance, top=False))
 
 
 def bind(grapheme: Grapheme, *phonemes: Phoneme) -> list[Phoneme]:
@@ -506,6 +622,36 @@ def bind_pairs(graphemes: list[Grapheme] | tuple[Grapheme], *phonemes: list[Phon
 		return_list.append(ret_set)
 
 	return return_list
+
+
+def _is_parenthicals_paired(string: str, openings: str, closings: str) -> bool:
+	if len(openings) != len(closings):
+		raise ValueError(f"Openings of length {len(openings)} not same as closings of length {len(closings)}!")
+	
+	open_index: list[int] = [0] * len(openings)
+	close_index: list[int] = [0] * len(closings)
+
+	for c in string:
+		if c not in openings + closings:
+			continue
+
+		if c in openings:
+			for i, op in enumerate(openings):
+				if c == op:
+					open_index[i] += 1
+					break
+
+		elif c in closings:
+			for i, cl in enumerate(closings):
+				if c == cl:
+					close_index[i] += 1
+					break
+
+	for o, c in zip(open_index, close_index):
+		if o != c:
+			return False
+
+	return True
 
 
 def extract(emictype: Type[Emic]) -> list[Emic]:

@@ -5,6 +5,16 @@ from errors import ClCkDuplicateError
 
 
 
+__all__ = [
+	"Emic",
+	"PrimaryEmic",
+	"ConstructiveEmic",
+	"Phoneme",
+	"Grapheme",
+	"Morpheme",
+]
+
+
 _prefixes_ = {
 	"Emic": "dE",
 	"Phoneme":  "PH",

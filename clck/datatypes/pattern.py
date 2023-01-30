@@ -1,6 +1,6 @@
+import random
+from typing import Literal
 from emics import *
-
-
 
 class Pattern:
 	"""Class for all CL-CK patterns.

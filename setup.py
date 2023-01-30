@@ -3,5 +3,5 @@ setup(
     name = 'clck',
     version="0.1",
     author="Loui Dominic Naquita",
-    packages = find_packages("clck"),
+    packages = find_packages(),
 )

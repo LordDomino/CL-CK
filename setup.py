@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name = 'clck',
-    packages = find_packages(),
+    version="0.1",
+    author="Loui Dominic Naquita",
+    packages = ["clck"],
 )

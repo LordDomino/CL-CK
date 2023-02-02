@@ -61,7 +61,7 @@ class Inventory:
 		printlist: list[str] = []
 		for e in self.elements:
 			if isinstance(e, Emic):
-				printlist.append(e._emicval)
+				printlist.append(e.emicval)
 			else:
 				printlist.append(e)
 
@@ -79,7 +79,7 @@ class PhonemeInventory(Inventory):
 
 	_emicize_type = Phoneme
 
-	def __init__(self, *args: "list | str | Phoneme | Pattern") -> None:
+	def __init__(self, *args: list | str | Phoneme | Pattern) -> None:
 		pass_list: list[list | str | Phoneme] = []
 		
 		for e in args:
@@ -100,3 +100,14 @@ class GraphemeInventory(Inventory):
 		super().__init__(*args)
 		self._e: list[Grapheme] = []
 		self.add(*args)
+
+
+
+class Cluster(Inventory):
+	def __init__(self, *args: Phoneme) -> None:
+		super().__init__(*args)
+
+		self.strval: str = ""
+
+		for ph in args:
+			self.strval = "".join([self.strval, ph.strval])

@@ -1,80 +1,38 @@
 import re
-import random
-from typing import Any, Type, Literal
-from clck.errors import ClCkDuplicateError
+from typing import Any, Type
 
+from .baseunit import BaseUnit
+from ..errors import ClCkDuplicateError
 
-
-__all__ = [
-	"Emic",
-	"PrimaryEmic",
-	"ConstructiveEmic",
-	"Phoneme",
-	"Grapheme",
-	"Morpheme",
-]
 
 
 _prefixes_ = {
-	"Emic": "dE",
-	"Phoneme":  "PH",
-	"Grapheme": "GH",
-	"Morpheme": "MH",
+	"Emic": "Emic",
+	"Phoneme":  "Phoneme",
+	"Grapheme": "Grapheme",
+	"Morpheme": "Morpheme",
 }
 
 
 
-class Emic:
-	"""Base class for all emic units in CL-CK."""
-
-	# >>> STATIC CLASS VARIABLES
-	# These variables are uninheritable and shouldn't be overriden.
+class Emic(BaseUnit):
+	
+	_cls_prefix = _prefixes_["Emic"]
+	
 	__emic_elements: list["Emic"] = []
 
-	# >>> NONSTATIC CLASS VARIABLES
-	# These are variables that are inherited when extending this Emic class for 
-	# different children classes.
-	_elements: list["Emic"] = [] # set of all unique Emic units
-	_strs: list[str] = [] # set of all unique strings used during instantiations
-	_cls_prefix = _prefixes_["Emic"] # This variable must be overriden in the child class
+	_elements: list["Emic"] = []
+	_strvals: list[str] = []
+	
+	def __init__(self, strval: str, weight: int | float = 1, *args) -> None:
+		super().__init__(strval)
 
-	# >>> __repr__ METHOD CONFIGURATIONS
-	# These are default variables for the default representation of the class.
-	_repr_id = True # If set to True, the emic unit's ID value is shown.
-	_repr_type = False # If set to True, the emic unit's parent class is shown.
-		# This also shows if the object is an Emic.
-
-	def __init__(self, string: str, weight: int | float = 1) -> None:
-
-		# During instantiation, the emic object is appended to a base list of all
-		# emics.
 		Emic.__emic_elements.append(self)
 
-		# The instance of some Emic type will be appended to a class-list of all its
-		# emics, a different list from the base-list of elements
-		self.__class__._elements = self.__class__._elements + [self]
-		self.__class__._strs = self.__class__._strs + [string]
+		self.__class__._strvals = self.__class__._strvals + [strval]
 
-		self._str: str = string
-		self._emicval: str = ""
-		self._id: int = len(self.__class__._elements)
+		self.emicval: str = ""
 		self._weight: int | float = weight
-
-	def __repr__(self) -> str:
-		"""Sets the representation string of the entire class.
-		
-		This also defaults other __repr__ methods inherited by children classes."""
-		
-		repr_str = f"{self._cls_prefix}"
-
-		if self._repr_id:
-			repr_str += f"{self._id:0004}"
-		if self._repr_type:
-			repr_str = f"EMIC-" + repr_str
-
-		repr_str += f" \"{self._emicval}\""		
-
-		return repr_str
 
 	@classmethod
 	@property
@@ -95,14 +53,14 @@ class Emic:
 	@property
 	def strvals(cls) -> tuple[str]:
 		"""All the string values used for this type of Emic."""
-		return tuple(cls._strs)
+		return tuple(cls._strvals)
 
 	@property
 	def weight(self) -> int | float:
 		return self._weight
 
 	def _get_component_str(self) -> str:
-		return self._str
+		return self.strval
 
 	def _is_duplicate(self, obj: Any, set: list | tuple) -> bool:
 		"""Checks if given object already exists in the given set of objects."""
@@ -114,7 +72,7 @@ class Emic:
 	def get_clean_str(self) -> str:
 		"""Returns this emic's clean string value which has been used during
 		instantiation."""
-		return self._str
+		return self.strval
 
 
 
@@ -126,7 +84,7 @@ class PrimaryEmic(Emic):
 	are containable only be ConstructiveEmics."""
 
 	def __init__(self, str: str, weight: int | float = 1) -> None:
-		if self._is_duplicate(str, self.__class__._strs):
+		if self._is_duplicate(str, self.__class__._strvals):
 			raise ClCkDuplicateError(f"{self.__class__.__name__} \"{str}\" already exists! Use another str instead.")
 		super().__init__(str, weight)
 
@@ -223,82 +181,6 @@ class Morpheme(ConstructiveEmic):
 
 
 
-class Inventory:
-	"""Inventory class to store units and CL-CK objects.
-	
-	An Inventory object works much like a list, only that it has specific CL-CK
-	properties."""
-
-	_emicize_type: Type[Emic] | None = None
-
-	def __init__(self, *args: list | str | Emic) -> None:
-		self._e: list = [*args]
-
-	def __str__(self) -> str:
-		return f"<{self.__class__.__name__} {str(self.elements)}>"
-
-	@property
-	def elements(self) -> tuple:
-		"""Returns a tuple of all the elements of the inventory."""
-		return tuple(self._e)
-
-	def _collect_args(self, *args: list | str | Emic) -> list[str | Emic]:
-		"""Function to collect arguments during initialization."""
-		return_list: list = []
-
-		for e in args:
-			if isinstance(e, list):
-				return_list = return_list + e
-			elif isinstance(e, str):
-				return_list.append(e)
-			elif isinstance(e, Emic):
-				return_list.append(e)
-
-		return (return_list)
-
-	def _emicize(self, *elements: str | Emic) -> list[Emic] | list[str | Emic]:
-		if self._emicize_type is None:
-			return list(elements)
-		else:
-			return_list: list[Emic] = []
-			for e in elements:
-				if isinstance(e, str):
-					return_list.append(self._emicize_type(e))
-				elif isinstance(e, self._emicize_type):
-					return_list.append(e)
-				else:
-					raise ValueError(f"Cannot perform emicization from {e} ({e.__class__.__name__}) to emic type {self._emicize_type.__name__}!")
-
-			return return_list
-
-	def add(self, *args: list | str | Emic) -> None:
-		self._e += self._emicize(*self._collect_args(*args))
-
-	def print_clean(self) -> None:
-		printlist: list[str] = []
-		for e in self.elements:
-			if isinstance(e, Emic):
-				printlist.append(e._emicval)
-			else:
-				printlist.append(e)
-
-		print(printlist)
-
-
-
-class GraphemeInventory(Inventory):
-
-	_emicize_type = Grapheme
-
-	def __init__(self, *args: list | str) -> None:
-		super().__init__(*args)
-		self._e: list[Grapheme] = []
-		self.add(*args)
-
-
-
-
-
 def bind(grapheme: Grapheme, *phonemes: Phoneme) -> list[Phoneme]:
 	"""Binds one or more phonemes to a grapheme, then returns all the bound
 	phonemes."""
@@ -331,7 +213,7 @@ def extract(emictype: Type[Emic]) -> list[Emic]:
 def find(emictype: Type[Emic], str: str) -> Emic | None:
 	emics = emictype.emics
 	for e in emics:
-		if e._str == str:
+		if e.strval == str:
 			return e
 	return None
 

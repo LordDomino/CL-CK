@@ -1,11 +1,13 @@
 import random
 from typing import Literal
+from typing import Tuple
 
+from .baseunit import BaseUnit
 from .emics import Phoneme
 
 
 
-class Pattern:
+class Pattern(BaseUnit):
 	"""Class for all CL-CK patterns.
 	
 	A pattern is a sequence of phonemes and values ordered in the correct syntax,
@@ -45,9 +47,11 @@ class Pattern:
 	# All valid characters
 	SYNTAX_VALIDS: str = SYNTAX_SYMBOLS + SYNTAX_LETTERS + SYNTAX_WHITESPACE
 
+
 	def __init__(self, name: str, pattern_string: str, _is_enclosed: bool = False,
 	_is_partitioned: bool = False, _is_protophoneme: bool = True,
 	_is_main_pattern: bool = True, _generation_chance: Literal["ALW", "RND", "SEL", "SUB"] = "ALW") -> None:
+		super().__init__(pattern_string)
 		
 		# Default pattern properties
 		self._is_enclosed: bool = _is_enclosed # determines whether or not the pattern is enclosed by any grouping pair
@@ -57,6 +61,7 @@ class Pattern:
 		self._generation_chance = _generation_chance # determines if the generation of this pattern is selected (as in "S") or always (as in "A")
 
 		self._fragments: list[Phoneme | Pattern] = []
+		self._latest_batch: list[Phoneme] = []
 		self.name: str = name
 		self.phonemes: list[Phoneme] = []
 		self.pattern_string: str = pattern_string
@@ -67,8 +72,10 @@ class Pattern:
 		self._compile(self.pattern_string)
 		self.phonemes = self._extract_phonemes()
 
+
 	def __repr__(self) -> str:
 		return f"PATTERN \"{self.name}\" {self.pattern_string}"
+
 
 	def _compile(self, pattern_string: str) -> None:
 
@@ -96,7 +103,7 @@ class Pattern:
 				self._fragments.append(Phoneme(pattern_string))
 			except:
 				for phoneme in Phoneme._elements:
-					if pattern_string == phoneme._str:
+					if pattern_string == phoneme.strval:
 						self._fragments.append(phoneme)
 			return
 
@@ -246,6 +253,7 @@ class Pattern:
 				pattern = Pattern("CHILD", frag, _is_protophoneme = is_protophoneme, _is_main_pattern = False, _generation_chance = "ALW")
 				self._fragments.append(pattern)
 
+
 	def _extract_phonemes(self) -> list[Phoneme]:
 		return_list: list[Phoneme] = []
 		for _f in self._fragments:
@@ -255,6 +263,48 @@ class Pattern:
 				return_list.append(_f)
 
 		return return_list
+
+
+	def _recur_phonemes(self) -> list[Phoneme]:
+
+		return_phonemes: list[Phoneme] = []
+
+		if self._is_partitioned:
+			selector_list: list[Phoneme] = []
+
+			for frag in self._fragments:
+				if isinstance(frag, Pattern):
+					selector_list.extend(frag._recur_phonemes())
+				elif isinstance(frag, Phoneme):
+					selector_list.append(frag)
+
+			return_phonemes = random.choice([selector_list])
+
+			return return_phonemes
+
+		else:
+			random_chance: bool = False
+
+			if self._is_enclosed:
+				if self._generation_chance == "RND":
+					random_chance = True
+			
+			for frag in self._fragments:
+				if isinstance(frag, Pattern):
+					return_phonemes.extend(frag._recur_phonemes())
+				elif isinstance(frag, Phoneme):
+					return_phonemes.append(frag)
+		
+			if random_chance:
+				bool_chance: int = random.randint(0,1)
+
+				if bool_chance == 0:
+					return []
+				elif bool_chance == 1:
+					return return_phonemes
+
+			return return_phonemes
+
 
 	def _validate_match(self, openers: str, closers: str) -> bool:
 		if len(openers) != len(closers):
@@ -273,39 +323,53 @@ class Pattern:
 		else:
 			return True
 	
+
 	def execute(self) -> str:
 		return_string: str = ""
 
-		if self._is_partitioned:
-			selector_list: list[str] = []
+		# if self._is_partitioned:
+		# 	selector_list: list[str] = []
 
-			for frag in self._fragments:
-				if isinstance(frag, Pattern):
-					selector_list.append(frag.execute())
-				elif isinstance(frag, Phoneme):
-					selector_list.append(frag.get_clean_str())
+		# 	for frag in self._fragments:
+		# 		if isinstance(frag, Pattern):
+		# 			selector_list.append(frag.execute())
+		# 		elif isinstance(frag, Phoneme):
+		# 			selector_list.append(frag.get_clean_str())
 
-			return_string = random.choice(selector_list)
-			return return_string
+		# 	return_string = random.choice(selector_list)
 
-		else:
-			random_chance: bool = False
+		# 	return return_string
 
-			if self._is_enclosed:
-				if self._generation_chance == "RND":
-					random_chance = True
+		# else:
+		# 	random_chance: bool = False
+
+		# 	if self._is_enclosed:
+		# 		if self._generation_chance == "RND":
+		# 			random_chance = True
 			
-			for frag in self._fragments:
-				if isinstance(frag, Pattern):
-					return_string += frag.execute()
-				elif isinstance(frag, Phoneme):
-					return_string += frag.get_clean_str()
+		# 	for frag in self._fragments:
+		# 		if isinstance(frag, Pattern):
+		# 			return_string += frag.execute()
+		# 		elif isinstance(frag, Phoneme):
+		# 			return_string += frag.get_clean_str()
 		
-			if random_chance:
-				return_string = random.choice(["", return_string])
+		# 	if random_chance:
+		# 		return_string = random.choice(["", return_string])
 
-			return return_string
+		# 	return return_string
+	
+		phonemes: list[Phoneme] = self._recur_phonemes()
 
+		for ph in phonemes:
+			return_string += ph.get_clean_str()
+
+		print(phonemes)
+
+		return return_string
+
+
+	def extract_generated(self) -> tuple[Phoneme] | None:
+		pass
 
 
 def _is_parenthicals_paired(string: str, openings: str, closings: str) -> bool:

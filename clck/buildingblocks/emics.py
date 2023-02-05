@@ -6,23 +6,13 @@ from ..errors import ClCkDuplicateError
 
 
 
-_prefixes_ = {
-	"Emic": "Emic",
-	"Phoneme":  "Phoneme",
-	"Grapheme": "Grapheme",
-	"Morpheme": "Morpheme",
-}
-
-
-
 class Emic(BaseUnit):
-	
-	_cls_prefix = _prefixes_["Emic"]
 	
 	__emic_elements: list["Emic"] = []
 
 	_elements: list["Emic"] = []
 	_strvals: list[str] = []
+	
 	
 	def __init__(self, strval: str, weight: int | float = 1, *args) -> None:
 		super().__init__(strval)
@@ -34,11 +24,13 @@ class Emic(BaseUnit):
 		self.emicval: str = ""
 		self._weight: int | float = weight
 
+
 	@classmethod
 	@property
 	def emics(cls) -> tuple["Emic"]:
 		"""All emic units of the same type."""
 		return tuple(cls._elements)
+
 
 	@classmethod
 	@property
@@ -49,18 +41,22 @@ class Emic(BaseUnit):
 		else:
 			return len(cls._elements)
 
+
 	@classmethod
 	@property
 	def strvals(cls) -> tuple[str]:
 		"""All the string values used for this type of Emic."""
 		return tuple(cls._strvals)
 
+
 	@property
 	def weight(self) -> int | float:
 		return self._weight
 
+
 	def _get_component_str(self) -> str:
 		return self.strval
+
 
 	def _is_duplicate(self, obj: Any, set: list | tuple) -> bool:
 		"""Checks if given object already exists in the given set of objects."""
@@ -68,6 +64,7 @@ class Emic(BaseUnit):
 			return True
 		else:
 			return False
+
 
 	def get_clean_str(self) -> str:
 		"""Returns this emic's clean string value which has been used during
@@ -83,6 +80,7 @@ class PrimaryEmic(Emic):
 	These emics do not contain other emics within them, and they
 	are containable only be ConstructiveEmics."""
 
+
 	def __init__(self, str: str, weight: int | float = 1) -> None:
 		if self._is_duplicate(str, self.__class__._strvals):
 			raise ClCkDuplicateError(f"{self.__class__.__name__} \"{str}\" already exists! Use another str instead.")
@@ -96,12 +94,14 @@ class ConstructiveEmic(Emic):
 
 	_emicval_strsep: str = ""
 
+
 	def __init__(self, *objs: Any) -> None:
 		self._components: list[Emic] = [*objs]
 		pass_str = self.__class__._emicval_strsep.join(self._get_component_str())
 		super().__init__(pass_str)
 
 		self._emicval = f"{pass_str}"
+
 
 	def _get_component_str(self) -> list[str]:
 		"""Returns a list of this emic's children component strings."""
@@ -110,6 +110,7 @@ class ConstructiveEmic(Emic):
 			return_list.append(c._get_component_str())
 		
 		return return_list
+
 
 	def get_clean_str(self) -> None:
 		str_list: list[str] = []
@@ -129,8 +130,6 @@ class Grapheme(PrimaryEmic):
 	A grapheme is the smallest unit of a writing system, representing a phoneme or
 	multiple phonemes. In CL-CK, it is expressed as a string."""
 
-	# Class variables
-	_cls_prefix = _prefixes_["Grapheme"]
 
 	def __init__(self, str: str) -> None:
 		super().__init__(str)
@@ -145,8 +144,6 @@ class Phoneme(PrimaryEmic):
 	A phoneme is a representation of sound. In CL-CK, it is expressed as a string.
 	"""
 
-	# Class variables
-	_cls_prefix = _prefixes_["Phoneme"]
 	_elements: list["Phoneme"] = []
 
 	# __repr__ configurations
@@ -160,6 +157,7 @@ class Phoneme(PrimaryEmic):
 		self._emicval = f"/{str}/"
 		self._bound_grapheme: Grapheme | None = None
 
+
 	@property
 	def bound_grapheme(self) -> Grapheme | None:
 		"""Grapheme bound to the current phoneme. Returns None if no grapheme is
@@ -170,14 +168,11 @@ class Phoneme(PrimaryEmic):
 
 class Morpheme(ConstructiveEmic):
 
-	# Class variables
-	_cls_prefix = _prefixes_["Morpheme"]
 	_emicval_strsep = "."
 
 	def __init__(self, *phonemes: Phoneme) -> None:
 		self._components: list[Phoneme] = [*phonemes]
 		super().__init__(*phonemes)
-
 
 
 

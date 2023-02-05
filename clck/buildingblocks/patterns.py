@@ -13,7 +13,7 @@ class Pattern(BaseUnit):
 	A pattern is a sequence of phonemes and values ordered in the correct syntax,
 	indicating how a morpheme could be formed."""
 
-	patterns: list["Pattern"] = []
+	patterns: dict[str, "Pattern"] = {}
 
 	# >>> Syntax constants defining valid characters in Pattern syntax
 	# Alphabet letters
@@ -67,14 +67,12 @@ class Pattern(BaseUnit):
 		self.pattern_string: str = pattern_string
 
 		if self._is_main_pattern:
-			Pattern.patterns.append(self)
+			Pattern.patterns[self.name] = self
 
 		self._compile(self.pattern_string)
 		self.phonemes = self._extract_phonemes()
 
-
-	def __repr__(self) -> str:
-		return f"PATTERN \"{self.name}\" {self.pattern_string}"
+		self._latest_batch = self._recur_phonemes()
 
 
 	def _compile(self, pattern_string: str) -> None:
@@ -266,44 +264,41 @@ class Pattern(BaseUnit):
 
 
 	def _recur_phonemes(self) -> list[Phoneme]:
-
 		return_phonemes: list[Phoneme] = []
 
 		if self._is_partitioned:
-			selector_list: list[Phoneme] = []
+			selections: list = []
 
-			for frag in self._fragments:
-				if isinstance(frag, Pattern):
-					selector_list.extend(frag._recur_phonemes())
-				elif isinstance(frag, Phoneme):
-					selector_list.append(frag)
+			for f in self._fragments:
+				if isinstance(f, Phoneme):
+					selections.append(f)
+				elif isinstance(f, Pattern):
+					selections.append(f._recur_phonemes())
 
-			return_phonemes = random.choice([selector_list])
+			return_phonemes = random.choice(selections)
 
 			return return_phonemes
-
-		else:
-			random_chance: bool = False
-
-			if self._is_enclosed:
-				if self._generation_chance == "RND":
-					random_chance = True
-			
-			for frag in self._fragments:
-				if isinstance(frag, Pattern):
-					return_phonemes.extend(frag._recur_phonemes())
-				elif isinstance(frag, Phoneme):
-					return_phonemes.append(frag)
 		
-			if random_chance:
-				bool_chance: int = random.randint(0,1)
+		else:
+			random_select: bool = False
 
-				if bool_chance == 0:
+			for f in self._fragments:
+				if isinstance(f, Phoneme):
+					return_phonemes.append(f)
+				elif isinstance(f, Pattern):
+					return_phonemes.extend(f._recur_phonemes())
+
+			if self._generation_chance == "RND":
+				chance: int = random.randint(0, 1)
+
+				if chance == 0:
 					return []
-				elif bool_chance == 1:
+				else:
 					return return_phonemes
+			
+			else:
+				return return_phonemes
 
-			return return_phonemes
 
 
 	def _validate_match(self, openers: str, closers: str) -> bool:
@@ -326,45 +321,13 @@ class Pattern(BaseUnit):
 
 	def execute(self) -> str:
 		return_string: str = ""
-
-		# if self._is_partitioned:
-		# 	selector_list: list[str] = []
-
-		# 	for frag in self._fragments:
-		# 		if isinstance(frag, Pattern):
-		# 			selector_list.append(frag.execute())
-		# 		elif isinstance(frag, Phoneme):
-		# 			selector_list.append(frag.get_clean_str())
-
-		# 	return_string = random.choice(selector_list)
-
-		# 	return return_string
-
-		# else:
-		# 	random_chance: bool = False
-
-		# 	if self._is_enclosed:
-		# 		if self._generation_chance == "RND":
-		# 			random_chance = True
-			
-		# 	for frag in self._fragments:
-		# 		if isinstance(frag, Pattern):
-		# 			return_string += frag.execute()
-		# 		elif isinstance(frag, Phoneme):
-		# 			return_string += frag.get_clean_str()
-		
-		# 	if random_chance:
-		# 		return_string = random.choice(["", return_string])
-
-		# 	return return_string
 	
 		phonemes: list[Phoneme] = self._recur_phonemes()
 
 		for ph in phonemes:
 			return_string += ph.get_clean_str()
 
-		print(phonemes)
-
+		self._latest_batch = phonemes
 		return return_string
 
 

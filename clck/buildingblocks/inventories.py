@@ -1,12 +1,13 @@
 from typing import Type
 
+from .baseunit import BaseUnit
 from .emics import Emic
 from .emics import Phoneme
 from .emics import Grapheme
 from .patterns import Pattern
 
 
-class Inventory:
+class Inventory(BaseUnit):
 	"""Inventory class to store units and CL-CK objects.
 	
 	An Inventory object works much like a list, only that it has specific CL-CK
@@ -14,16 +15,17 @@ class Inventory:
 
 	_emicize_type: Type[Emic] | None = None
 
-	def __init__(self, *args: list | str | Emic) -> None:
-		self._e: list = [*args]
 
-	def __str__(self) -> str:
-		return f"<{self.__class__.__name__} {str(self.elements)}>"
+	def __init__(self, *args: list | str | Emic) -> None:
+		self._e: list = list(args)
+		super().__init__(str(self._e))
+
 
 	@property
 	def elements(self) -> tuple:
 		"""Returns a tuple of all the elements of the inventory."""
 		return tuple(self._e)
+
 
 	def _collect_args(self, *args: list | str | Emic) -> list[str | Emic]:
 		"""Function to collect arguments during initialization."""
@@ -38,6 +40,7 @@ class Inventory:
 				return_list.append(e)
 
 		return (return_list)
+
 
 	def _emicize(self, *elements: str | Emic) -> list[Emic] | list[str | Emic]:
 		if self._emicize_type is None:
@@ -54,8 +57,10 @@ class Inventory:
 
 			return return_list
 
+
 	def add(self, *args: list | str | Emic) -> None:
 		self._e += self._emicize(*self._collect_args(*args))
+
 
 	def print_clean(self) -> None:
 		printlist: list[str] = []
@@ -79,16 +84,10 @@ class PhonemeInventory(Inventory):
 
 	_emicize_type = Phoneme
 
-	def __init__(self, *args: list | str | Phoneme | Pattern) -> None:
-		pass_list: list[list | str | Phoneme] = []
-		
-		for e in args:
-			if isinstance(e, Pattern):
-				pass_list.extend(e.phonemes)
-
-		super().__init__(*pass_list)
+	def __init__(self, *args: list | str | Phoneme) -> None:
+		super().__init__(*args)
 		self._e: list[Phoneme] = []
-		self.add(*pass_list)
+		self.add(*args)
 
 
 
@@ -100,14 +99,18 @@ class GraphemeInventory(Inventory):
 		super().__init__(*args)
 		self._e: list[Grapheme] = []
 		self.add(*args)
+		
 
 
+class Cluster(PhonemeInventory):
 
-class Cluster(Inventory):
-	def __init__(self, *args: Phoneme) -> None:
-		super().__init__(*args)
+	def __init__(self, *args: list | str | Phoneme | Pattern) -> None:
+		pass_args: list[list | str | Phoneme] = []
 
-		self.strval: str = ""
-
-		for ph in args:
-			self.strval = "".join([self.strval, ph.strval])
+		for arg in args:
+			if isinstance(arg, Pattern):
+				pass_args.extend(arg._latest_batch)
+			else:
+				pass_args.append(arg)
+		
+		super().__init__(*pass_args)

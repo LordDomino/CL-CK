@@ -1,1 +1,4 @@
 .vscode/settings.json
+/projectvenv
+clck/buildingblocks/__pycache__
+clck/__pycache__

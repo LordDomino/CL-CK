@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from abc import abstractmethod
 from typing import Literal
 
 
@@ -9,11 +9,18 @@ class IPA_Phoneme:
     self._place: str = place
     self._manner: str = manner
 
+
   def __str__(self) -> str:
-    return self._string
+    return f"/{self._string}/"
+
 
   def __repr__(self) -> str:
-    return f"<Phoneme {self._string}>"
+    return f"<Phoneme \033[1m{self._string}>\033[0m"
+  
+
+  @abstractmethod
+  def get_name(self) -> str:
+    pass
 
 
 
@@ -24,7 +31,6 @@ class IPA_Phoneme_PulmonicConsonant(IPA_Phoneme):
       place: Literal[
         "bilabial",
         "labiodental",
-        "linguolabial",
         "dental",
         "alveolar",
         "postalveolar",
@@ -32,28 +38,30 @@ class IPA_Phoneme_PulmonicConsonant(IPA_Phoneme):
         "palatal",
         "velar",
         "uvular",
-        "epiglottal",
+        "pharyngeal",
         "glottal",
       ],
       manner: Literal[
         "nasal",
         "plosive",
-        "sibilant affricate",
-        "nonsibilant affricate",
-        "sibilant fricative",
-        "nonsibilant fricative",
+        "fricative",
         "approximant",
-        "tap",
+        "tap/flap",
         "trill",
-        "lateral affricate",
         "lateral fricative",
         "lateral approximant",
-        "lateral tap",
       ],
       voiced: bool
   ) -> None:
     super().__init__(string, place, manner)
     self._voiced: bool = voiced
+
+
+  def get_name(self) -> str:
+    if self._voiced:
+      return f"voiced {self._place} {self._manner}"
+    else:
+      return f"voiceless {self._place} {self._manner}"
 
 
 
@@ -94,7 +102,6 @@ class IPA_Phoneme_NonpulmonicConsonant(IPA_Phoneme):
 
 
 
-@dataclass
 class IPA_Phoneme_Vowel(IPA_Phoneme):
   def __init__(
       self,
@@ -116,6 +123,16 @@ class IPA_Phoneme_Vowel(IPA_Phoneme):
       rounded: bool | None
   ) -> None:
     super().__init__(string, place, manner)
+    self._rounded: bool | None = rounded
+
+
+  def get_name(self) -> str:
+    if self._rounded is None:
+      return f"{self._place} {self._manner}"
+    elif self._rounded is True:
+      return f"rounded {self._place} {self._manner}"
+    else:
+      return f"unrounded {self._place} {self._manner}"
 
 
 

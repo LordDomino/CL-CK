@@ -3,7 +3,7 @@ from typing import Literal
 
 
 
-class IPA_Phoneme:
+class Phoneme:
   def __init__(self, string: str, place: str, manner: str) -> None:
     self._string: str = string
     self._place: str = place
@@ -15,7 +15,7 @@ class IPA_Phoneme:
 
 
   def __repr__(self) -> str:
-    return f"<Phoneme \033[1m{self._string}>\033[0m"
+    return f"<Phoneme \033[1m{self._string}\033[0m>"
   
 
   @abstractmethod
@@ -24,7 +24,13 @@ class IPA_Phoneme:
 
 
 
-class IPA_Phoneme_PulmonicConsonant(IPA_Phoneme):
+class Consonant(Phoneme):
+  def __init__(self, string: str, place: str, manner: str) -> None:
+    super().__init__(string, place, manner)
+
+
+
+class IPA_Phoneme_PulmonicConsonant(Consonant):
   def __init__(
       self,
       string: str,
@@ -65,7 +71,7 @@ class IPA_Phoneme_PulmonicConsonant(IPA_Phoneme):
 
 
 
-class IPA_Phoneme_NonpulmonicConsonant(IPA_Phoneme):
+class NonpulmonicConsonant(Consonant):
   def __init__(
       self,
       string: str,
@@ -102,7 +108,7 @@ class IPA_Phoneme_NonpulmonicConsonant(IPA_Phoneme):
 
 
 
-class IPA_Phoneme_Vowel(IPA_Phoneme):
+class Vowel(Phoneme):
   def __init__(
       self,
       string: str,
@@ -137,9 +143,38 @@ class IPA_Phoneme_Vowel(IPA_Phoneme):
 
 
 class PhonologicalInventory:
-  def __init__(self, *phonemes: IPA_Phoneme) -> None:
-    self._phonemes: tuple[IPA_Phoneme] = phonemes
+  def __init__(self, *phonemes: Phoneme) -> None:
+    self._phonemes: tuple[Phoneme] = phonemes
+    self._consonants: tuple[Consonant] = self._get_consonants()
+    self._vowels: tuple[Vowel] = self._get_vowels()
+
 
   @property
-  def phonemes(self) -> tuple[IPA_Phoneme]:
+  def phonemes(self) -> tuple[Phoneme]:
     return self._phonemes
+  
+
+  @property
+  def consonants(self) -> tuple[Consonant]:
+    return self._consonants
+
+
+  @property
+  def vowels(self) -> tuple[Vowel]:
+    return self._vowels
+  
+
+  def _get_consonants(self) -> tuple[Consonant]:
+    consonants: list[Consonant] = []
+    for phoneme in self._phonemes:
+      if isinstance(phoneme, Consonant):
+        consonants.append(phoneme)
+    return tuple(consonants)
+  
+
+  def _get_vowels(self) -> tuple[Vowel]:
+    vowels: list[Vowel] = []
+    for phoneme in self._phonemes:
+      if isinstance(phoneme, Vowel):
+        vowels.append(phoneme)
+    return tuple(vowels)

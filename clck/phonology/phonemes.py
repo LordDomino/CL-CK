@@ -4,23 +4,33 @@ from typing import Literal
 
 
 class Phoneme:
-  def __init__(self, string: str, place: str, manner: str) -> None:
-    self._string: str = string
+
+  phoneme_class_name: str = "phoneme"
+
+  def __init__(self, symbol: str, place: str, manner: str) -> None:
+    self._symbol: str = symbol
     self._place: str = place
     self._manner: str = manner
 
 
   def __str__(self) -> str:
-    return f"/{self._string}/"
+    return f"{self.name.capitalize()} {self.__class__.phoneme_class_name}, {self._symbol}"
 
-
-  def __repr__(self) -> str:
-    return f"<Phoneme \033[1m{self._string}\033[0m>"
-  
 
   @abstractmethod
-  def get_name(self) -> str:
+  def __repr__(self) -> str:
     pass
+  
+
+  @property
+  @abstractmethod
+  def name(self) -> str:
+    pass
+
+
+  @property
+  def symbol(self) -> str:
+    return self._symbol
 
 
 
@@ -28,9 +38,16 @@ class Consonant(Phoneme):
   def __init__(self, string: str, place: str, manner: str) -> None:
     super().__init__(string, place, manner)
 
+  
+  def __repr__(self) -> str:
+    return f"<Consonant \033[1m{self._symbol}\033[0m>"
 
 
-class IPA_Phoneme_PulmonicConsonant(Consonant):
+
+class PulmonicConsonant(Consonant):
+
+  phoneme_class_name = "pulmonic consonant"
+
   def __init__(
       self,
       string: str,
@@ -63,7 +80,8 @@ class IPA_Phoneme_PulmonicConsonant(Consonant):
     self._voiced: bool = voiced
 
 
-  def get_name(self) -> str:
+  @property
+  def name(self) -> str:
     if self._voiced:
       return f"voiced {self._place} {self._manner}"
     else:
@@ -72,6 +90,9 @@ class IPA_Phoneme_PulmonicConsonant(Consonant):
 
 
 class NonpulmonicConsonant(Consonant):
+
+  phoneme_class_name = "non-pulmonic consonant"
+
   def __init__(
       self,
       string: str,
@@ -109,6 +130,9 @@ class NonpulmonicConsonant(Consonant):
 
 
 class Vowel(Phoneme):
+
+  phoneme_class_name = "vowel"
+
   def __init__(
       self,
       string: str,
@@ -132,13 +156,28 @@ class Vowel(Phoneme):
     self._rounded: bool | None = rounded
 
 
-  def get_name(self) -> str:
+  def __repr__(self) -> str:
+    return f"<Vowel \033[1m{self._symbol}\033[0m>"
+
+
+  @property
+  def name(self) -> str:
     if self._rounded is None:
       return f"{self._place} {self._manner}"
     elif self._rounded is True:
       return f"rounded {self._place} {self._manner}"
     else:
       return f"unrounded {self._place} {self._manner}"
+
+
+
+class PhonemeCluster:
+  def __init__(self, *phonemes: Phoneme) -> None:
+    self._phonemes: tuple[Phoneme] = phonemes
+
+  @property
+  def phonemes(self) -> tuple[Phoneme]:
+    return self._phonemes
 
 
 
@@ -178,3 +217,13 @@ class PhonologicalInventory:
       if isinstance(phoneme, Vowel):
         vowels.append(phoneme)
     return tuple(vowels)
+
+
+
+class Cluster:
+  def __init__(self, *phonemes: Phoneme) -> None:
+    self._phonemes: tuple[Phoneme] = phonemes
+
+  @property
+  def phonemes(self) -> tuple[Phoneme]:
+    return self._phonemes

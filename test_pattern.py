@@ -1,5 +1,8 @@
+from clck.phonology.phonotactics import ClusterConstraint, PhonemicConstraint, Phonotactics
+from clck.phonology.syllables import Coda, Onset, SyllableShape
+from clck.generators.syllable_generator import SyllableGenerator
 from clck.phonemes import *
-from clck.phonology.phonemes import PhonologicalInventory
+from clck.phonology.phonemes import Cluster, PhonologicalInventory
 
 
 
@@ -18,8 +21,19 @@ inventory: PhonologicalInventory = PhonologicalInventory(
     IPA_CLOSE_BACK_ROUNDED_VOWEL
 )
 
-for phoneme in inventory.phonemes:
-    print(phoneme.get_name())
+ph = Phonotactics(
+    SyllableShape("CC", "V", "CC"),
+    [
+        PhonemicConstraint(1, [Onset], [IPA_CLOSE_BACK_ROUNDED_VOWEL])
+    ],
+    [
+        ClusterConstraint(1, [Coda], [Cluster(IPA_CLOSE_BACK_ROUNDED_VOWEL)])
+    ]
+)
 
-print(inventory.consonants)
-print(inventory.vowels)
+generator: SyllableGenerator = SyllableGenerator.from_phonotactics(inventory, ph)
+generator.generate(50)
+
+
+for syllable in generator.get_recent_generation():
+    print(syllable, syllable.phonemes)

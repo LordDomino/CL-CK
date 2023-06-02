@@ -2,17 +2,37 @@ from .phonemes import Phoneme
 
 
 
-class SyllableComponent: ...
+class SyllableComponent:
+    def __init__(self, *components: "SyllableComponent | Phoneme") -> None:
+        self.components: tuple[SyllableComponent | Phoneme] = components
+
+    
+    def get_phonemes(self) -> list[Phoneme]:
+        phonemes: list[Phoneme] = []
+        for component in self.components:
+            if isinstance(component, Phoneme):
+                phonemes.append(component)
+            else:
+                component.get_phonemes()
+        return phonemes
+
+    
+    def remove_duplicates(self) -> None:
+        self.components = tuple([*set(self.components)])
 
 class Onset(SyllableComponent): ...
-class Nucleus(SyllableComponent): ...
-class Coda(SyllableComponent): ...
+class Rhyme(SyllableComponent): ...
+class Nucleus(Rhyme): ...
+class Coda(Rhyme): ...
 
 
 
 class Syllable:
-    def __init__(self, *phonemes: Phoneme) -> None:
-        self._phonemes: tuple[Phoneme] = phonemes
+    def __init__(self, onset: Onset, nucleus: Nucleus, coda: Coda) -> None:
+        self._onset: Onset = onset
+        self._nucleus: Nucleus = nucleus
+        self._coda: Coda = coda
+        self._phonemes: tuple[Phoneme] = tuple(onset.get_phonemes() + nucleus.get_phonemes() + coda.get_phonemes())
         self._final_representation: str = self._get_final_representation()
 
 
@@ -55,3 +75,18 @@ class SyllableShape:
     @property
     def length(self) -> int:
         return self._length
+    
+
+    @property
+    def onset_shape(self) -> str:
+        return self._onset
+    
+
+    @property
+    def nucleus_shape(self) -> str:
+        return self._nucleus
+
+
+    @property
+    def coda_shape(self) -> str:
+        return self._coda

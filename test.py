@@ -1,6 +1,6 @@
+from clck.generators.syllable_generator import SyllableGenerator
 from clck.phonology.phonotactics import ClusterConstraint, ForbidPhonemeRule, Phonotactics
 from clck.phonology.syllables import Coda, Onset, SyllableShape
-from clck.generators.syllable_generator import SyllableGenerator
 from clck.phonemes import *
 from clck.phonology.phonemes import Cluster, PhonologicalInventory
 
@@ -30,5 +30,5 @@ ph = Phonotactics(
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(inventory, ph)
 generator.generate(50)
 
-for syllable in generator.get_recent_generation():
-    print(syllable, syllable.phonemes)
+for gen in generator.get_recent_generation():
+    print(gen)

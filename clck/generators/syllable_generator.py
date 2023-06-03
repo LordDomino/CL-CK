@@ -1,10 +1,15 @@
 import random
 from typing import Sequence
 
-from ..phonology.phonotactics import ClusterConstraint, PhonemicConstraint, PhonotacticRule, Phonotactics
-
+from ..phonology.phonotactics import (
+    ClusterConstraint,
+    PhonemicConstraint,
+    PhonotacticRule,
+    Phonotactics
+)
 from ..phonology.syllables import Coda, Nucleus, Onset, Syllable, SyllableComponent, SyllableShape
 from ..phonology.phonemes import Consonant, Phoneme, PhonologicalInventory, Vowel
+
 
 
 class SyllableGenerator:

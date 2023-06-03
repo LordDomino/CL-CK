@@ -3,6 +3,19 @@ from typing import Literal
 
 
 
+__all__: list[str] = [
+	"Phoneme",
+	"Consonant",
+	"PulmonicConsonant",
+	"NonpulmonicConsonant",
+	"Vowel",
+	"PhonemeCluster",
+	"PhonologicalInventory",
+	"Cluster"
+]
+
+
+
 class Phoneme:
 
 	phoneme_class_name: str = "phoneme"

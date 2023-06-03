@@ -8,6 +8,17 @@ from clck.phonology.syllables import SyllableComponent
 from .syllables import SyllableComponent, SyllableShape
 
 
+
+__all__: list[str] = [
+    "Phonotactics",
+    "PhonotacticRule",
+    "PhonemicConstraint",
+    "ClusterConstraint",
+    "ForbidPhonemeRule"
+]
+
+
+
 class Phonotactics:
     def __init__(self,
                  syllable_shape: SyllableShape,

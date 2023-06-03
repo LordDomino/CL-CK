@@ -1,8 +1,5 @@
 from clck.generators.syllable_generator import SyllableGenerator
-from clck.phonology.phonotactics import ClusterConstraint, ForbidPhonemeRule, Phonotactics
-from clck.phonology.syllables import Coda, Onset, SyllableShape
-from clck.phonemes import *
-from clck.phonology.phonemes import Cluster, PhonologicalInventory
+from clck import *
 
 
 

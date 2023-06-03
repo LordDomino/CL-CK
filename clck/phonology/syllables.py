@@ -2,6 +2,18 @@ from .phonemes import Phoneme
 
 
 
+__all__: list[str] = [
+    "SyllableComponent",
+    "Onset",
+    "Rhyme",
+    "Nucleus",
+    "Coda",
+    "Syllable",
+    "SyllableShape"
+]
+
+
+
 class SyllableComponent:
     def __init__(self, *components: "SyllableComponent | Phoneme") -> None:
         self.components: tuple[SyllableComponent | Phoneme] = components

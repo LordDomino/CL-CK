@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Literal
+
+from .articulation import Manner, Place
 
 
 
@@ -18,16 +19,15 @@ __all__: list[str] = [
 
 class Phoneme:
 
-	phoneme_class_name: str = "phoneme"
-
-	def __init__(self, symbol: str, place: str, manner: str) -> None:
+	def __init__(self, symbol: str, place: Place, manner: Manner) -> None:
 		self._symbol: str = symbol
-		self._place: str = place
-		self._manner: str = manner
+		self._place: Place = place
+		self._manner: Manner = manner
 
 
+	@abstractmethod
 	def __str__(self) -> str:
-		return f"{self.name.capitalize()} {self.__class__.phoneme_class_name}, {self._symbol}"
+		return f"{self.name.capitalize()} phoneme, {self._symbol}"
 
 
 	@abstractmethod
@@ -48,7 +48,7 @@ class Phoneme:
 
 
 class Consonant(Phoneme):
-	def __init__(self, string: str, place: str, manner: str) -> None:
+	def __init__(self, string: str, place: Place, manner: Manner) -> None:
 		super().__init__(string, place, manner)
 
 	
@@ -64,29 +64,8 @@ class PulmonicConsonant(Consonant):
 	def __init__(
 			self,
 			string: str,
-			place: Literal[
-				"bilabial",
-				"labiodental",
-				"dental",
-				"alveolar",
-				"postalveolar",
-				"retroflex",
-				"palatal",
-				"velar",
-				"uvular",
-				"pharyngeal",
-				"glottal",
-			],
-			manner: Literal[
-				"nasal",
-				"plosive",
-				"fricative",
-				"approximant",
-				"tap/flap",
-				"trill",
-				"lateral fricative",
-				"lateral approximant",
-			],
+			place: Place,
+			manner: Manner,
 			voiced: bool
 	) -> None:
 		super().__init__(string, place, manner)
@@ -109,34 +88,8 @@ class NonpulmonicConsonant(Consonant):
 	def __init__(
 			self,
 			string: str,
-			place: Literal[
-				"bilabial",
-				"labiodental",
-				"linguolabial",
-				"dental",
-				"alveolar",
-				"postalveolar",
-				"retroflex",
-				"palatal",
-				"velar",
-				"uvular",
-				"epiglottal",
-			],
-			manner: Literal[
-				"ejective stop",
-				"ejective affricate",
-				"ejective fractive",
-				"ejective lateral affricate",
-				"ejective lateral fricative",
-				"click tenuis",
-				"click voiced",
-				"click nasal",
-				"click tenuis lateral",
-				"click voiced lateral",
-				"click nasal lateral",
-				"implosive voiced",
-				"implosive voiceless",
-			]
+			place: Place,
+			manner: Manner
 	) -> None:
 		super().__init__(string, place, manner)
 
@@ -149,20 +102,8 @@ class Vowel(Phoneme):
 	def __init__(
 			self,
 			string: str,
-			place: Literal[
-				"front",
-				"central",
-				"back",
-			],
-			manner: Literal[
-				"close",
-				"nearclose",
-				"closemid",
-				"mid",
-				"openmid",
-				"nearopen",
-				"open",
-			],
+			place: Place,
+			manner: Manner,
 			rounded: bool | None
 	) -> None:
 		super().__init__(string, place, manner)
@@ -185,6 +126,7 @@ class Vowel(Phoneme):
 
 
 class PhonemeCluster:
+
 	def __init__(self, *phonemes: Phoneme) -> None:
 		self._phonemes: tuple[Phoneme] = phonemes
 

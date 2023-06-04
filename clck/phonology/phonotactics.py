@@ -1,10 +1,8 @@
 from abc import abstractmethod
 from typing import Sequence, Type
 
-from clck.phonology.phonemes import Phoneme
-from .phonemes import Cluster, Phoneme
-
-from clck.phonology.syllables import SyllableComponent
+from .containers import *
+from .phonemes import Phoneme
 from .syllables import SyllableComponent, SyllableShape
 
 
@@ -20,10 +18,9 @@ __all__: list[str] = [
 
 
 class Phonotactics:
-    def __init__(self,
-                 syllable_shape: SyllableShape,
-                 phonemic_constraints: Sequence["PhonemicConstraint"],
-                 cluster_constraints: Sequence["ClusterConstraint"]) -> None:
+    def __init__(self, syllable_shape: SyllableShape,
+            phonemic_constraints: Sequence["PhonemicConstraint"],
+            cluster_constraints: Sequence["ClusterConstraint"]) -> None:
         self._syllable_shape: SyllableShape = syllable_shape
         self._phonemic_constraints: Sequence[PhonemicConstraint] = phonemic_constraints
         self._cluster_constraints: Sequence[ClusterConstraint] = cluster_constraints
@@ -75,16 +72,16 @@ class PhonotacticRule:
 
 class PhonemicConstraint(PhonotacticRule):
     def __init__(self, priority: int,
-                 valid_locations: list[Type[SyllableComponent]],
-                 phonemes: list[Phoneme]) -> None:
+            valid_locations: list[Type[SyllableComponent]],
+            phonemes: list[Phoneme]) -> None:
         super().__init__(priority, valid_locations)
         self._phonemes: list[Phoneme] = phonemes
 
 
 class ClusterConstraint(PhonotacticRule):
     def __init__(self, priority: int,
-                 valid_locations: list[Type[SyllableComponent]],
-                 clusters: list[Cluster]) -> None:
+            valid_locations: list[Type[SyllableComponent]],
+            clusters: list[Cluster]) -> None:
         super().__init__(priority, valid_locations)
 
 

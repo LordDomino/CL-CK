@@ -1,6 +1,8 @@
 import random
 from typing import Sequence
 
+from ..phonology.containers import PhonologicalInventory
+
 from ..phonology.phonotactics import (
     ClusterConstraint,
     PhonemicConstraint,
@@ -8,7 +10,7 @@ from ..phonology.phonotactics import (
     Phonotactics
 )
 from ..phonology.syllables import Coda, Nucleus, Onset, Syllable, SyllableComponent, SyllableShape
-from ..phonology.phonemes import Consonant, Phoneme, PhonologicalInventory, Vowel
+from ..phonology.phonemes import Consonant, Phoneme, Vowel
 
 
 

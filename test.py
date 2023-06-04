@@ -1,5 +1,6 @@
 from clck.generators.syllable_generator import SyllableGenerator
 from clck import *
+from clck.phonology.containers import *
 
 
 
@@ -19,13 +20,13 @@ inventory: PhonologicalInventory = PhonologicalInventory(
 )
 
 ph = Phonotactics(
-    SyllableShape("C", "VV", "CC"),
+    SyllableShape("C", "V", "C"),
     [ForbidPhonemeRule([Onset, Coda], [IPA_VOICELESS_BILABIAL_PLOSIVE])],
-    [ClusterConstraint(1, [Coda], [Cluster(IPA_CLOSE_BACK_ROUNDED_VOWEL)])]
+    []
 )
 
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(inventory, ph)
-generator.generate(50)
+generator.generate(5)
 
 for gen in generator.get_recent_generation():
-    print(gen)
+    print(gen.phonemes)

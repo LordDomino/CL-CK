@@ -1,7 +1,5 @@
 from abc import abstractmethod
 
-from clck.phonology.articulation import ArticulatoryProperty
-
 from .articulation import *
 
 
@@ -12,9 +10,6 @@ __all__: list[str] = [
 	"PulmonicConsonant",
 	"NonpulmonicConsonant",
 	"Vowel",
-	"PhonemeCluster",
-	"PhonologicalInventory",
-	"Cluster"
 ]
 
 
@@ -22,6 +17,9 @@ __all__: list[str] = [
 class Phone:
 	def __init__(self, symbol: str) -> None:
 		self._symbol: str = symbol
+
+	def __call__(self) -> str:
+		return self._symbol
 
 	@property
 	def symbol(self) -> str:
@@ -35,14 +33,12 @@ class Phoneme(Phone):
 		self._artic_properties: tuple[ArticulatoryProperty, ...] = artic_properties
 
 
-	@abstractmethod
 	def __str__(self) -> str:
-		return f"{self.name.capitalize()} phoneme, {self._symbol}"
+		return f"{self.__class__.__name__} phoneme, {self._symbol}"
 
 
-	@abstractmethod
 	def __repr__(self) -> str:
-		pass
+		return f"<{self.__class__.__name__} {self._symbol}>"
 	
 
 	@property
@@ -54,34 +50,22 @@ class Phoneme(Phone):
 
 class Consonant(Phoneme):
 	def __init__(self, symbol: str,
-	      place: Place,
-	      manner: Manner,
-	      airstream_mechanism: AirstreamMechanism) -> None:
-		super().__init__(symbol, (place, manner, airstream_mechanism))
+	      	place: Place, manner: Manner) -> None:
+		super().__init__(symbol, (place, manner))
 		self._place: Place = place
 		self._manner: Manner = manner
-		self._airstream_mechanism: AirstreamMechanism = airstream_mechanism
-
-
-	@abstractmethod	
-	def __repr__(self) -> str:
-		return f"<Consonant \033[1m{self._symbol}\033[0m>"
 
 
 
 class Vowel(Phoneme):
 	def __init__(self, symbol: str,
-	      height: Height,
 		  backness: Backness,
+	      height: Height,
 		  roundedness: Roundedness) -> None:
 		super().__init__(symbol, (height, backness, roundedness))
 		self._height: Height = height
 		self._backness: Backness = backness
 		self._roundedness: Roundedness = roundedness
-
-
-	def __repr__(self) -> str:
-		return f"<Vowel \033[1m{self._symbol}\033[0m>"
 
 
 	@property
@@ -91,93 +75,38 @@ class Vowel(Phoneme):
 
 
 class PulmonicConsonant(Consonant):
-	def __init__(
-			self,
-			string: str,
-			place: Place,
-			manner: Manner,
-			voiced: bool
-	) -> None:
-		super().__init__(string, place, manner)
-		self._voiced: bool = voiced
+	def __init__(self, symbol: str, place: Place, manner: Manner,
+	      voicing: Voicing) -> None:
+		super().__init__(symbol, place, manner)
+		self._voicing: Voicing = voicing
 
 
 	@property
 	def name(self) -> str:
-		if self._voiced:
-			return f"voiced {self._place} {self._manner}"
-		else:
-			return f"voiceless {self._place} {self._manner}"
+		return f"{self._voicing.name.capitalize()} {self._place.name.lower()} {self._manner.name.capitalize()} vowel, {self._symbol}"
 
 
 
 class NonpulmonicConsonant(Consonant):
-
-	phoneme_class_name = "non-pulmonic consonant"
-
-	def __init__(
-			self,
-			string: str,
-			place: Place,
-			manner: Manner
-	) -> None:
-		super().__init__(string, place, manner)
-
-
-class PhonemeCluster:
-
-	def __init__(self, *phonemes: Phoneme) -> None:
-		self._phonemes: tuple[Phoneme] = phonemes
-
-	@property
-	def phonemes(self) -> tuple[Phoneme]:
-		return self._phonemes
+	def __init__(self, symbol: str, place: Place, manner: Manner) -> None:
+		super().__init__(symbol, place, manner)
 
 
 
-class PhonologicalInventory:
-	def __init__(self, *phonemes: Phoneme) -> None:
-		self._phonemes: tuple[Phoneme] = phonemes
-		self._consonants: tuple[Consonant] = self._get_consonants()
-		self._vowels: tuple[Vowel] = self._get_vowels()
 
 
-	@property
-	def phonemes(self) -> tuple[Phoneme]:
-		return self._phonemes
-	
-
-	@property
-	def consonants(self) -> tuple[Consonant]:
-		return self._consonants
-
-
-	@property
-	def vowels(self) -> tuple[Vowel]:
-		return self._vowels
-	
-
-	def _get_consonants(self) -> tuple[Consonant]:
-		consonants: list[Consonant] = []
-		for phoneme in self._phonemes:
-			if isinstance(phoneme, Consonant):
-				consonants.append(phoneme)
-		return tuple(consonants)
-	
-
-	def _get_vowels(self) -> tuple[Vowel]:
-		vowels: list[Vowel] = []
-		for phoneme in self._phonemes:
-			if isinstance(phoneme, Vowel):
-				vowels.append(phoneme)
-		return tuple(vowels)
+class EjectiveConsonant(NonpulmonicConsonant):
+	def __init__(self, symbol: str, place: Place, manner: Manner) -> None:
+		super().__init__(symbol, place, manner)
 
 
 
-class Cluster:
-	def __init__(self, *phonemes: Phoneme) -> None:
-		self._phonemes: tuple[Phoneme] = phonemes
+class ImplosiveConsonant(NonpulmonicConsonant):
+	def __init__(self, symbol: str, place: Place, manner: Manner) -> None:
+		super().__init__(symbol, place, manner)
 
-	@property
-	def phonemes(self) -> tuple[Phoneme]:
-		return self._phonemes
+
+
+class ClickConsonant(NonpulmonicConsonant):
+	def __init__(self, symbol: str, place: Place, manner: Manner) -> None:
+		super().__init__(symbol, place, manner)

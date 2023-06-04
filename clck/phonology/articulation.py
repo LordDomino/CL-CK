@@ -14,8 +14,7 @@ class PhonologicalProperty(ABC):
         self.__class__._increment_class_incrementals()
 
     @abstractmethod
-    def __str__(self) -> str:
-        return 
+    def __str__(self) -> str: pass
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} ID_{self._id} {self.name.upper()}, value={self.value}>"
@@ -51,6 +50,19 @@ class ArticulatoryProperty(PhonologicalProperty):
 
 
 
+class Voicing(ArticulatoryProperty):
+    def __init__(self, name: str, value: int) -> None:
+        super().__init__(name)
+        self._value: int = value
+
+    def __str__(self) -> str:
+        return f"Voicing (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
+    
+    @property
+    def value(self) -> int:
+        return self._value
+
+
 
 class ConsonantalProperty(ArticulatoryProperty):
     def __init__(self, name: str) -> None:
@@ -73,7 +85,7 @@ class Manner(ConsonantalProperty):
         self._value: int = value
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} articulatory property (ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
+        return f"Manner of articulation (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
 
     @property
     def value(self) -> int:
@@ -92,7 +104,7 @@ class Place(ConsonantalProperty):
             self._max: int = range
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} articlatory property (ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
+        return f"Place of articulation (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
 
 
     @property
@@ -118,7 +130,7 @@ class AirstreamMechanism(ConsonantalProperty):
 
     
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} airstream mechanism (ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
+        return f"Airstream mechanism (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
 
 
 
@@ -129,7 +141,7 @@ class Height(VocalicProperty):
 
     
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} vowel height (ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
+        return f"Vowel height (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
 
 
     @property
@@ -144,7 +156,7 @@ class Backness(VocalicProperty):
         self._value: float = value
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} vowel backness (ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
+        return f"Vowel backness (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
 
     @property
     def value(self) -> float:
@@ -157,13 +169,18 @@ class Roundedness(VocalicProperty):
         self._value: float = value
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} of vowel (ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
+        return f"Vowel roundedness (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
 
     @property
     def value(self) -> float:
         return self._value
 
 
+
+# MAIN ARTICULATORY PROPERTIES
+VOICED              = Voicing("voiced", 2)
+VOICELESS           = Voicing("voiceless", 1)
+UNVOICED            = Voicing("unvoiced", 0)
 
 # CONSONANTAL ARTICULATORY PROPERTIES
 # Manners of articulation of pulmonic consonants
@@ -227,7 +244,7 @@ BACK                = Backness("back", 4)
 
 # Roundedness of vowels
 UNROUNDED           = Roundedness("unrounded", 0)
-NEUTRAL             = Roundedness("", 0.5)
+NEUTRAL_ROUNDEDNESS = Roundedness("", 0.5)
 ROUNDED             = Roundedness("rounded", 1)
 
 

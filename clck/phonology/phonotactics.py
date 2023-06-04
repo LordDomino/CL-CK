@@ -1,9 +1,9 @@
 from abc import abstractmethod
 from typing import Sequence, Type
 
-from .containers import *
+from .structures import *
 from .phonemes import Phoneme
-from .syllables import SyllableComponent, SyllableShape
+from .syllables import SyllableShape
 
 
 
@@ -51,9 +51,9 @@ class Phonotactics:
 
 
 class PhonotacticRule:
-    def __init__(self, priority: int, valid_locations: list[Type[SyllableComponent]]) -> None:
+    def __init__(self, priority: int, valid_locations: list[Type[SyllabicComponent]]) -> None:
         self._priority: int = priority
-        self._valid_locations: list[Type[SyllableComponent]] = valid_locations
+        self._valid_locations: list[Type[SyllabicComponent]] = valid_locations
 
 
     @property
@@ -62,7 +62,7 @@ class PhonotacticRule:
     
 
     @property
-    def valid_locations(self) -> list[Type[SyllableComponent]]:
+    def valid_locations(self) -> list[Type[SyllabicComponent]]:
         return self._valid_locations
     
 
@@ -72,7 +72,7 @@ class PhonotacticRule:
 
 class PhonemicConstraint(PhonotacticRule):
     def __init__(self, priority: int,
-            valid_locations: list[Type[SyllableComponent]],
+            valid_locations: list[Type[SyllabicComponent]],
             phonemes: list[Phoneme]) -> None:
         super().__init__(priority, valid_locations)
         self._phonemes: list[Phoneme] = phonemes
@@ -80,14 +80,14 @@ class PhonemicConstraint(PhonotacticRule):
 
 class ClusterConstraint(PhonotacticRule):
     def __init__(self, priority: int,
-            valid_locations: list[Type[SyllableComponent]],
-            clusters: list[Cluster]) -> None:
+            valid_locations: list[Type[SyllabicComponent]],
+            clusters: list[PhonemeCluster]) -> None:
         super().__init__(priority, valid_locations)
 
 
 
 class ForbidPhonemeRule(PhonemicConstraint):
-    def __init__(self, valid_locations: list[Type[SyllableComponent]],
+    def __init__(self, valid_locations: list[Type[SyllabicComponent]],
                  phonemes: list[Phoneme]) -> None:
         super().__init__(1, valid_locations, phonemes)
 

@@ -2,24 +2,24 @@ import random
 from typing import Sequence
 
 from ..phonology.containers import PhonologicalInventory
-
+from ..phonology.phonemes import Consonant, Phoneme, Vowel
 from ..phonology.phonotactics import (
     ClusterConstraint,
     PhonemicConstraint,
     PhonotacticRule,
     Phonotactics
 )
-from ..phonology.syllables import Coda, Nucleus, Onset, Syllable, SyllableComponent, SyllableShape
-from ..phonology.phonemes import Consonant, Phoneme, Vowel
+from ..phonology.structures import Onset, Nucleus, Coda, SyllabicComponent, Syllable
+from ..phonology.syllables import SyllableShape
 
 
 
 class SyllableGenerator:
     def __init__(self,
-                 bank: PhonologicalInventory,
-                 shape: SyllableShape,
-                 phonemic_constraints: list[PhonemicConstraint],
-                 cluster_constraints: list[ClusterConstraint]) -> None:
+            bank: PhonologicalInventory,
+            shape: SyllableShape,
+            phonemic_constraints: list[PhonemicConstraint],
+            cluster_constraints: list[ClusterConstraint]) -> None:
         self._bank: PhonologicalInventory = bank
         self._shape: SyllableShape = shape
         self._phonemic_constraints: list[PhonemicConstraint] = phonemic_constraints
@@ -47,21 +47,21 @@ class SyllableGenerator:
 
 
     def generate(self, size: int = 1) -> list[Syllable]:
-        syllables: list[Syllable] = []
+        s: list[Syllable] = []
 
         for _ in range(size):
-            syllables.append(self._generate_syllable())
+            s.append(self._generate_syllable())
 
-        self._recent_generation = syllables
+        self._recent_generation = s
 
-        return syllables
+        return s
 
 
     def get_recent_generation(self) -> list[Syllable]:
         return self._recent_generation
     
 
-    def _does_violate_rule(self, component: SyllableComponent) -> bool:
+    def _does_violate_rule(self, component: SyllabicComponent) -> bool:
         rules: Sequence[PhonotacticRule] = self._phonotactics.rules
         component_type = component.__class__
         applicable_rules: Sequence[PhonotacticRule] = []
@@ -117,7 +117,7 @@ class SyllableGenerator:
     def _generate_onset(self, size: int) -> Onset:
         # shape: SyllableShape = self._shape
         # onset_shape: str = shape.onset_shape
-        phonemes: list[Phoneme] = []
+        phonemes: list[Consonant] = []
         for _ in range(size):
             choice: Consonant = random.choice(self._bank.consonants)
             phonemes.append(choice)
@@ -125,7 +125,7 @@ class SyllableGenerator:
     
 
     def _generate_nucleus(self, size: int) -> Nucleus:
-        phonemes: list[Phoneme] = []
+        phonemes: list[Vowel] = []
         for _ in range(size):
             choice: Vowel = random.choice(self._bank.vowels)
             phonemes.append(choice)
@@ -133,7 +133,7 @@ class SyllableGenerator:
     
 
     def _generate_coda(self, size: int) -> Coda:
-        phonemes: list[Phoneme] = []
+        phonemes: list[Consonant] = []
         for _ in range(size):
             choice: Consonant = random.choice(self._bank.consonants)
             phonemes.append(choice)

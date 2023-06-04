@@ -1,6 +1,7 @@
-from clck.generators.syllable_generator import SyllableGenerator
 from clck import *
-from clck.phonology.containers import *
+from clck.generators.syllable_generator import SyllableGenerator
+from clck.phonology.containers import PhonologicalInventory
+from clck.phonology.structures import *
 
 
 
@@ -28,5 +29,11 @@ ph = Phonotactics(
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(inventory, ph)
 generator.generate(5)
 
-for gen in generator.get_recent_generation():
-    print(gen.phonemes)
+ons = Onset(IPA_VOICED_ALVEOLAR_PLOSIVE)
+nuc = Nucleus(IPA_CLOSE_BACK_UNROUNDED_VOWEL)
+cod = Coda(IPA_VOICED_ALVEOLAR_LATERALFRICATIVE)
+rhy = Rhyme(nuc, cod)
+
+s: Syllable = Syllable.from_onset_and_rhyme(ons, rhy)
+
+print(s.find_phonemes(NonpulmonicConsonant))

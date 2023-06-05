@@ -2,7 +2,6 @@ import random
 from typing import Sequence
 
 from ..language.language import Language
-
 from ..phonology.containers import PhonologicalInventory
 from ..phonology.phonemes import Consonant, Phoneme, Vowel
 from ..phonology.phonotactics import (
@@ -11,8 +10,8 @@ from ..phonology.phonotactics import (
     PhonotacticRule,
     Phonotactics
 )
-from ..phonology.syllables import Syllable
-from ..phonology.syllables import Coda, Nucleus, Onset, SyllabicComponent, SyllableShape
+from ..phonology.syllabics import Syllable
+from ..phonology.syllabics import Coda, Nucleus, Onset, SyllabicComponent, SyllableShape
 
 
 

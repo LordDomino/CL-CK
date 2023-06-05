@@ -1,4 +1,4 @@
-from .phonology.articulation import *
+from .phonology.articulatory_properties import *
 from .phonology.phonemes import PulmonicConsonant, Vowel
 
 

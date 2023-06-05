@@ -1,10 +1,9 @@
-from clck import *
-from clck.generators.syllable_generator import SyllableGenerator
+from clck.generators.generators import SyllableGenerator
+from clck.ipa_phonemes import *
 from clck.language.language import Language
 from clck.phonology.containers import PhonologicalInventory
-from clck.phonology.structures import *
-from clck.phonology.syllables import Coda, Onset
-
+from clck.phonology.phonotactics import ForbidPhonemeRule, Phonotactics
+from clck.phonology.syllabics import Coda, Onset, Rhyme, SyllableShape
 
 
 inventory: PhonologicalInventory = PhonologicalInventory(
@@ -28,7 +27,10 @@ ph = Phonotactics(
     []
 )
 
-lang = Language()
+lang = Language(inventory)
 
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, ph)
 generator.generate(50)
+
+for s in generator.get_recent_generation():
+    print(s.find_substructures(Rhyme)[0].transcript)

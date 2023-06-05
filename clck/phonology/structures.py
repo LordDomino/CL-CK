@@ -7,6 +7,8 @@ from .phonemes import Phoneme
 
 
 class Structure(ABC):
+
+
     @abstractmethod
     def __init__(self, _allowed_types: Collection[type], *components: Any) -> None:
         """
@@ -24,11 +26,16 @@ class Structure(ABC):
         self._allowed_types: tuple[type] = tuple(_allowed_types)
         self._components: tuple[Structure | Phoneme, ...] = (
             tuple(self._filter_none(components)))
-        self._substructures: tuple[Structure] = self._get_substructures()
-        self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes(Phoneme))
         self._size: int = len(components)
-        self._output: str = self._create_output()
+        self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes(Phoneme))
+        self._substructures: tuple[Structure] = self._get_substructures()
         self._label: str = self._create_label()
+        self._output: str = self._create_output()
+        self._transcript: str = self._create_transcript()
+
+    
+    @abstractmethod
+    def _create_transcript(self) -> str: pass
 
     
     def __str__(self) -> str:
@@ -47,15 +54,9 @@ class Structure(ABC):
 
 
     @property
-    def substructures(self) -> tuple["Structure", ...]:
-        """The substructures of this structure."""
-        return self._substructures
-
-
-    @property
-    def size(self) -> int:
-        """The number of components of this structure."""
-        return self._size
+    def label(self) -> str:
+        """The label string for this structure."""
+        return self._label
     
 
     @property
@@ -65,9 +66,20 @@ class Structure(ABC):
     
 
     @property
-    def label(self) -> str:
-        """The label string for this structure."""
-        return self._label
+    def size(self) -> int:
+        """The number of components of this structure."""
+        return self._size
+    
+
+    @property
+    def substructures(self) -> tuple["Structure", ...]:
+        """The substructures of this structure."""
+        return self._substructures
+
+
+    @property
+    def transcript(self) -> str:
+        return self._transcript
 
 
     def find_phonemes(self, type: Type[Phoneme]) -> list[Phoneme]:

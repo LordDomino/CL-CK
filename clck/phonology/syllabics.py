@@ -6,6 +6,24 @@ from .phonemes import Vowel
 from .structures import Structure
 
 
+__all__ = [
+    "Syllable",
+    "Onset",
+    "Nucleus",
+    "Coda",
+    "Rhyme",
+    "ConsonantCluster",
+    "PhonemeCluster",
+    "VowelCluster",
+    "Diphthong",
+    "Triphthong",
+]
+
+class Shape:
+    def __init__(self) -> None:
+        pass
+
+
 
 class SyllableShape:
     def __init__(self, onset: str, nucleus: str, coda: str) -> None:
@@ -40,6 +58,7 @@ class SyllableShape:
     @property
     def coda_shape(self) -> str:
         return self._coda
+
 
 
 class SyllabicComponent(Structure, ABC):
@@ -203,15 +222,23 @@ class Rhyme(SyllabicComponent):
         return self._coda
 
 
+    def _create_transcript(self) -> str:
+        t: str = ""
+        for c in self._phonemes:
+            t += c.symbol
+        return f"/{t}/"
+
+
 class Syllable(Structure):
     def __init__(self, onset: Onset | None, nucleus: Nucleus,
         coda: Coda | None) -> None:
         super().__init__([SyllabicComponent, Phoneme], onset, nucleus, coda)
+        self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes(Phoneme))
         self._onset: Onset | None = onset
         self._nucleus: Nucleus = nucleus
         self._coda: Coda | None = coda
-        self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes(Phoneme))
         self._rhyme: Rhyme = Rhyme(self._nucleus, self._coda)
+        self._transcript: str = self._create_transcript()
 
 
     @classmethod
@@ -239,3 +266,10 @@ class Syllable(Structure):
 
     def _post_init(self, rhyme: Rhyme | None = None) -> None:
         if rhyme is not None: self._rhyme = rhyme
+
+
+    def _create_transcript(self) -> str:
+        t: str = ""
+        for p in self._phonemes:
+            t += p.symbol
+        return f"/{t}/"

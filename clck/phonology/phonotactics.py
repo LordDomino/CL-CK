@@ -3,7 +3,7 @@ from typing import Sequence, Type
 
 from .structures import *
 from .phonemes import Phoneme
-from .syllables import SyllableShape
+from .syllables import PhonemeCluster, SyllabicComponent, SyllableShape
 
 
 

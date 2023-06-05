@@ -1,6 +1,8 @@
 import random
 from typing import Sequence
 
+from ..language.language import Language
+
 from ..phonology.containers import PhonologicalInventory
 from ..phonology.phonemes import Consonant, Phoneme, Vowel
 from ..phonology.phonotactics import (
@@ -9,17 +11,20 @@ from ..phonology.phonotactics import (
     PhonotacticRule,
     Phonotactics
 )
-from ..phonology.structures import Onset, Nucleus, Coda, SyllabicComponent, Syllable
-from ..phonology.syllables import SyllableShape
+from ..phonology.syllables import Syllable
+from ..phonology.syllables import Coda, Nucleus, Onset, SyllabicComponent, SyllableShape
 
 
 
 class SyllableGenerator:
     def __init__(self,
+            language: Language,
             bank: PhonologicalInventory,
             shape: SyllableShape,
             phonemic_constraints: list[PhonemicConstraint],
             cluster_constraints: list[ClusterConstraint]) -> None:
+        self._language: Language = language
+        self._init_language()
         self._bank: PhonologicalInventory = bank
         self._shape: SyllableShape = shape
         self._phonemic_constraints: list[PhonemicConstraint] = phonemic_constraints
@@ -38,22 +43,22 @@ class SyllableGenerator:
 
     @classmethod
     def from_phonotactics(cls,
-                          bank: PhonologicalInventory,
-                          phonotactics: Phonotactics) -> "SyllableGenerator":
-        return SyllableGenerator(bank,
-                                 phonotactics.syllable_shape,
-                                 phonotactics.phonemic_constraints,
-                                 phonotactics.cluster_constraints)
+        language: Language,
+        bank: PhonologicalInventory,
+        phonotactics: Phonotactics) -> "SyllableGenerator":
+        return SyllableGenerator(language,
+            bank,
+            phonotactics.syllable_shape,
+            phonotactics.phonemic_constraints,
+            phonotactics.cluster_constraints)
 
 
     def generate(self, size: int = 1) -> list[Syllable]:
         s: list[Syllable] = []
-
         for _ in range(size):
             s.append(self._generate_syllable())
-
         self._recent_generation = s
-
+        self._language.register_structures(*s)
         return s
 
 
@@ -138,3 +143,7 @@ class SyllableGenerator:
             choice: Consonant = random.choice(self._bank.consonants)
             phonemes.append(choice)
         return Coda(*phonemes)
+
+
+    def _init_language(self) -> None:
+        self._language._syllable_generator = self # type: ignore

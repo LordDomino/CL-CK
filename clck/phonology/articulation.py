@@ -13,11 +13,14 @@ class PhonologicalProperty(ABC):
         self._id: int = self.__class__._id
         self.__class__._increment_class_incrementals()
 
+
     @abstractmethod
     def __str__(self) -> str: pass
 
+
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} ID_{self._id} {self.name.upper()}, value={self.value}>"
+        return (f"<{self.__class__.__name__} ID_{self._id} "
+            f"{self.name.upper()}, value={self.value}>")
 
 
     @property

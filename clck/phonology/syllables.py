@@ -85,14 +85,17 @@ class PhonemeCluster(SyllabicComponent):
             *components: Phoneme) -> None:
         """
         Creates a new instance of `Cluster`.
+        
         Arguments
         - `component_type` is the type of the components.
         - `phonemes` are the component phonemes of this cluster.
+        
         Raises
         - `TypeError` if any element in `phonemes` is not of the given type,
         `component_type`.
+        
         A cluster logically exists as a group of at least two phoneme
-        compoenents. Thus, note that during instantiation of the instance, the
+        components. Thus, note that during instantiation of the instance, the
         constructor checks if the number of given phonemes are not below two.
         """
         super().__init__(list([allowed_type]), *components)
@@ -122,19 +125,13 @@ class PhonemeCluster(SyllabicComponent):
         return self._output
 
 
-    # def _create_output(self) -> str:
-    #     """
-    #     Creates the final string representation for this cluster based on its
-    #     component phonemes.
-    #     """
-    #     phonemes: list[str] = []
-    #     for p in self._phonemes:
-    #         phonemes.append(p())
-    #     return "".join(phonemes)
-
-
     def _check_cluster_size(self) -> bool:
-        """Checks if the number of phonemes in the cluster is less than two."""
+        """
+        Checks if the number of phonemes in the cluster is less than two.
+        
+        Raises
+        - `ValueError` if the number of clusters is less than two.
+        """
         if len(self.phonemes) < 2:
             raise ValueError(f"Cannot create {self.__class__.__name__} with "
                 f"less than 2 items. Insufficient amount of items "
@@ -196,19 +193,20 @@ class Rhyme(SyllabicComponent):
 
     @property
     def nucleus(self) -> Nucleus:
+        """The nucleus component of this object."""
         return self._nucleus
 
 
     @property
     def coda(self) -> Coda | None:
+        """The coda component of this object."""
         return self._coda
 
 
 class Syllable(Structure):
     def __init__(self, onset: Onset | None, nucleus: Nucleus,
         coda: Coda | None) -> None:
-        super().__init__([SyllabicComponent, Phoneme],
-            onset, nucleus, coda)
+        super().__init__([SyllabicComponent, Phoneme], onset, nucleus, coda)
         self._onset: Onset | None = onset
         self._nucleus: Nucleus = nucleus
         self._coda: Coda | None = coda
@@ -237,10 +235,6 @@ class Syllable(Structure):
     @property
     def rhyme(self) -> Rhyme | None:
         return self._rhyme
-
-
-    def generate_rhyme(self) -> Rhyme | None:
-        return Rhyme(self._nucleus, self._coda)
 
 
     def _post_init(self, rhyme: Rhyme | None = None) -> None:

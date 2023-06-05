@@ -5,13 +5,17 @@ from typing import Any
 
 class PhonologicalProperty(ABC):
 
+    properties: list["PhonologicalProperty"] = []
+
     _id: int = 1
     
     def __init__(self, name: str) -> None:
         super().__init__()
         self._name: str = name
         self._id: int = self.__class__._id
-        self.__class__._increment_class_incrementals()
+        self.__class__._increment_class_vars()
+
+        self.__class__.properties.append(self)
 
 
     @abstractmethod
@@ -39,7 +43,7 @@ class PhonologicalProperty(ABC):
 
 
     @classmethod
-    def _increment_class_incrementals(cls) -> None:
+    def _increment_class_vars(cls) -> None:
         cls._id += 1
 
 
@@ -55,8 +59,8 @@ class ArticulatoryProperty(PhonologicalProperty):
 
 class Voicing(ArticulatoryProperty):
     def __init__(self, name: str, value: int) -> None:
-        super().__init__(name)
         self._value: int = value
+        super().__init__(name)
 
     def __str__(self) -> str:
         return f"Voicing (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
@@ -84,8 +88,8 @@ class VocalicProperty(ArticulatoryProperty):
 
 class Manner(ConsonantalProperty):
     def __init__(self, name: str, value: int) -> None:
-        super().__init__(name)
         self._value: int = value
+        super().__init__(name)
 
     def __str__(self) -> str:
         return f"Manner of articulation (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
@@ -98,13 +102,13 @@ class Manner(ConsonantalProperty):
 
 class Place(ConsonantalProperty):
     def __init__(self, name: str, range: tuple[int, int] | int) -> None:
-        super().__init__(name)
         if isinstance(range, tuple):
             self._min: int = range[0]
             self._max: int = range[1]
         else:
             self._min: int = range
             self._max: int = range
+        super().__init__(name)
 
     def __str__(self) -> str:
         return f"Place of articulation (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
@@ -122,9 +126,9 @@ class AirflowType: ...
 
 class AirstreamMechanism(ConsonantalProperty):
     def __init__(self, name: str, value: float, airflow: AirflowType) -> None:
-        super().__init__(name)
         self._value: float = value
         self._airflow: AirflowType = airflow
+        super().__init__(name)
 
     
     @property
@@ -139,8 +143,8 @@ class AirstreamMechanism(ConsonantalProperty):
 
 class Height(VocalicProperty):
     def __init__(self, name: str, value: float) -> None:
-        super().__init__(name)
         self._value: float = value
+        super().__init__(name)
 
     
     def __str__(self) -> str:
@@ -155,8 +159,8 @@ class Height(VocalicProperty):
 
 class Backness(VocalicProperty):
     def __init__(self, name: str, value: float) -> None:
-        super().__init__(name)
         self._value: float = value
+        super().__init__(name)
 
     def __str__(self) -> str:
         return f"Vowel backness (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"
@@ -168,8 +172,8 @@ class Backness(VocalicProperty):
 
 class Roundedness(VocalicProperty):
     def __init__(self, name: str, value: float) -> None:
-        super().__init__(name)
         self._value: float = value
+        super().__init__(name)
 
     def __str__(self) -> str:
         return f"Vowel roundedness (articulatory property, ID_{self._id}): \033[1m{self.name.capitalize()}\033[0m"

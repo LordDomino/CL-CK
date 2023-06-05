@@ -25,8 +25,10 @@ class Structure(ABC):
         self._components: tuple[Structure | Phoneme, ...] = (
             tuple(self._filter_none(components)))
         self._substructures: tuple[Structure] = self._get_substructures()
+        self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes(Phoneme))
         self._size: int = len(components)
         self._output: str = self._create_output()
+        self._label: str = self._create_label()
 
     
     def __str__(self) -> str:
@@ -60,6 +62,12 @@ class Structure(ABC):
     def output(self) -> str:
         """The final string representation of this structure."""
         return self._output
+    
+
+    @property
+    def label(self) -> str:
+        """The label string for this structure."""
+        return self._label
 
 
     def find_phonemes(self, type: Type[Phoneme]) -> list[Phoneme]:
@@ -126,6 +134,13 @@ class Structure(ABC):
                     f"in {allowed_types}")
 
         return True
+
+
+    def _create_label(self) -> str:
+        names: list[str] = []
+        for p in self._phonemes:
+            names.append(p.name)
+        return "_".join(names)
 
 
     def _create_output(self) -> str:

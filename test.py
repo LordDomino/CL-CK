@@ -32,10 +32,3 @@ lang = Language()
 
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, ph)
 generator.generate(50)
-
-lang_set = set(lang._structures)
-
-for s in lang_set:
-    print(s, s.components)
-
-print(len(lang_set))

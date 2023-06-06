@@ -45,6 +45,10 @@ class SyllableGenerator:
         language: Language,
         bank: PhonologicalInventory,
         phonotactics: Phonotactics) -> "SyllableGenerator":
+        """
+        Creates a `SyllableGenerator` object from a wrapped `Phonotactics`
+        object of the constraints.
+        """
         return SyllableGenerator(language,
             bank,
             phonotactics.syllable_shape,
@@ -53,12 +57,12 @@ class SyllableGenerator:
 
 
     def generate(self, size: int = 1) -> list[Syllable]:
-        s: list[Syllable] = []
+        syllable: list[Syllable] = []
         for _ in range(size):
-            s.append(self._generate_syllable())
-        self._recent_generation = s
-        self._language.register_structures(*s)
-        return s
+            syllable.append(self._generate_single())
+        self._recent_generation = syllable
+        self._language.register_structures(*syllable)
+        return syllable
 
 
     def get_recent_generation(self) -> list[Syllable]:
@@ -85,7 +89,7 @@ class SyllableGenerator:
         return False
 
 
-    def _generate_syllable(self) -> Syllable:
+    def _generate_single(self) -> Syllable:
         # Generate a random onset
         onset: Onset = self._generate_onset(len(self._shape.onset_shape))
 
@@ -116,6 +120,22 @@ class SyllableGenerator:
         coda.remove_duplicates()
 
         return Syllable(onset, nucleus, coda)
+    
+
+    def _generate_coda(self, size: int) -> Coda:
+        phonemes: list[Consonant] = []
+        for _ in range(size):
+            choice: Consonant = random.choice(self._bank.consonants)
+            phonemes.append(choice)
+        return Coda(*phonemes)
+    
+
+    def _generate_nucleus(self, size: int) -> Nucleus:
+        phonemes: list[Vowel] = []
+        for _ in range(size):
+            choice: Vowel = random.choice(self._bank.vowels)
+            phonemes.append(choice)
+        return Nucleus(*phonemes)
 
 
     def _generate_onset(self, size: int) -> Onset:
@@ -126,22 +146,6 @@ class SyllableGenerator:
             choice: Consonant = random.choice(self._bank.consonants)
             phonemes.append(choice)
         return Onset(*phonemes)
-    
-
-    def _generate_nucleus(self, size: int) -> Nucleus:
-        phonemes: list[Vowel] = []
-        for _ in range(size):
-            choice: Vowel = random.choice(self._bank.vowels)
-            phonemes.append(choice)
-        return Nucleus(*phonemes)
-    
-
-    def _generate_coda(self, size: int) -> Coda:
-        phonemes: list[Consonant] = []
-        for _ in range(size):
-            choice: Consonant = random.choice(self._bank.consonants)
-            phonemes.append(choice)
-        return Coda(*phonemes)
 
 
     def _init_language(self) -> None:

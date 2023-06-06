@@ -89,9 +89,20 @@ class SyllabicComponent(Structure, ABC):
         self._components = tuple([*set(self.components)])
 
 
+    def _create_transcript(self) -> str:
+        t: str = ""
+        for c in self._components:
+            if isinstance(c, Phoneme):
+                t += c.transcript
+            else:
+                t += c._create_transcript()
+        return t
+
+
 class Onset(SyllabicComponent):
     def __init__(self, *components: "SyllabicComponent | Consonant") -> None:
         super().__init__([SyllabicComponent, Consonant], *components)
+
 
 
 class Nucleus(SyllabicComponent):
@@ -237,7 +248,7 @@ class Syllable(Structure):
         self._onset: Onset | None = onset
         self._nucleus: Nucleus = nucleus
         self._coda: Coda | None = coda
-        self._rhyme: Rhyme = Rhyme(self._nucleus, self._coda)
+        self._rhyme: Rhyme = self._generate_rhyme(nucleus, coda)
         self._transcript: str = self._create_transcript()
 
 
@@ -264,12 +275,18 @@ class Syllable(Structure):
         return self._rhyme
 
 
-    def _post_init(self, rhyme: Rhyme | None = None) -> None:
-        if rhyme is not None: self._rhyme = rhyme
-
-
     def _create_transcript(self) -> str:
         t: str = ""
         for p in self._phonemes:
             t += p.symbol
         return f"/{t}/"
+
+
+    def _generate_rhyme(self, nucleus: Nucleus, coda: Coda | None) -> Rhyme:
+        rhyme = Rhyme(nucleus, coda)
+        self.add_components(rhyme)
+        return rhyme
+
+
+    def _post_init(self, rhyme: Rhyme | None = None) -> None:
+        if rhyme is not None: self._rhyme = rhyme

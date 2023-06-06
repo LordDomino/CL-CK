@@ -3,7 +3,7 @@ from clck.ipa_phonemes import *
 from clck.language.language import Language
 from clck.phonology.containers import PhonologicalInventory
 from clck.phonology.phonotactics import ForbidPhonemeRule, Phonotactics
-from clck.phonology.syllabics import Coda, Onset, Rhyme, SyllableShape
+from clck.phonology.syllabics import Coda, Nucleus, Onset, Rhyme, SyllableShape
 
 
 inventory: PhonologicalInventory = PhonologicalInventory(
@@ -32,5 +32,4 @@ lang = Language(inventory)
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, ph)
 generator.generate(50)
 
-for s in generator.get_recent_generation():
-    print(s.find_substructures(Rhyme)[0].transcript)
+print(generator.get_recent_generation())

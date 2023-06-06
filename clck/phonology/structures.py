@@ -82,6 +82,19 @@ class Structure(ABC):
         return self._transcript
 
 
+    def add_components(self, *components: "Structure | Phoneme") -> None:
+        """
+        Adds components to this structure.
+
+        Arguments:
+        - `components` - the components to add.
+        """
+        self._assert_components(components, self._allowed_types)
+        self._components = tuple([*self._components, *components])
+        for component in components:
+            self._classify_component(component)
+
+
     def find_phonemes(self, type: Type[Phoneme]) -> list[Phoneme]:
         """
         Returns a list of phonemes that are of the specified `Phoneme` subtype.
@@ -146,6 +159,13 @@ class Structure(ABC):
                     f"in {allowed_types}")
 
         return True
+
+
+    def _classify_component(self, component: "Structure | Phoneme") -> None:
+        if isinstance(component, Structure):
+            self._substructures = tuple([*self._substructures, component])
+        else:
+            self._phonemes = tuple([*self._phonemes, component])
 
 
     def _create_label(self) -> str:

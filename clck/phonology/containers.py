@@ -1,6 +1,7 @@
 from typing import Type
 
 import clck.ipa_phonemes as ipa_phonemes
+from ..language.managers import PhonemeGroupsManager
 
 from .phonemes import *
 

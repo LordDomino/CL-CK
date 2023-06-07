@@ -33,6 +33,7 @@ class Phoneme:
         self._articulatory_properties: tuple[ArticulatoryProperty, ...] = (
             articulatory_properties)
         self._transcript: str = f"/{self._symbol}/"
+        self._property_names: list[str] = self._get_property_names()
 
 
     def __call__(self) -> str:
@@ -65,6 +66,10 @@ class Phoneme:
     def transcript(self) -> str:
         """The IPA transcription of this phoneme."""
         return self._transcript
+
+    
+    def _get_property_names(self) -> list[str]:
+        return [property.name for property in self._articulatory_properties]
 
 
 

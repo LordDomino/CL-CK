@@ -1,4 +1,7 @@
 from typing import Type
+
+import clck.ipa_phonemes as ipa_phonemes
+
 from .phonemes import *
 
 
@@ -52,7 +55,32 @@ class PhonemeGroup:
         PhonemeGroup.groups.append(self)
 
 
-    @classmethod
-    def from_type(cls, label: str,
-        phoneme_type: Type[Phoneme]) -> "PhonemeGroup":
-        ...
+    @staticmethod
+    def from_type(label: str, phoneme_type: Type[Phoneme]) -> "PhonemeGroup":
+        phonemes: list[Phoneme] = []
+
+        for phoneme in ipa_phonemes.DEFAULT_IPA_PHONEMES:
+            if isinstance(phoneme, phoneme_type):
+                phonemes.append(phoneme)
+
+        return PhonemeGroup(label, *phonemes)
+    
+
+    @staticmethod
+    def from_property(label: str, articulatory_property_name: str) -> "PhonemeGroup":
+        phonemes: list[Phoneme] = []
+
+        for phoneme in ipa_phonemes.DEFAULT_IPA_PHONEMES:
+            if articulatory_property_name in phoneme._property_names:
+                phonemes.append(phoneme)
+
+        return PhonemeGroup(label, *phonemes)
+
+
+DEFAULT_PATTERN_WILDCARDS: dict[str, PhonemeGroup] = {
+    "C" : PhonemeGroup.from_type("C", Consonant),
+    "V" : PhonemeGroup.from_type("V", Vowel),
+    "N" : PhonemeGroup.from_property("N", "nasal"),
+    "A" : PhonemeGroup.from_property("A", "approximant"),
+    "S" : PhonemeGroup.from_property("S", "stop")
+}

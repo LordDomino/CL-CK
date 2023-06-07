@@ -35,3 +35,5 @@ lang = Language(inventory)
 
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, ph)
 generator.generate(10)
+
+print(lang._phoneme_manager.global_list)

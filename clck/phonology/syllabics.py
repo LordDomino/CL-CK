@@ -26,7 +26,17 @@ class Shape:
 
 
 
-class OnsetShape(Shape): ...
+class OnsetShape(Shape):
+    def __init__(self, pattern: str) -> None:
+        super().__init__()
+        self._pattern: str = pattern
+
+
+    def _check_pattern_validity(self, pattern: str) -> bool:
+        # for char in pattern:
+        #     if char not in ...:
+        #         return False
+        return True
 class NucleusShape(Shape): ...
 class CodaShape(Shape): ...
 

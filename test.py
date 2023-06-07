@@ -1,12 +1,14 @@
+
 from clck.generators.generators import SyllableGenerator
 from clck.ipa_phonemes import *
 from clck.language.language import Language
 from clck.phonology.containers import PhonologicalInventory
 from clck.phonology.phonotactics import ForbidPhonemeRule, Phonotactics
-from clck.phonology.syllabics import Coda, Nucleus, Onset, Rhyme, SyllableShape
+from clck.phonology.syllabics import Coda, Onset, SyllableShape
 
 
 inventory: PhonologicalInventory = PhonologicalInventory(
+    # Consonants
     IPA_VOICELESS_BILABIAL_PLOSIVE,
     IPA_VOICELESS_ALVEOLAR_PLOSIVE,
     IPA_VOICELESS_VELAR_PLOSIVE,
@@ -14,6 +16,8 @@ inventory: PhonologicalInventory = PhonologicalInventory(
     IPA_VOICED_ALVEOLAR_NASAL,
     IPA_VOICELESS_ALVEOLAR_FRICATIVE,
     IPA_VOICED_ALVEOLAR_LATERALAPPROXIMANT,
+
+    # Vowels
     IPA_CLOSE_FRONT_UNROUNDED_VOWEL,
     IPA_CLOSEMID_FRONT_UNROUNDED_VOWEL,
     IPA_OPEN_FRONT_UNROUNDED_VOWEL,
@@ -30,6 +34,4 @@ ph = Phonotactics(
 lang = Language(inventory)
 
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, ph)
-generator.generate(50)
-
-print(generator.get_recent_generation())
+generator.generate(10)

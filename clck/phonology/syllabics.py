@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Type
+from typing import List, Type
 
 from .phonemes import Consonant, Phoneme
 from .phonemes import Vowel
@@ -19,9 +19,16 @@ __all__ = [
     "Triphthong",
 ]
 
+
 class Shape:
     def __init__(self) -> None:
         pass
+
+
+
+class OnsetShape(Shape): ...
+class NucleusShape(Shape): ...
+class CodaShape(Shape): ...
 
 
 
@@ -32,7 +39,7 @@ class SyllableShape:
         self._coda: str = coda
         self._pattern: str = "".join([self._onset, self._nucleus, self._coda]).upper()
         self._length: int = len(self._pattern)
-        self._pattern_types: list[str] = list(set(self._pattern))
+        self._pattern_types: List[str] = list(set(self._pattern))
 
 
     @property
@@ -69,10 +76,9 @@ class SyllabicComponent(Structure, ABC):
     """
     @abstractmethod
     def __init__(self,
-            _allowed_types: list[Type["SyllabicComponent | Phoneme"]],
+            _allowed_types: List[Type["SyllabicComponent | Phoneme"]],
             *components: "SyllabicComponent | Phoneme") -> None:
         super().__init__(_allowed_types, *components)
-        self._components: tuple[SyllabicComponent | Phoneme, ...] = components
 
 
     def get_phonemes(self) -> list[Phoneme]:
@@ -80,13 +86,13 @@ class SyllabicComponent(Structure, ABC):
         for component in self._components:
             if isinstance(component, Phoneme):
                 phonemes.append(component)
-            else:
+            elif isinstance(component, SyllabicComponent):
                 component.get_phonemes()
         return phonemes
 
 
     def remove_duplicates(self) -> None:
-        self._components = tuple([*set(self.components)])
+        self._components = [*set(self._components)]
 
 
     def _create_transcript(self) -> str:
@@ -284,7 +290,7 @@ class Syllable(Structure):
 
     def _generate_rhyme(self, nucleus: Nucleus, coda: Coda | None) -> Rhyme:
         rhyme = Rhyme(nucleus, coda)
-        self.add_components(rhyme)
+        self.add_substructure(rhyme)
         return rhyme
 
 

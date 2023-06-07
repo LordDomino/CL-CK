@@ -13,65 +13,67 @@ __all__: list[str] = [
     "ClickConsonant",
 ]
 
-class Phone:
-    def __init__(self, symbol: str) -> None:
+
+
+class Phoneme:
+
+
+    def __init__(self, symbol: str,
+            articulatory_properties: tuple[ArticulatoryProperty, ...]) -> None:
+        """
+        Creates an abstract phoneme representation.
+
+        Parameters
+        ----------
+        - `symbol` is the character representation of the phoneme.
+        - `articulatory_properties` is the tuple of articulatory properties of
+            the phoneme.
+        """
         self._symbol: str = symbol
+        self._articulatory_properties: tuple[ArticulatoryProperty, ...] = (
+            articulatory_properties)
+        self._transcript: str = f"/{self._symbol}/"
 
 
     def __call__(self) -> str:
         return self._symbol
 
 
-    @property
-    def symbol(self) -> str:
-        return self._symbol
-
-
-
-class Phoneme(Phone):
-
-
-    def __init__(self, symbol: str,
-          articulatory_properties: tuple[ArticulatoryProperty, ...]) -> None:
-        super().__init__(symbol)
-        self._articulatory_properties: tuple[ArticulatoryProperty, ...] = (
-            articulatory_properties)
-        self._name: str = self._create_name()
-        self._transcript: str = f"/{self._symbol}/"
-
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__} phoneme \"{self._symbol}\""
-
-
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._symbol}>"
 
 
+    def __str__(self) -> str:
+        s: list[str] = []
+        for property in self._articulatory_properties:
+            s.append(property.name)
+        return f"{self.__class__.__name__} \"{self._symbol}\" ({' '.join(s)})"
+
+
     @property
     def name(self) -> str:
-        return self._name
+        """The name of this phoneme."""
+        return self.__str__()
+
+
+    @property
+    def symbol(self) -> str:
+        return self._symbol
 
     
     @property
     def transcript(self) -> str:
+        """The IPA transcription of this phoneme."""
         return self._transcript
-
-
-    def _create_name(self) -> str:
-        articulatory_properties: list[str] = []
-        for articulatory_property in self._articulatory_properties:
-            articulatory_properties.append(articulatory_property.name)
-        return f"{self._symbol} ({' '.join(articulatory_properties)})"
 
 
 
 class Consonant(Phoneme):
     def __init__(self, symbol: str,
               place: Place, manner: Manner) -> None:
+        super().__init__(symbol, (place, manner))
         self._place: Place = place
         self._manner: Manner = manner
-        super().__init__(symbol, (place, manner))
 
 
 

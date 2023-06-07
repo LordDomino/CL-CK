@@ -3,24 +3,19 @@ from typing import Any
 
 
 __all__ = [
-    "PhonologicalProperty",
-    "ArticulatoryProperty",
-    "Voicing",
-    "ConsonantalProperty",
-    "VocalicProperty",
-    "Manner",
-    "Place",
-    "AirflowType",
-    "AirstreamMechanism",
-    "Height",
-    "Backness",
-    "Roundedness",
+    "PhonologicalProperty", "ArticulatoryProperty", "Voicing",
+    "ConsonantalProperty", "VocalicProperty", "Manner", "Place", "AirflowType",
+    "AirstreamMechanism", "Height", "Backness", "Roundedness",
 ]
+
+
+
 class PhonologicalProperty(ABC):
 
     properties: list["PhonologicalProperty"] = []
     _id: int = 1
     
+    @abstractmethod
     def __init__(self, name: str) -> None:
         super().__init__()
         self._name: str = name

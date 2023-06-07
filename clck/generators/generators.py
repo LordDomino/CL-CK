@@ -1,5 +1,5 @@
 import random
-from typing import Sequence
+from typing import List, Sequence
 
 from ..language.language import Language
 from ..phonology.containers import PhonologicalInventory
@@ -10,8 +10,7 @@ from ..phonology.phonotactics import (
     PhonotacticRule,
     Phonotactics
 )
-from ..phonology.syllabics import Syllable
-from ..phonology.syllabics import Coda, Nucleus, Onset, SyllabicComponent, SyllableShape
+from ..phonology.syllabics import Coda, Nucleus, Onset, SyllabicComponent, Syllable, SyllableShape
 
 
 
@@ -56,8 +55,8 @@ class SyllableGenerator:
             phonotactics.cluster_constraints)
 
 
-    def generate(self, size: int = 1) -> list[Syllable]:
-        syllable: list[Syllable] = []
+    def generate(self, size: int = 1) -> List[Syllable]:
+        syllable: List[Syllable] = []
         for _ in range(size):
             syllable.append(self._generate_single())
         self._recent_generation = syllable

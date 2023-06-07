@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from types import NoneType
-from typing import Any, Collection, Type
+from typing import Any, Collection, List, Type
 
 from .phonemes import Phoneme
 
@@ -14,20 +14,21 @@ class Structure(ABC):
         """
         Creates a new instance of `Structure`.
         
-        Arguments
-        - `_component_types` are the permitted types of components.
+        Parameters
+        ---------
+        - `_allowed_types` are the permitted types of components.
         - `components` are the components.
 
         Raises
+        ------
         - `TypeError` if any element in `components` is not of the allowed types
-        in `_component_types`.
+        in `_allowed_types`.
         """
         self._assert_components(tuple(components), _allowed_types)
         self._allowed_types: tuple[type] = tuple(_allowed_types)
-        self._components: tuple[Structure | Phoneme, ...] = (
-            tuple(self._filter_none(components)))
-        self._size: int = len(components)
+        self._components: List[Structure | Phoneme] = self._filter_none(components)
         self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes(Phoneme))
+        self._size: int = len(self._phonemes)
         self._substructures: tuple[Structure] = self._get_substructures()
         self._label: str = self._create_label()
         self._output: str = self._create_output()
@@ -48,7 +49,7 @@ class Structure(ABC):
 
 
     @property
-    def components(self) -> tuple[Any, ...]:
+    def components(self) -> List["Structure | Phoneme"]:
         """The components of this structure."""
         return self._components
 
@@ -86,13 +87,18 @@ class Structure(ABC):
         """
         Adds components to this structure.
 
-        Arguments:
+        Arguments
         - `components` - the components to add.
         """
         self._assert_components(components, self._allowed_types)
-        self._components = tuple([*self._components, *components])
+        self._components = [*self._components, *components]
         for component in components:
             self._classify_component(component)
+
+    
+    def add_substructure(self, substructure: "Structure") -> None:
+        self._assert_components(tuple([substructure]), self._allowed_types)
+        self._substructures = tuple([*self._substructures, substructure])
 
 
     def find_phonemes(self, type: Type[Phoneme]) -> list[Phoneme]:
@@ -116,8 +122,9 @@ class Structure(ABC):
         """
         Returns a list of substructures of the given `Structure` subtype.
 
-        Arguments
-        - `type` - is the `Structure` subtype.
+        Parameters
+        ----------
+        - `type` is any of the `Structure` subtype.
         """
         rl: list[Structure] = []
         for s in self._substructures:

@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Tuple
 
 import clck.generators.generators as generators
 
-from .managers import Manager, PhonemesManager
+from .managers import Manager, PhonemeGroupsManager, PhonemesManager
 from ..phonology.containers import PhonologicalInventory
 from ..phonology.structures import Structure
 
@@ -16,12 +16,14 @@ class Language:
         
         # Manager classes
         self._phoneme_manager: PhonemesManager = PhonemesManager()
+        self._phonemegroups_manager: PhonemeGroupsManager = PhonemeGroupsManager()
 
-        self._managers: tuple[Manager] = (
+        self._managers: Tuple[Manager, ...] = (
             self._phoneme_manager,
+            self._phonemegroups_manager,
         )
 
-        self._phoneme_manager.register_phonemes(*self._inventory.phonemes)
+        self._phoneme_manager.register(*self._inventory.phonemes)
 
 
     def get_managers(self) -> tuple[Manager]:

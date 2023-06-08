@@ -48,7 +48,7 @@ class Phoneme:
         s: list[str] = []
         for property in self._articulatory_properties:
             s.append(property.name)
-        return f"{self.__class__.__name__} \"{self._symbol}\" ({' '.join(s)})"
+        return f"{self.__class__.__name__} /{self._symbol}/ ({' '.join(s)})"
 
 
     @property

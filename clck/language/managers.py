@@ -1,7 +1,6 @@
 from abc import ABC
 from typing import Any, List
 
-from ..phonology.containers import PhonemeGroup
 from ..phonology.articulation import PhonologicalProperty
 from ..phonology.phonemes import Phoneme
 
@@ -16,7 +15,7 @@ class Manager(ABC):
 
     def register(self, *items: Any) -> None:
         self.elements.extend(items)
-        self.__class__.global_register(items)
+        self.__class__.global_register(*items)
 
 
     @classmethod
@@ -36,31 +35,31 @@ class PhonemesManager(Manager):
 
 
     def register(self, *phonemes: Phoneme) -> None:
-        return super().register(*phonemes)
+        super().register(*phonemes)
 
 
-
-class PhonemeGroupsManager(Manager):
-
-    global_list: List[PhonemeGroup] = []
-    """The global list of all phoneme groups across all `Language` instances."""
-    manager: "PhonemeGroupsManager | None" = None
-
-    def __init__(self) -> None:
-        super().__init__()
-        if PhonemeGroupsManager.manager == None:
-            PhonemeGroupsManager.manager = self
-
-    
-    def register(self, *phoneme_groups: PhonemeGroup) -> None:
-        return super().register(*phoneme_groups)
+    @classmethod
+    def global_register(cls, *phonemes: Phoneme) -> None:
+        super().global_register(*phonemes)
 
 
 
 class PropertiesManager(Manager):
+
+    global_list: List[PhonologicalProperty] = []
+
     def __init__(self) -> None:
         super().__init__()
         self.elements: List[PhonologicalProperty] = []
+
+    
+    def register(self, *items: Any) -> None:
+        return super().register(*items)
+    
+
+    @classmethod
+    def global_register(cls, *items: Any) -> None:
+        return super().global_register(*items)
         
         
 

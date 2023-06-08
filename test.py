@@ -2,10 +2,9 @@
 from clck.generators.generators import SyllableGenerator
 from clck.ipa_phonemes import *
 from clck.language.language import Language
-from clck.language.managers import PhonemeGroupsManager
-from clck.phonology.containers import PhonologicalInventory
+from clck.phonology.containers import PhonemeGroupsManager, PhonologicalInventory
 from clck.phonology.phonotactics import ForbidPhonemeRule, Phonotactics
-from clck.phonology.syllabics import Coda, Onset, SyllableShape
+from clck.phonology.syllabics import Coda, Onset, OnsetShape, SyllableShape
 
 
 inventory: PhonologicalInventory = PhonologicalInventory(
@@ -37,4 +36,7 @@ lang = Language(inventory)
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, ph)
 generator.generate(10)
 
-print(PhonemeGroupsManager.global_list)
+for p in PhonemeGroupsManager.global_list:
+    print(p)
+
+OnsetShape("CCN")

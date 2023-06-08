@@ -54,6 +54,7 @@ class Phonotactics:
         return self._rules
 
 
+
 class PhonotacticRule:
     """
     The `PhonotacticRule` is a class representing a real-world phonotactic rule.
@@ -90,6 +91,7 @@ class PhonemicConstraint(PhonotacticRule):
             phonemes: list[Phoneme]) -> None:
         super().__init__(valid_locations)
         self._phonemes: list[Phoneme] = phonemes
+
 
 
 class ClusterConstraint(PhonotacticRule):

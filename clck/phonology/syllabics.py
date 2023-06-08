@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Type
 
+from .containers import PhonemeGroupsManager
+
 from .phonemes import Consonant, Phoneme
 from .phonemes import Vowel
 from .structures import Structure
@@ -29,14 +31,19 @@ class Shape:
 class OnsetShape(Shape):
     def __init__(self, pattern: str) -> None:
         super().__init__()
+        self._check_pattern_validity(pattern)
         self._pattern: str = pattern
 
 
     def _check_pattern_validity(self, pattern: str) -> bool:
-        # for char in pattern:
-        #     if char not in ...:
-        #         return False
+        for char in pattern:
+            if char not in PhonemeGroupsManager.labels:
+                raise ValueError(f"Unknown pattern label \"{char}\" in pattern "
+                    f"string {pattern}")
         return True
+
+
+
 class NucleusShape(Shape): ...
 class CodaShape(Shape): ...
 
@@ -115,6 +122,7 @@ class SyllabicComponent(Structure, ABC):
         return t
 
 
+
 class Onset(SyllabicComponent):
     def __init__(self, *components: "SyllabicComponent | Consonant") -> None:
         super().__init__([SyllabicComponent, Consonant], *components)
@@ -124,6 +132,7 @@ class Onset(SyllabicComponent):
 class Nucleus(SyllabicComponent):
     def __init__(self, *components: SyllabicComponent | Vowel) -> None:
         super().__init__([SyllabicComponent, Vowel], *components)
+
 
 
 class PhonemeCluster(SyllabicComponent):
@@ -186,6 +195,7 @@ class PhonemeCluster(SyllabicComponent):
             return True
 
 
+
 class ConsonantCluster(PhonemeCluster):
     """
     Class for `ConsonantCluster`, a special type of phoneme cluster to enclose
@@ -193,6 +203,7 @@ class ConsonantCluster(PhonemeCluster):
     """
     def __init__(self, *consonants: Phoneme) -> None:
         super().__init__(Consonant, *consonants)
+
 
 
 class VowelCluster(PhonemeCluster):
@@ -204,6 +215,7 @@ class VowelCluster(PhonemeCluster):
         super().__init__(Vowel, *vowels)
 
 
+
 class Diphthong(VowelCluster):
     """
     Class for `Diphthong` objects.
@@ -211,6 +223,7 @@ class Diphthong(VowelCluster):
     """
     def __init__(self, vowel_1: Vowel, vowel_2: Vowel) -> None:
         super().__init__(vowel_1, vowel_2)
+
 
 
 class Triphthong(VowelCluster):
@@ -222,9 +235,11 @@ class Triphthong(VowelCluster):
         super().__init__(vowel_1, vowel_2, vowel_3)
 
 
+
 class Coda(SyllabicComponent):
     def __init__(self, *components: SyllabicComponent | Consonant) -> None:
         super().__init__([Consonant], *components)
+
 
 
 class Rhyme(SyllabicComponent):

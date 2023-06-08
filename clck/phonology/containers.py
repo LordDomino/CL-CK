@@ -1,7 +1,7 @@
-from typing import Type
+from typing import List, Type
 
 import clck.ipa_phonemes as ipa_phonemes
-from ..language.managers import PhonemeGroupsManager
+from ..language.managers import Manager
 
 from .phonemes import *
 
@@ -45,15 +45,30 @@ class PhonologicalInventory:
 
 
 
+class PhonemeGroupsManager(Manager):
+
+    global_list: List["PhonemeGroup"] = []
+    """The global list of all phoneme groups across all `Language` instances."""
+
+    labels: List[str] = []
+
+
+    @classmethod  
+    def global_register(cls, *phoneme_groups: "PhonemeGroup") -> None:
+        for pg in phoneme_groups:
+            PhonemeGroupsManager.labels.append(pg.label)
+        return super().global_register(*phoneme_groups)
+
+
+
 class PhonemeGroup:
 
-    groups: list["PhonemeGroup"] = []
 
     def __init__(self, label: str, *phonemes: Phoneme) -> None:
         self._label: str = label
         self._phonemes: tuple[Phoneme] = phonemes
 
-        PhonemeGroup.groups.append(self)
+        PhonemeGroupsManager.global_register(self)
 
 
     @staticmethod
@@ -72,10 +87,29 @@ class PhonemeGroup:
         phonemes: list[Phoneme] = []
 
         for phoneme in ipa_phonemes.DEFAULT_IPA_PHONEMES:
-            if articulatory_property_name in phoneme._property_names:
+            if articulatory_property_name in phoneme._property_names: # type: ignore
                 phonemes.append(phoneme)
 
         return PhonemeGroup(label, *phonemes)
+
+
+    def __repr__(self) -> str:
+        phonemes: list[str] = []
+        for phoneme in self._phonemes:
+            phonemes.append(phoneme.symbol)
+        return f"<PhonemeGroup \"{self._label}\" ({' '.join(phonemes)})>"
+
+
+    def __str__(self) -> str:
+        phonemes: list[str] = []
+        for phoneme in self._phonemes:
+            phonemes.append(phoneme.transcript)
+        return f"PhonemeGroup \"{self._label}\" containing phonemes {', '.join(phonemes)}"
+
+
+    @property
+    def label(self) -> str:
+        return self._label
 
 
 DEFAULT_PATTERN_WILDCARDS: dict[str, PhonemeGroup] = {
@@ -83,5 +117,5 @@ DEFAULT_PATTERN_WILDCARDS: dict[str, PhonemeGroup] = {
     "V" : PhonemeGroup.from_type("V", Vowel),
     "N" : PhonemeGroup.from_property("N", "nasal"),
     "A" : PhonemeGroup.from_property("A", "approximant"),
-    "S" : PhonemeGroup.from_property("S", "stop")
+    "S" : PhonemeGroup.from_property("S", "plosive")
 }

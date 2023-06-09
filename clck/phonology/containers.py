@@ -1,6 +1,7 @@
 from typing import List, Type
 
 import clck.ipa_phonemes as ipa_phonemes
+from .articulation import PhonologicalProperty
 from ..language.managers import Manager
 
 from .phonemes import *
@@ -71,8 +72,8 @@ class PhonemeGroup:
         PhonemeGroupsManager.global_register(self)
 
 
-    @staticmethod
-    def from_type(label: str, phoneme_type: Type[Phoneme]) -> "PhonemeGroup":
+    @classmethod
+    def from_type(cls, label: str, phoneme_type: Type[Phoneme]) -> "PhonemeGroup":
         phonemes: list[Phoneme] = []
 
         for phoneme in ipa_phonemes.DEFAULT_IPA_PHONEMES:
@@ -82,12 +83,16 @@ class PhonemeGroup:
         return PhonemeGroup(label, *phonemes)
     
 
-    @staticmethod
-    def from_property(label: str, articulatory_property_name: str) -> "PhonemeGroup":
+    @classmethod
+    def from_property(cls, label: str, *property_names: str) -> "PhonemeGroup":
         phonemes: list[Phoneme] = []
 
+        for name in property_names:
+            cls._check_prop_name_existence(name)
+
         for phoneme in ipa_phonemes.DEFAULT_IPA_PHONEMES:
-            if articulatory_property_name in phoneme._property_names: # type: ignore
+            if all(name in phoneme._property_names # type: ignore
+                for name in property_names): 
                 phonemes.append(phoneme)
 
         return PhonemeGroup(label, *phonemes)
@@ -110,6 +115,19 @@ class PhonemeGroup:
     @property
     def label(self) -> str:
         return self._label
+
+
+    @property
+    def phonemes(self) -> tuple[Phoneme]:
+        return self._phonemes
+    
+
+    @staticmethod
+    def _check_prop_name_existence(name: str) -> bool:
+        if name not in PhonologicalProperty.property_names:
+            raise ValueError(f"Property name {name} does not exist")
+        return True
+
 
 
 DEFAULT_PATTERN_WILDCARDS: dict[str, PhonemeGroup] = {

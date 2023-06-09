@@ -74,9 +74,9 @@ class Phoneme:
 
 
 class Consonant(Phoneme):
-    def __init__(self, symbol: str,
-              place: Place, manner: Manner) -> None:
-        super().__init__(symbol, (place, manner))
+    def __init__(self, symbol: str, place: Place, manner: Manner,
+            *other_properties: ArticulatoryProperty) -> None:
+        super().__init__(symbol, (place, manner, *other_properties))
         self._place: Place = place
         self._manner: Manner = manner
 

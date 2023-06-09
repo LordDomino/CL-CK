@@ -10,7 +10,7 @@ from ..phonology.phonotactics import (
     PhonotacticRule,
     Phonotactics
 )
-from ..phonology.syllabics import Coda, Nucleus, Onset, SyllabicComponent, Syllable, SyllableShape
+from ..phonology.syllabics import Coda, Nucleus, Onset, SyllabicComponent, SyllableShape
 
 
 

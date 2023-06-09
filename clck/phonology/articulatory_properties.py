@@ -16,11 +16,11 @@ TRILL               = Manner("trill", 6)
 LATERAL_FRICATIVE   = Manner("lateral fricative", 7)
 LATERAL_APPROXIMANT = Manner("lateral approximant", 8)
 
-# Broad places of articulation for pulmonic consonants
-LABIAL              = Place("labial", (1, 3))
-CORONAL             = Place("coronal", (4, 9))
-DORSAL              = Place("dorsal", (10, 12))
-LARYNGEAL           = Place("laryngeal", (13, 14))
+# # Broad places of articulation for pulmonic consonants
+# LABIAL              = Place("labial", (1, 3))
+# CORONAL             = Place("coronal", (4, 9))
+# DORSAL              = Place("dorsal", (10, 12))
+# LARYNGEAL           = Place("laryngeal", (13, 14))
 
 # Specific places of articulation for pulmonic consonants, defined in the IPA chart
 BILABIAL            = Place("bilabial", 1)

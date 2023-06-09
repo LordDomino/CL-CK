@@ -13,6 +13,7 @@ __all__ = [
 class PhonologicalProperty(ABC):
 
     properties: list["PhonologicalProperty"] = []
+    property_names: list[str] = []
     _id: int = 1
     
     @abstractmethod
@@ -23,6 +24,7 @@ class PhonologicalProperty(ABC):
         
         self.__class__._increment_class_vars()
         self.__class__.properties.append(self)
+        self.__class__.property_names.append(self._name)
 
 
     def __str__(self) -> str:

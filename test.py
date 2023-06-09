@@ -36,7 +36,7 @@ lang = Language(inventory)
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, ph)
 generator.generate(10)
 
-for p in PhonemeGroupsManager.global_list:
-    print(p)
+os = OnsetShape("CSA")
 
-OnsetShape("CCN")
+print(len(os.pattern.phonemes))
+print(os.pattern.phonemes)

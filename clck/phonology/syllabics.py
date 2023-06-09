@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List, Type
+from typing import List, Tuple, Type
+from .exceptions import InvalidLabelError
 
 from clck.phonology.phonemes import Consonant, Vowel
 
@@ -55,11 +56,16 @@ class Pattern:
         return self._string
 
 
+    @property
+    def symbols(self) -> list[str]:
+        return self._symbols
+
+
     def _check_pattern_validity(self, string: str) -> bool:
         for char in string:
             if char not in PhonemeGroupsManager.labels:
                 raise ValueError(f"Unknown pattern label \"{char}\" in pattern "
-                    f"string {string}")
+                    f"string \"{string}\"")
         return True
     
 
@@ -90,12 +96,24 @@ class Pattern:
 
 
 class Shape:
-    def __init__(self, _type: Type[Consonant | Vowel], pattern_string: str) -> None:
-        self._type: Type[Consonant] | Type[Vowel] = _type
+    def __init__(self, _comps_type: Type[Consonant | Vowel],
+            pattern_string: str) -> None:
+        self._comps_type: Type[Consonant] | Type[Vowel] = _comps_type
         self._pattern: Pattern = Pattern(pattern_string)
         self._pattern_string: str = self._pattern.string
+        self._length: int = len(self._pattern.symbols)
 
-        self._check_phoneme_types()
+        try:
+            self._check_phoneme_types()
+        except TypeError as e:
+            raise InvalidLabelError(f"Invalid phoneme type {e.args[1]}. "
+                f"Expected only {self._comps_type.__name__} for type "
+                f"{self.__class__.__name__}")
+
+
+    @property
+    def length(self) -> int:
+        return self._length
 
 
     @property
@@ -105,10 +123,11 @@ class Shape:
 
     def _check_phoneme_types(self) -> bool:
         for phoneme in self._pattern.phonemes:
-            if not isinstance(phoneme, self._type):
-                raise TypeError(f"Phoneme object {phoneme.__repr__()} must be "
-                    f"of type {self._type.__name__} specified for "
-                    f"{self.__class__.__name__}")
+            if not isinstance(phoneme, self._comps_type):
+                raise TypeError(f"Phoneme object {phoneme.__repr__()} "
+                    f"must be of type {self._comps_type.__name__} specified "
+                    f"for {self.__class__.__name__}",
+                    phoneme.__class__.__name__)
         return True
 
 
@@ -131,16 +150,21 @@ class CodaShape(Shape):
 
 
 class SyllableShape:
-    def __init__(self, onset: OnsetShape, nucleus: NucleusShape,
-            coda: CodaShape) -> None:
-        self._onset: OnsetShape = onset
+    def __init__(self, onset: OnsetShape | None, nucleus: NucleusShape,
+            coda: CodaShape | None) -> None:
+        self._onset: OnsetShape | None = onset
         self._nucleus: NucleusShape = nucleus
-        self._coda: CodaShape = coda
-        self._pattern: str = "".join(
-            [self._onset.pattern.string,
-             self._nucleus.pattern.string,
-             self._coda.pattern.string]
-        )
+        self._coda: CodaShape | None = coda
+
+        shapes: list[str] = []
+
+        if onset is not None:
+            shapes.append(onset.pattern.string)
+        if coda is not None:
+            shapes.append(coda.pattern.string)
+        shapes.append(nucleus.pattern.string)
+
+        self._pattern: str = "".join(shapes)
 
 
     @property
@@ -149,7 +173,7 @@ class SyllableShape:
     
 
     @property
-    def onset_shape(self) -> OnsetShape:
+    def onset_shape(self) -> OnsetShape | None:
         return self._onset
     
 
@@ -159,8 +183,22 @@ class SyllableShape:
 
 
     @property
-    def coda_shape(self) -> CodaShape:
+    def coda_shape(self) -> CodaShape | None:
         return self._coda
+
+
+    def get_onc_lengths(self) -> Tuple[int, int, int]:
+        if self._onset is None:
+            o = 0
+        else:
+            o = self._onset.length
+
+        if self._coda is None:
+            c = 0
+        else:
+            c = self._coda.length
+
+        return (o, self._nucleus.length, c)
 
 
 

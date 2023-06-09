@@ -1,10 +1,11 @@
 
+import time
 from clck.generators.generators import SyllableGenerator
 from clck.ipa_phonemes import *
 from clck.language.language import Language
 from clck.phonology.containers import PhonemeGroupsManager, PhonologicalInventory
 from clck.phonology.phonotactics import ForbidPhonemeRule, Phonotactics
-from clck.phonology.syllabics import Coda, Onset, OnsetShape, SyllableShape
+from clck.phonology.syllabics import Coda, CodaShape, NucleusShape, Onset, OnsetShape, SyllableShape
 
 
 inventory: PhonologicalInventory = PhonologicalInventory(
@@ -26,7 +27,11 @@ inventory: PhonologicalInventory = PhonologicalInventory(
 )
 
 ph = Phonotactics(
-    SyllableShape("C", "V", "C"),
+    SyllableShape(
+        None,
+        NucleusShape("V"),
+        None
+    ),
     [ForbidPhonemeRule([Onset, Coda], [IPA_VOICELESS_BILABIAL_PLOSIVE])],
     []
 )
@@ -34,9 +39,6 @@ ph = Phonotactics(
 lang = Language(inventory)
 
 generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, ph)
-generator.generate(10)
 
-os = OnsetShape("CSA")
-
-print(len(os.pattern.phonemes))
-print(os.pattern.phonemes)
+generator.generate(1)
+print(generator.get_recent_generation())

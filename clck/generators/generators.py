@@ -1,16 +1,16 @@
 import random
-from typing import List, Sequence
+from typing import List
+
+from ..config import printwarning
 
 from ..language.language import Language
 from ..phonology.containers import PhonologicalInventory
-from ..phonology.phonemes import Consonant, Phoneme, Vowel
+from ..phonology.phonemes import Consonant, Vowel
 from ..phonology.phonotactics import (
-    ClusterConstraint,
     PhonemicConstraint,
-    PhonotacticRule,
     Phonotactics
 )
-from ..phonology.syllabics import Coda, Nucleus, Onset, SyllabicComponent, SyllableShape
+from ..phonology.syllabics import Coda, CodaShape, Nucleus, NucleusShape, Onset, OnsetShape, SyllabicComponent, Syllable, SyllableShape
 
 
 
@@ -19,21 +19,13 @@ class SyllableGenerator:
             language: Language,
             bank: PhonologicalInventory,
             shape: SyllableShape,
-            phonemic_constraints: list[PhonemicConstraint],
-            cluster_constraints: list[ClusterConstraint]) -> None:
+            phonemic_constraints: list[PhonemicConstraint]
+            ) -> None:
         self._language: Language = language
         self._init_language()
         self._bank: PhonologicalInventory = bank
         self._shape: SyllableShape = shape
         self._phonemic_constraints: list[PhonemicConstraint] = phonemic_constraints
-        self._cluster_constraints: list[ClusterConstraint] = cluster_constraints
-        self._phonotactics: Phonotactics = Phonotactics(
-            self._shape,
-            self._phonemic_constraints,
-            self._cluster_constraints
-        )
-        self._bank_consonants: tuple[Consonant] = self._bank.consonants
-        self._bank_vowels: tuple[Vowel] = self._bank.vowels
 
         # Internal variables
         self._recent_generation: list[Syllable] = []
@@ -51,99 +43,134 @@ class SyllableGenerator:
         return SyllableGenerator(language,
             bank,
             phonotactics.syllable_shape,
-            phonotactics.phonemic_constraints,
-            phonotactics.cluster_constraints)
+            phonotactics.phonemic_constraints)
 
 
-    def generate(self, size: int = 1) -> List[Syllable]:
-        syllable: List[Syllable] = []
+    def generate(self, size: int = 1, register_to_lang: bool = True) -> tuple[Syllable]:
+        syllables: List[Syllable] = []
+        
         for _ in range(size):
-            syllable.append(self._generate_single())
-        self._recent_generation = syllable
-        self._language.register_structures(*syllable)
-        return syllable
+            syllables.append(self._generate_single())
+        self._recent_generation = syllables
+        
+        if register_to_lang:
+            self._language.register_structures(*syllables)
+        
+        return tuple(syllables)
 
 
     def get_recent_generation(self) -> list[Syllable]:
         return self._recent_generation
     
 
-    def _does_violate_rule(self, component: SyllabicComponent) -> bool:
-        rules: Sequence[PhonotacticRule] = self._phonotactics.rules
-        component_type = component.__class__
-        applicable_rules: Sequence[PhonotacticRule] = []
+    # def _does_violate_rule(self, component: SyllabicComponent) -> bool:
+    #     rules: Sequence[PhonotacticRule] = self._phonotactics.rules
+    #     component_type = component.__class__
+    #     applicable_rules: Sequence[PhonotacticRule] = []
 
-        for rule in rules:
-            for location in rule.valid_locations:
-                if component_type == location:
-                    applicable_rules.append(rule)
+    #     for rule in rules:
+    #         for location in rule.valid_locations:
+    #             if component_type == location:
+    #                 applicable_rules.append(rule)
 
-        for rule in applicable_rules:
-            if component_type in (Onset, Nucleus, Coda):
-                for phoneme in component.components:
-                    if isinstance(phoneme, Phoneme):
-                        if rule.execute_rule(phoneme) is False:
-                            return True
+    #     for rule in applicable_rules:
+    #         if component_type in (Onset, Nucleus, Coda):
+    #             for phoneme in component.components:
+    #                 if isinstance(phoneme, Phoneme):
+    #                     if rule.execute_rule(phoneme) is False:
+    #                         return True
         
-        return False
+    #     return False
 
 
     def _generate_single(self) -> Syllable:
+        syllable: list[SyllabicComponent] = []
+
+        if self._shape.onset_shape is not None:
         # Generate a random onset
-        onset: Onset = self._generate_onset(len(self._shape.onset_shape))
+            onset: Onset = self._generate_onset(self._shape.onset_shape)
+            onset.remove_duplicates()
+            syllable.append(onset)
 
         # Validate if generated onset is permissible
-        while self._does_violate_rule(onset):
-            onset = self._generate_onset(len(self._shape.onset_shape))
-            if self._does_violate_rule(onset) is False:
-                break
+        # while self._does_violate_rule(onset):
+        #     onset = self._generate_onset(self._shape.onset_shape)
+        #     if self._does_violate_rule(onset) is False:
+        #         break
 
-        nucleus: Nucleus = self._generate_nucleus(len(self._shape.nucleus_shape))
+        nucleus: Nucleus = self._generate_nucleus(self._shape.nucleus_shape)
+        nucleus.remove_duplicates()
 
         # Validate if generated nucleus is permissible
-        while self._does_violate_rule(nucleus):
-            nucleus = self._generate_nucleus(len(self._shape.nucleus_shape))
-            if self._does_violate_rule(nucleus) is False:
-                break
+        # while self._does_violate_rule(nucleus):
+        #     nucleus = self._generate_nucleus(self._shape.nucleus_shape)
+        #     if self._does_violate_rule(nucleus) is False:
+        #         break
 
-        coda: Coda = self._generate_coda(len(self._shape.coda_shape))
+        if self._shape.coda_shape is not None:
+            coda = self._generate_coda(self._shape.coda_shape)
+            coda.remove_duplicates()
+        else:
+            coda = None
 
         # Validate if generated coda is permissible
-        while self._does_violate_rule(coda):
-            coda = self._generate_coda(len(self._shape.coda_shape))
-            if self._does_violate_rule(coda) is False:
-                break
-
-        onset.remove_duplicates()
-        nucleus.remove_duplicates()
-        coda.remove_duplicates()
+        # while self._does_violate_rule(coda):
+        #     coda = self._generate_coda(self._shape.coda_shape)
+        #     if self._does_violate_rule(coda) is False:
+        #         break
 
         return Syllable(onset, nucleus, coda)
     
 
-    def _generate_coda(self, size: int) -> Coda:
+    def _generate_coda(self, shape: CodaShape) -> Coda:
         phonemes: list[Consonant] = []
-        for _ in range(size):
-            choice: Consonant = random.choice(self._bank.consonants)
+
+        # Traverse through each pattern label in the pattern
+        for group in shape.pattern.phoneme_groups:
+            broad_bank = self._bank.consonants
+
+            # Get the actual bank of phonemes
+            bank = list(set(broad_bank) & set(group.phonemes))
+            choice: Consonant = random.choice(bank)
             phonemes.append(choice)
+
         return Coda(*phonemes)
     
 
-    def _generate_nucleus(self, size: int) -> Nucleus:
+    def _generate_nucleus(self, shape: NucleusShape) -> Nucleus:
         phonemes: list[Vowel] = []
-        for _ in range(size):
-            choice: Vowel = random.choice(self._bank.vowels)
+
+        # Traverse through each pattern label in the pattern
+        for group in shape.pattern.phoneme_groups:
+            broad_bank = self._bank.vowels
+
+            # Get the actual bank of phonemes
+            bank = list(set(broad_bank) & set(group.phonemes))
+            choice: Vowel = random.choice(bank)
             phonemes.append(choice)
+
         return Nucleus(*phonemes)
 
 
-    def _generate_onset(self, size: int) -> Onset:
-        # shape: SyllableShape = self._shape
-        # onset_shape: str = shape.onset_shape
+    def _generate_onset(self, shape: OnsetShape) -> Onset:
         phonemes: list[Consonant] = []
-        for _ in range(size):
-            choice: Consonant = random.choice(self._bank.consonants)
-            phonemes.append(choice)
+
+        # Traverse through each pattern label in the pattern
+        for group in shape.pattern.phoneme_groups:
+            broad_bank = self._bank.consonants
+
+            # Get the actual bank of phonemes
+            bank = list(set(broad_bank) & set(group.phonemes))
+            if bank == []:
+                printwarning(f"Warning: No phoneme from phoneme group "
+                    f"\"{group.label}\" (based on pattern "
+                    f"\"{self._shape.pattern}\") was generated. The current "
+                    f"phonological inventory provides no existing phoneme/s of "
+                    f"such type.")
+            else:
+                choice: Consonant = random.choice(bank)
+                phonemes.append(choice)
+
         return Onset(*phonemes)
 
 

@@ -1,4 +1,4 @@
-CONFIG_PRINT_WARNINGS: bool = False
+CONFIG_PRINT_WARNINGS: bool = True
 
 def printwarning(message: str) -> None:
     if CONFIG_PRINT_WARNINGS:

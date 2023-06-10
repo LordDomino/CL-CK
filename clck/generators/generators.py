@@ -86,11 +86,15 @@ class SyllableGenerator:
     def _generate_single(self) -> Syllable:
         syllable: list[SyllabicComponent] = []
 
+        onset: Onset | None
+
         if self._shape.onset_shape is not None:
         # Generate a random onset
-            onset: Onset = self._generate_onset(self._shape.onset_shape)
-            onset.remove_duplicates()
+            onset = self._generate_onset(self._shape.onset_shape)
+            onset._components = onset.remove_component_duplicates(onset._components)
             syllable.append(onset)
+        else:
+            onset = None
 
         # Validate if generated onset is permissible
         # while self._does_violate_rule(onset):
@@ -99,7 +103,7 @@ class SyllableGenerator:
         #         break
 
         nucleus: Nucleus = self._generate_nucleus(self._shape.nucleus_shape)
-        nucleus.remove_duplicates()
+        nucleus._components = nucleus.remove_component_duplicates(nucleus._components)
 
         # Validate if generated nucleus is permissible
         # while self._does_violate_rule(nucleus):
@@ -109,7 +113,7 @@ class SyllableGenerator:
 
         if self._shape.coda_shape is not None:
             coda = self._generate_coda(self._shape.coda_shape)
-            coda.remove_duplicates()
+            coda._components = coda.remove_component_duplicates(coda._components)
         else:
             coda = None
 
@@ -162,11 +166,10 @@ class SyllableGenerator:
             # Get the actual bank of phonemes
             bank = list(set(broad_bank) & set(group.phonemes))
             if bank == []:
-                printwarning(f"Warning: No phoneme from phoneme group "
-                    f"\"{group.label}\" (based on pattern "
-                    f"\"{self._shape.pattern}\") was generated. The current "
-                    f"phonological inventory provides no existing phoneme/s of "
-                    f"such type.")
+                printwarning(f"No phoneme from phoneme group \"{group.label}\" "
+                    f"(based on pattern \"{self._shape.pattern_string}\") was "
+                    f"generated. The current phonological inventory provides "
+                    f"no existing phoneme/s of such type.")
             else:
                 choice: Consonant = random.choice(bank)
                 phonemes.append(choice)

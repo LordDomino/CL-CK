@@ -15,7 +15,7 @@ class Structure(ABC):
         Creates a new instance of `Structure`.
         
         Parameters
-        ---------
+        ----------
         - `_allowed_types` are the permitted types of components.
         - `components` are the components.
 
@@ -36,12 +36,13 @@ class Structure(ABC):
 
     
     @abstractmethod
-    def _create_transcript(self) -> str: pass
+    def _create_transcript(self) -> str:
+        """Creates the IPA transcript for this object."""
+        pass
 
     
     def __str__(self) -> str:
-        return (f"{self.__class__.__name__} \033[1m{self._output}\033[0m of "
-            f"components {self._components}")
+        return (f"<{self.__class__.__name__} {self._output}>")
 
 
     def __repr__(self) -> str:
@@ -80,6 +81,7 @@ class Structure(ABC):
 
     @property
     def transcript(self) -> str:
+        """The IPA transcript of this structure."""
         return self._transcript
 
 
@@ -132,7 +134,22 @@ class Structure(ABC):
                 rl.append(s)
             else:
                 rl.extend(s.find_substructures(type))
+        rl = self.remove_structure_duplicates(rl)
         return rl
+    
+
+    def remove_component_duplicates(self,
+            bank: List["Structure | Phoneme"]) -> List["Structure | Phoneme"]:
+        return [*set(bank)]
+    
+
+    def remove_phoneme_duplicates(self, bank: List[Phoneme]) -> List[Phoneme]:
+        return [*set(bank)]
+
+
+    def remove_structure_duplicates(self,
+            bank: List["Structure"]) -> List["Structure"]:
+        return [*set(bank)]
 
 
     def _assert_components(self, components: tuple[Any, ...],
@@ -187,6 +204,7 @@ class Structure(ABC):
         Creates the output string of this structure.
         
         Returns
+        -------
         - The output string of this structure.
         """
         output: str = ""

@@ -34,11 +34,6 @@ class Pattern:
         self._phoneme_groups: list[PhonemeGroup] = self._get_phoneme_groups()
         self._phonemes: list[Phoneme] = list(set(self._get_phonemes()))
 
-    
-    @property
-    def pattern_string(self):
-        return self._string
-
 
     @property
     def phoneme_groups(self) -> tuple[PhonemeGroup]:
@@ -119,6 +114,11 @@ class Shape:
     @property
     def pattern(self) -> Pattern:
         return self._pattern
+
+
+    @property
+    def pattern_string(self) -> str:
+        return self._pattern_string
     
 
     def _check_phoneme_types(self) -> bool:
@@ -152,53 +152,70 @@ class CodaShape(Shape):
 class SyllableShape:
     def __init__(self, onset: OnsetShape | None, nucleus: NucleusShape,
             coda: CodaShape | None) -> None:
-        self._onset: OnsetShape | None = onset
-        self._nucleus: NucleusShape = nucleus
-        self._coda: CodaShape | None = coda
-
-        shapes: list[str] = []
-
-        if onset is not None:
-            shapes.append(onset.pattern.string)
-        if coda is not None:
-            shapes.append(coda.pattern.string)
-        shapes.append(nucleus.pattern.string)
-
-        self._pattern: str = "".join(shapes)
+        self._onset_shape: OnsetShape | None = onset
+        self._nucleus_shape: NucleusShape = nucleus
+        self._coda_shape: CodaShape | None = coda
+        self._pattern_string: str = self._create_pattern_string()        
 
 
     @property
-    def pattern(self) -> str:
-        return self._pattern
+    def pattern_string(self) -> str:
+        """The combined pattern string of the onset, nucleus, and coda
+        shapes."""
+        return self._pattern_string
     
 
     @property
     def onset_shape(self) -> OnsetShape | None:
-        return self._onset
+        """The onset shape of this instance. Returns `None` if this syllable
+        shape permits no onsets."""
+        return self._onset_shape
     
 
     @property
     def nucleus_shape(self) -> NucleusShape:
-        return self._nucleus
+        """The nuclues shape of this instance."""
+        return self._nucleus_shape
 
 
     @property
     def coda_shape(self) -> CodaShape | None:
-        return self._coda
+        """The coda shape of this instance. Returns `None` if this syllable
+        shape permits no codas."""
+        return self._coda_shape
 
 
     def get_onc_lengths(self) -> Tuple[int, int, int]:
-        if self._onset is None:
+        """Returns a tuple of the length of the onset shape, nucleus shape, and
+        coda shape."""
+        o: int
+        c: int
+
+        if self._onset_shape is None:
             o = 0
         else:
-            o = self._onset.length
+            o = self._onset_shape.length
 
-        if self._coda is None:
+        if self._coda_shape is None:
             c = 0
         else:
-            c = self._coda.length
+            c = self._coda_shape.length
 
-        return (o, self._nucleus.length, c)
+        return (o, self._nucleus_shape.length, c)
+    
+
+    def _create_pattern_string(self) -> str:
+        shapes: list[str] = []
+
+        if self._onset_shape is not None:
+            shapes.append(self._onset_shape.pattern.string)
+
+        shapes.append(self._nucleus_shape.pattern.string)
+
+        if self._coda_shape is not None:
+            shapes.append(self._coda_shape.pattern.string)
+
+        return "".join(shapes)
 
 
 
@@ -225,8 +242,8 @@ class SyllabicComponent(Structure, ABC):
         return phonemes
 
 
-    def remove_duplicates(self) -> None:
-        self._components = [*set(self._components)]
+    # def remove_duplicates(self) -> None:
+        # self._components = [*set(self._components)]
 
 
     def _create_transcript(self) -> str:
@@ -241,14 +258,29 @@ class SyllabicComponent(Structure, ABC):
 
 
 class Onset(SyllabicComponent):
-    def __init__(self, *components: "SyllabicComponent | Consonant") -> None:
+    def __init__(self, *components: Consonant) -> None:
         super().__init__([SyllabicComponent, Consonant], *components)
+        if len(components) > 1:
+            self.add_substructure(ConsonantCluster(*components))
 
 
 
 class Nucleus(SyllabicComponent):
-    def __init__(self, *components: SyllabicComponent | Vowel) -> None:
+    def __init__(self, *components: Vowel) -> None:
         super().__init__([SyllabicComponent, Vowel], *components)
+        if len(components) == 2:
+            self.add_substructure(Diphthong(components[0], components[1]))
+        elif len(components) == 3:
+            self.add_substructure(Triphthong(components[0], components[1],
+                components[2]))
+        elif len(components) > 3:
+            self.add_substructure(VowelCluster(*components))
+
+
+
+class Coda(SyllabicComponent):
+    def __init__(self, *components: Consonant) -> None:
+        super().__init__([Consonant], *components)
 
 
 
@@ -318,7 +350,7 @@ class ConsonantCluster(PhonemeCluster):
     Class for `ConsonantCluster`, a special type of phoneme cluster to enclose
     multiple consonants.
     """
-    def __init__(self, *consonants: Phoneme) -> None:
+    def __init__(self, *consonants: Consonant) -> None:
         super().__init__(Consonant, *consonants)
 
 
@@ -350,12 +382,6 @@ class Triphthong(VowelCluster):
     """
     def __init__(self, vowel_1: Vowel, vowel_2: Vowel, vowel_3: Vowel) -> None:
         super().__init__(vowel_1, vowel_2, vowel_3)
-
-
-
-class Coda(SyllabicComponent):
-    def __init__(self, *components: SyllabicComponent | Consonant) -> None:
-        super().__init__([Consonant], *components)
 
 
 

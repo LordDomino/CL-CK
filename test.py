@@ -2,9 +2,16 @@ from clck.generators.generators import SyllableGenerator
 from clck.ipa_phonemes import *
 from clck.language.language import Language
 from clck.phonology.containers import PhonologicalInventory
-from clck.phonology.phonemes import Consonant
 from clck.phonology.phonotactics import ForbidPhonemeRule, Phonotactics
-from clck.phonology.syllabics import Coda, CodaShape, NucleusShape, Onset, OnsetShape, Rhyme, SyllableShape, VowelCluster
+from clck.phonology.syllabics import (
+    Coda,
+    CodaShape,
+    Diphthong,
+    NucleusShape,
+    Onset,
+    OnsetShape,
+    SyllableShape
+)
 
 
 inventory: PhonologicalInventory = PhonologicalInventory(
@@ -41,4 +48,4 @@ generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, invento
 generator.generate(100)
 
 for g in generator.get_recent_generation():
-    print(g, g.components)
+    print(g, g.find_substructures(Diphthong))

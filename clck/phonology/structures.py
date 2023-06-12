@@ -2,12 +2,13 @@ from abc import ABC, abstractmethod
 from types import NoneType
 from typing import Any, Collection, List, Type
 
+from .component import Component
+
 from .phonemes import Phoneme
 
 
 
-class Structure(ABC):
-
+class Structure(Component, ABC):
 
     @abstractmethod
     def __init__(self, _allowed_types: Collection[type], *components: Any) -> None:
@@ -26,13 +27,12 @@ class Structure(ABC):
         """
         self._assert_components(tuple(components), _allowed_types)
         self._allowed_types: tuple[type] = tuple(_allowed_types)
-        self._components: List[Structure | Phoneme] = self._filter_none(components)
+        self._components: List[Component] = self._filter_none(components)
         self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes(Phoneme))
         self._size: int = len(self._phonemes)
         self._substructures: tuple[Structure] = self._get_substructures()
         self._label: str = self._create_label()
         self._output: str = self._create_output()
-        self._transcript: str = self._create_transcript()
 
     
     @abstractmethod
@@ -50,7 +50,7 @@ class Structure(ABC):
 
 
     @property
-    def components(self) -> List["Structure | Phoneme"]:
+    def components(self) -> List[Component]:
         """The components of this structure."""
         return self._components
 
@@ -79,13 +79,7 @@ class Structure(ABC):
         return self._substructures
 
 
-    @property
-    def transcript(self) -> str:
-        """The IPA transcript of this structure."""
-        return self._transcript
-
-
-    def add_components(self, *components: "Structure | Phoneme") -> None:
+    def add_components(self, *components: Component) -> None:
         """
         Adds components to this structure.
 
@@ -139,7 +133,7 @@ class Structure(ABC):
     
 
     def remove_component_duplicates(self,
-            bank: List["Structure | Phoneme"]) -> List["Structure | Phoneme"]:
+            bank: List[Component]) -> List[Component]:
         return [*set(bank)]
     
 
@@ -152,7 +146,7 @@ class Structure(ABC):
         return [*set(bank)]
 
 
-    def _assert_components(self, components: tuple[Any, ...],
+    def _assert_components(self, components: tuple[Component, ...],
         allowed_types: Collection[type]) -> bool:
         """
         Checks if the components are of the given types in `_component_types`.
@@ -185,10 +179,10 @@ class Structure(ABC):
         return True
 
 
-    def _classify_component(self, component: "Structure | Phoneme") -> None:
+    def _classify_component(self, component: Component) -> None:
         if isinstance(component, Structure):
             self._substructures = tuple([*self._substructures, component])
-        else:
+        elif isinstance(component, Phoneme):
             self._phonemes = tuple([*self._phonemes, component])
 
 
@@ -211,7 +205,7 @@ class Structure(ABC):
         for s in self._components:
             if isinstance(s, Structure):
                 output += s._create_output()
-            else:
+            elif isinstance(s, Phoneme):
                 output += s.symbol
         return output
 

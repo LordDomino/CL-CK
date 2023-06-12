@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Type
+from typing_extensions import override
+
+from .component import Component
 from .exceptions import InvalidLabelError
 
 from clck.phonology.phonemes import Consonant, Vowel
@@ -230,6 +233,7 @@ class SyllabicComponent(Structure, ABC):
             _allowed_types: List[Type["SyllabicComponent | Phoneme"]],
             *components: "SyllabicComponent | Phoneme") -> None:
         super().__init__(_allowed_types, *components)
+        self._components: List[SyllabicComponent | Phoneme] = list(components)
 
 
     def get_phonemes(self) -> list[Phoneme]:
@@ -237,13 +241,9 @@ class SyllabicComponent(Structure, ABC):
         for component in self._components:
             if isinstance(component, Phoneme):
                 phonemes.append(component)
-            elif isinstance(component, SyllabicComponent):
+            else:
                 component.get_phonemes()
         return phonemes
-
-
-    # def remove_duplicates(self) -> None:
-        # self._components = [*set(self._components)]
 
 
     def _create_transcript(self) -> str:

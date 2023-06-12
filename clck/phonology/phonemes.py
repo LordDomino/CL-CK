@@ -1,3 +1,4 @@
+from .component import Component
 from .articulation import ArticulatoryProperty, Backness, Height, Manner, Roundedness, Voicing, Place
 
 
@@ -15,7 +16,7 @@ __all__: list[str] = [
 
 
 
-class Phoneme:
+class Phoneme(Component):
 
 
     def __init__(self, symbol: str,
@@ -32,7 +33,7 @@ class Phoneme:
         self._symbol: str = symbol
         self._articulatory_properties: tuple[ArticulatoryProperty, ...] = (
             articulatory_properties)
-        self._transcript: str = f"/{self._symbol}/"
+        self._transcript: str = self._create_transcript()
         self._property_names: list[str] = self._get_property_names()
 
 
@@ -60,12 +61,10 @@ class Phoneme:
     @property
     def symbol(self) -> str:
         return self._symbol
-
     
-    @property
-    def transcript(self) -> str:
-        """The IPA transcription of this phoneme."""
-        return self._transcript
+
+    def _create_transcript(self) -> str:
+        return f"/{self._symbol}/"
 
     
     def _get_property_names(self) -> list[str]:

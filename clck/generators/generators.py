@@ -35,6 +35,7 @@ class SyllableGenerator:
     def from_phonotactics(cls,
         language: Language,
         bank: PhonologicalInventory,
+        shape: SyllableShape,
         phonotactics: Phonotactics) -> "SyllableGenerator":
         """
         Creates a `SyllableGenerator` object from a wrapped `Phonotactics`
@@ -42,7 +43,7 @@ class SyllableGenerator:
         """
         return SyllableGenerator(language,
             bank,
-            phonotactics.syllable_shape,
+            shape,
             phonotactics.phonemic_constraints)
 
 
@@ -89,7 +90,7 @@ class SyllableGenerator:
         onset: Onset | None
 
         if self._shape.onset_shape is not None:
-        # Generate a random onset
+            # Generate a random onset
             onset = self._generate_onset(self._shape.onset_shape)
             onset._components = onset.remove_component_duplicates(onset._components)
             syllable.append(onset)

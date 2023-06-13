@@ -33,7 +33,6 @@ class Phoneme(Component):
         self._symbol: str = symbol
         self._articulatory_properties: tuple[ArticulatoryProperty, ...] = (
             articulatory_properties)
-        self._transcript: str = self._create_transcript()
         self._property_names: list[str] = self._get_property_names()
 
 

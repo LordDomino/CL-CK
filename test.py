@@ -33,19 +33,18 @@ inventory: PhonologicalInventory = PhonologicalInventory(
 )
 
 ph = Phonotactics(
-    SyllableShape(
-        OnsetShape("C"),
-        NucleusShape("VV"),
-        CodaShape("C")
-    ),
     [ForbidPhonemeRule([Onset, Coda], [IPA_VOICELESS_BILABIAL_PLOSIVE])],
     []
 )
 
 lang = Language(inventory)
 
-generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, ph)
+generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, SyllableShape(
+    None,
+    NucleusShape("VV"),
+    None
+), ph)
 generator.generate(100)
 
 for g in generator.get_recent_generation():
-    print(g, g.find_substructures(Diphthong))
+    print(g, g.components)

@@ -23,18 +23,18 @@ LATERAL_APPROXIMANT = Manner("lateral approximant", 8)
 # LARYNGEAL           = Place("laryngeal", (13, 14))
 
 # Specific places of articulation for pulmonic consonants, defined in the IPA chart
-BILABIAL            = Place("bilabial", 1)
-LABIODENTAL         = Place("labiodental", 2)
-LINGUOLABIAL        = Place("linguolabial", (3, 4)) # this is not an official IPA place of articulation
-DENTAL              = Place("dental", 5)
-ALVEOLAR            = Place("alveolar", 6)
-POSTALVEOLAR        = Place("postalveolar", 7)
-RETROFLEX           = Place("retroflex", 8)
-PALATAL             = Place("palatal", (9, 10))
-VELAR               = Place("velar", 11)
-UVULAR              = Place("uvular", 12)
-PHARYNGEAL          = Place("pharyngeal", 13)
-GLOTTAL             = Place("glottal", 14)
+BILABIAL = Place("bilabial", 1)
+LABIODENTAL = Place("labiodental", 2)
+LINGUOLABIAL = Place("linguolabial", (3, 4)) # this is not an official IPA place of articulation
+DENTAL = Place("dental", 5)
+ALVEOLAR = Place("alveolar", 6)
+POSTALVEOLAR = Place("postalveolar", 7)
+RETROFLEX = Place("retroflex", 8)
+PALATAL = Place("palatal", (9, 10))
+VELAR = Place("velar", 11)
+UVULAR = Place("uvular", 12)
+PHARYNGEAL = Place("pharyngeal", 13)
+GLOTTAL = Place("glottal", 14)
 
 # Airflow types
 EGRESSIVE = AirflowType()
@@ -50,13 +50,13 @@ VELARIC_INGRESSIVE: AirstreamMechanism = LINGUAL_INGRESSIVE
 
 # VOCALIC ARTICULATORY PROPERTIES
 # Heights of articulation of vowels
-CLOSE               = Height("close", 0)
-NEARCLOSE           = Height("near-close", 1)
-CLOSEMID            = Height("close-mid", 2)
-MID                 = Height("mid", 3)
-OPENMID             = Height("open-mid", 4)
-NEAROPEN            = Height("near-open", 5)
-OPEN                = Height("open", 6)
+CLOSE = Height("close", 0)
+NEARCLOSE = Height("near-close", 1)
+CLOSEMID = Height("close-mid", 2)
+MID = Height("mid", 3)
+OPENMID = Height("open-mid", 4)
+NEAROPEN = Height("near-open", 5)
+OPEN = Height("open", 6)
 
 # Backnesses of articulation of vowels
 FRONT               = Backness("front", 0)

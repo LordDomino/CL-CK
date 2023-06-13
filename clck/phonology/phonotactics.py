@@ -22,10 +22,8 @@ class Phonotactics:
     such as `SyllableShape` and constraints.
     """
     def __init__(self,
-            syllable_shape: SyllableShape,
             phoneme_constraints: Sequence["PhonemicConstraint"],
             cluster_constraints: Sequence["ClusterConstraint"]) -> None:
-        self._syllable_shape: SyllableShape = syllable_shape
         self._phoneme_constraints: Sequence[PhonemicConstraint] = phoneme_constraints
         self._cluster_constraints: Sequence[ClusterConstraint] = cluster_constraints
         self._rules: Sequence[PhonotacticRule] = (
@@ -33,11 +31,6 @@ class Phonotactics:
             + list(self._cluster_constraints)
         )
 
-
-    @property
-    def syllable_shape(self) -> SyllableShape:
-        return self._syllable_shape
-    
 
     @property
     def phonemic_constraints(self) -> list["PhonemicConstraint"]:

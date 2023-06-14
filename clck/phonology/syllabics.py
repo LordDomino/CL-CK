@@ -233,7 +233,6 @@ class SyllabicComponent(Structure, ABC):
         super().__init__(_allowed_types, *components)
         self._components: tuple[SyllabicComponent | Phoneme] = components
 
-
     def get_phonemes(self) -> list[Phoneme]:
         phonemes: list[Phoneme] = []
         for component in self._components:
@@ -242,7 +241,6 @@ class SyllabicComponent(Structure, ABC):
             else:
                 component.get_phonemes()
         return phonemes
-
 
     def _create_transcript(self) -> str:
         t: str = ""
@@ -305,27 +303,22 @@ class PhonemeCluster(SyllabicComponent):
         self._output: str = self._create_output()
         self._check_cluster_size()
 
-
     def __str__(self) -> str:
         return (f"{self.__class__.__name__} \033[1m{self._output}\033[0m "
             f"of phonemes {self._phonemes}")
 
-
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._output}>"
-
 
     @property
     def phonemes(self) -> tuple[Phoneme, ...]:
         """The component phonemes of this cluster."""
         return self._phonemes
 
-
     @property
     def symbol(self) -> str:
         """The final string representation of this cluster."""
         return self._output
-
 
     def _check_cluster_size(self) -> bool:
         """
@@ -392,18 +385,15 @@ class Rhyme(SyllabicComponent):
         self._nucleus: Nucleus = nucleus
         self._coda: Coda | None = coda
 
-
     @property
     def nucleus(self) -> Nucleus:
         """The nucleus component of this object."""
         return self._nucleus
 
-
     @property
     def coda(self) -> Coda | None:
         """The coda component of this object."""
         return self._coda
-
 
     def _create_transcript(self) -> str:
         t: str = ""
@@ -423,12 +413,10 @@ class Syllable(Structure):
         self._rhyme: Rhyme = self._generate_rhyme(nucleus, coda)
         self._transcript: str = self._create_transcript()
 
-
     @classmethod
     def from_nucleus_only(cls, nucleus: Nucleus) -> "Syllable":
         s = Syllable(None, nucleus, None)
         return s
-
 
     @classmethod
     def from_onset_and_rhyme(cls, onset: Onset, rhyme: Rhyme) -> "Syllable":
@@ -436,16 +424,13 @@ class Syllable(Structure):
         s._post_init(rhyme=rhyme)
         return s
 
-
     @property
     def phonemes(self) -> tuple[Phoneme]:
         return self._phonemes
 
-
     @property
     def rhyme(self) -> Rhyme | None:
         return self._rhyme
-
 
     def _create_transcript(self) -> str:
         t: str = ""
@@ -453,12 +438,10 @@ class Syllable(Structure):
             t += p.symbol
         return f"/{t}/"
 
-
     def _generate_rhyme(self, nucleus: Nucleus, coda: Coda | None) -> Rhyme:
         rhyme = Rhyme(nucleus, coda)
         self.add_substructure(rhyme)
         return rhyme
-
 
     def _post_init(self, rhyme: Rhyme | None = None) -> None:
         if rhyme is not None: self._rhyme = rhyme

@@ -30,7 +30,6 @@ class SyllableGenerator:
         # Internal variables
         self._recent_generation: list[Syllable] = []
 
-
     @classmethod
     def from_phonotactics(cls,
         language: Language,
@@ -46,7 +45,6 @@ class SyllableGenerator:
             shape,
             phonotactics.phonemic_constraints)
 
-
     def generate(self, size: int = 1, register_to_lang: bool = True) -> tuple[Syllable]:
         syllables: List[Syllable] = []
         
@@ -58,7 +56,6 @@ class SyllableGenerator:
             self._language.register_structures(*syllables)
         
         return tuple(syllables)
-
 
     def get_recent_generation(self) -> list[Syllable]:
         return self._recent_generation
@@ -82,7 +79,6 @@ class SyllableGenerator:
     #                         return True
         
     #     return False
-
 
     def _generate_single(self) -> Syllable:
         syllable: list[SyllabicComponent] = []
@@ -126,7 +122,6 @@ class SyllableGenerator:
 
         return Syllable(onset, nucleus, coda)
     
-
     def _generate_coda(self, shape: CodaShape) -> Coda:
         phonemes: list[Consonant] = []
 
@@ -141,7 +136,6 @@ class SyllableGenerator:
 
         return Coda(*phonemes)
     
-
     def _generate_nucleus(self, shape: NucleusShape) -> Nucleus:
         phonemes: list[Vowel] = []
 
@@ -155,7 +149,6 @@ class SyllableGenerator:
             phonemes.append(choice)
 
         return Nucleus(*phonemes)
-
 
     def _generate_onset(self, shape: OnsetShape) -> Onset:
         phonemes: list[Consonant] = []
@@ -176,7 +169,6 @@ class SyllableGenerator:
                 phonemes.append(choice)
 
         return Onset(*phonemes)
-
 
     def _init_language(self) -> None:
         self._language._syllable_generator = self # type: ignore

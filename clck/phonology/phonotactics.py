@@ -1,19 +1,7 @@
-from abc import abstractmethod
-from typing import Sequence, Type
-
+from clck.phonology.structures import Component
+from ..config import printwarning
 from .structures import *
-from .phonemes import Phoneme
-from .syllabics import PhonemeCluster, SyllabicComponent, SyllableShape
-
-
-__all__: list[str] = [
-    "Phonotactics",
-    "PhonotacticRule",
-    "PhonemicConstraint",
-    "ClusterConstraint",
-    "ForbidPhonemeRule"
-]
-
+from .syllabics import SyllabicComponent
 
 
 class Phonotactics:
@@ -21,29 +9,11 @@ class Phonotactics:
     `Phonotactics` is a special container for storing phonotactic information
     such as `SyllableShape` and constraints.
     """
-    def __init__(self,
-            phoneme_constraints: Sequence["PhonemicConstraint"],
-            cluster_constraints: Sequence["ClusterConstraint"]) -> None:
-        self._phoneme_constraints: Sequence[PhonemicConstraint] = phoneme_constraints
-        self._cluster_constraints: Sequence[ClusterConstraint] = cluster_constraints
-        self._rules: Sequence[PhonotacticRule] = (
-            list(self._phoneme_constraints)
-            + list(self._cluster_constraints)
-        )
-
-
-    @property
-    def phonemic_constraints(self) -> list["PhonemicConstraint"]:
-        return list(self._phoneme_constraints)
-    
-
-    @property
-    def cluster_constraints(self) -> list["ClusterConstraint"]:
-        return list(self._cluster_constraints)
+    def __init__(self, rules: tuple["PhonotacticRule"]) -> None:
+        self._rules: tuple[PhonotacticRule] = rules
         
-
     @property
-    def rules(self) -> Sequence["PhonotacticRule"]:
+    def rules(self) -> tuple["PhonotacticRule"]:
         return self._rules
 
 
@@ -52,7 +22,8 @@ class PhonotacticRule:
     """
     The `PhonotacticRule` is a class representing a real-world phonotactic rule.
     """
-    def __init__(self, valid_structures: list[Type[SyllabicComponent]]) -> None:
+
+    def __init__(self) -> None:
         """
         Creates a `PhonotacticRule` object.
         
@@ -60,53 +31,143 @@ class PhonotacticRule:
         - `valid_structures` - the list of valid structures where this rule can
         apply.
         """
-        self._valid_structures: list[Type[SyllabicComponent]] = valid_structures
+        pass
+
+
+
+class PhonotacticRuleProbability: ...
+
+class PhonotacticRuleAction(ABC):
+    @abstractmethod
+    def execute(self, *components: Component) -> tuple[Component]:
+        pass
+
+class PhonotacticRulePlacement: ...
+
+RULE_MAY = PhonotacticRuleProbability()
+RULE_MUST_NOT = PhonotacticRuleProbability()
+RULE_MUST_ALWAYS = PhonotacticRuleProbability()
+
+class PRA_Occur(PhonotacticRuleAction):
+    def execute(self, *components: Component) -> tuple[Component]:
+        return super().execute(*components)
     
+
+class PRA_Replace(PhonotacticRuleAction):
+    def execute(self, *components: Component) -> tuple[Component]:
+        return super().execute(*components)
+    
+
+
+class PRA_Delete(PhonotacticRuleAction):
+    def execute(self, *components: Component) -> tuple[Component]:
+        return super().execute(*components)
+
+
+OCCUR = PRA_Occur()
+REPLACE = PRA_Replace()
+DELETE = PRA_Delete()
+
+BEFORE = PhonotacticRulePlacement()
+AFTER = PhonotacticRulePlacement()
+ANYWHERE_BEFORE = PhonotacticRulePlacement()
+ANYWHERE_AFTER = PhonotacticRulePlacement()
+
+
+
+class PositionalRule(PhonotacticRule):
+    def __init__(self, bank: tuple[SyllabicComponent] | None,
+            probability: PhonotacticRuleProbability | float,
+            action: PhonotacticRuleAction, placement: PhonotacticRulePlacement,
+            condition: None = None) -> None:
+        super().__init__()
+        self._bank: tuple[SyllabicComponent] | None = bank
+        self._probability: PhonotacticRuleProbability | float = probability
+        self._action: PhonotacticRuleAction = action
+        self._placement: PhonotacticRulePlacement = placement
 
     @property
-    def valid_locations(self) -> list[Type[SyllabicComponent]]:
-        """The list of valid structures where this rule can apply."""
-        return self._valid_structures
+    def bank(self) -> tuple[SyllabicComponent] | None:
+        return self._bank
     
-
-    @abstractmethod
-    def execute_rule(self, component: SyllabicComponent | Phoneme) -> bool:
-        """
-        Executes this rule to the given component and returns `True` if it
-        does not violate the rule.
-        """
-
-
-
-class PhonemicConstraint(PhonotacticRule):
-    def __init__(self, priority: int,
-            valid_locations: list[Type[SyllabicComponent]],
-            phonemes: list[Phoneme]) -> None:
-        super().__init__(valid_locations)
-        self._phonemes: list[Phoneme] = phonemes
-
-
-
-class ClusterConstraint(PhonotacticRule):
-    def __init__(self, priority: int,
-            valid_locations: list[Type[SyllabicComponent]],
-            clusters: list[PhonemeCluster]) -> None:
-        super().__init__(valid_locations)
-
-
-
-class ForbidPhonemeRule(PhonemicConstraint):
-    def __init__(self, valid_locations: list[Type[SyllabicComponent]],
-                 phonemes: list[Phoneme]) -> None:
-        super().__init__(1, valid_locations, phonemes)
-
+    @property
+    def probability(self) -> PhonotacticRuleProbability | float:
+        return self._probability
     
-    def execute_rule(self, component: SyllabicComponent | Phoneme) -> bool:
+    @property
+    def action(self) -> PhonotacticRuleAction:
+        return self._action
+    
+    @property
+    def placement(self) -> PhonotacticRulePlacement:
+        return self._placement
+
+    def execute(self, specimen: Component,
+            anonymous_bank: tuple[SyllabicComponent] | None = None,
+            override: bool = False) -> bool:
+        """Implements this rule on to the specified specimen. Returns `True` if
+        the specified specimen obeys the implementation of this rule.
+
+        Parameters
+        ----------
+        - `specimen` - the component to which this rule will be applied.
+        - `anonymous_bank` - is an optional tuple to serve as the `bank` during
+            implementation. Defaults to `None`. 
+        - `override_bank` - states whether or not the given `anonymous_bank`
+            overrides this rule's original `bank` during implementation.
+            Defaults to `False`.
+
+        If during the construction of this rule `bank` was set to `None`, then
+        the parameter `anonymous_bank` must be provided, regardless of the
+        boolean in `override_bank`. Meanwhile, if a bank was provided, then
+        `anonymous_bank` may still be used in the implementation, only if
+        `override_bank` is `True`.
         """
-        Returns `True` if the given component is not on the blacklist of
-        phonemes.
+
+        bank = self._get_implement_bank(
+            anonymous_bank, override)
+        
+        self._action.execute()
+
+    def is_anonymous(self) -> bool:
+        """Returns `True` if this rule is anonymous.
+        
+        An anonymous `PhonotacticRule` is anonymous if `bank` is set to `None`
+        during construction.
         """
-        if component in self._phonemes:
-            return False
-        else:
+        if self._bank is None:
             return True
+        else:
+            return False
+        
+    def _get_implement_bank(self,
+            anonymous_bank: tuple[SyllabicComponent] | None,
+            override: bool) -> tuple[SyllabicComponent]:
+
+        if self._bank is None:
+            if anonymous_bank is None:
+                raise ValueError(f"Parameter for anonymous_bank must be "
+                                 f"provided since {self} is anonymous.")
+            elif override is True:
+                printwarning(f"Anonymous bank override is unnecessary for "
+                             f"anonymous rules.")
+                impl_bank = anonymous_bank
+            else:
+                impl_bank = anonymous_bank
+        else:
+            if anonymous_bank is None:
+                if override:
+                    printwarning(f"Bank override is unnecessary for "
+                        f"unspecified anonymous_bank.")
+                    impl_bank = self._bank
+                else:
+                    impl_bank = self._bank
+            else:
+                if override:
+                    impl_bank = anonymous_bank
+                else:
+                    printwarning(f"Argument for anonymous_bank is unnecessary "
+                        f"for this rule's unoverriden bank.")
+                    impl_bank = self._bank
+
+        return impl_bank

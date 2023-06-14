@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from types import NoneType
 from typing import Any, Collection
-from typing_extensions
 
 from .component import Component
 

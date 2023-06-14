@@ -18,7 +18,6 @@ __all__: list[str] = [
 
 class Phoneme(Component):
 
-
     def __init__(self, symbol: str,
             articulatory_properties: tuple[ArticulatoryProperty, ...]) -> None:
         """
@@ -35,14 +34,11 @@ class Phoneme(Component):
             articulatory_properties)
         self._property_names: list[str] = self._get_property_names()
 
-
     def __call__(self) -> str:
         return self._symbol
 
-
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._symbol}>"
-
 
     def __str__(self) -> str:
         s: list[str] = []
@@ -50,22 +46,18 @@ class Phoneme(Component):
             s.append(property.name)
         return f"{self.__class__.__name__} /{self._symbol}/ ({' '.join(s)})"
 
-
     @property
     def name(self) -> str:
         """The name of this phoneme."""
         return self.__str__()
 
-
     @property
     def symbol(self) -> str:
         return self._symbol
     
-
     def _create_transcript(self) -> str:
         return f"/{self._symbol}/"
 
-    
     def _get_property_names(self) -> list[str]:
         return [property.name for property in self._articulatory_properties]
 

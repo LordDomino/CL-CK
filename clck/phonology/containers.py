@@ -71,7 +71,6 @@ class PhonemeGroup:
 
         PhonemeGroupsManager.global_register(self)
 
-
     @classmethod
     def from_type(cls, label: str, phoneme_type: Type[Phoneme]) -> "PhonemeGroup":
         phonemes: list[Phoneme] = []
@@ -82,7 +81,6 @@ class PhonemeGroup:
 
         return PhonemeGroup(label, *phonemes)
     
-
     @classmethod
     def from_property(cls, label: str, *property_names: str) -> "PhonemeGroup":
         phonemes: list[Phoneme] = []
@@ -97,13 +95,11 @@ class PhonemeGroup:
 
         return PhonemeGroup(label, *phonemes)
 
-
     def __repr__(self) -> str:
         phonemes: list[str] = []
         for phoneme in self._phonemes:
             phonemes.append(phoneme.symbol)
         return f"<PhonemeGroup \"{self._label}\" ({' '.join(phonemes)})>"
-
 
     def __str__(self) -> str:
         phonemes: list[str] = []
@@ -111,17 +107,14 @@ class PhonemeGroup:
             phonemes.append(phoneme.transcript)
         return f"PhonemeGroup \"{self._label}\" containing phonemes {', '.join(phonemes)}"
 
-
     @property
     def label(self) -> str:
         return self._label
-
 
     @property
     def phonemes(self) -> tuple[Phoneme]:
         return self._phonemes
     
-
     @staticmethod
     def _check_prop_name_existence(name: str) -> bool:
         if name not in PhonologicalProperty.property_names:

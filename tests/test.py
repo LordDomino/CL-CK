@@ -2,14 +2,11 @@ from clck.generators.generators import SyllableGenerator
 from clck.ipa_phonemes import *
 from clck.language.language import Language
 from clck.phonology.containers import PhonologicalInventory
-from clck.phonology.phonotactics import ForbidPhonemeRule, Phonotactics
+from clck.phonology.phonotactics import RULE_MAY, Phonotactics, PositionalRule
 from clck.phonology.syllabics import (
     Coda,
-    CodaShape,
-    Diphthong,
     NucleusShape,
     Onset,
-    OnsetShape,
     SyllableShape
 )
 
@@ -45,6 +42,3 @@ generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, invento
     None
 ), ph)
 generator.generate(100)
-
-for g in generator.get_recent_generation():
-    print(g, g.components)

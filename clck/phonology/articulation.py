@@ -34,21 +34,17 @@ class PhonologicalProperty(ABC):
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} (id={self._id}) \"{self._name}\">"
 
-
     @property
     @abstractmethod
     def value(self) -> Any: pass
-
 
     @property
     def name(self) -> str:
         return self._name
     
-
     @property
     def id(self) -> Any:
         return self._id
-
 
     @classmethod
     def _increment_class_vars(cls) -> None:
@@ -66,8 +62,7 @@ class Voicing(ArticulatoryProperty):
     def __init__(self, name: str, value: int) -> None:
         self._value: int = value
         super().__init__(name)
-
-    
+   
     @property
     def value(self) -> int:
         return self._value
@@ -90,7 +85,6 @@ class Manner(ConsonantalProperty):
     def __init__(self, name: str, value: int) -> None:
         self._value: int = value
         super().__init__(name)
-
 
     @property
     def value(self) -> int:
@@ -125,7 +119,6 @@ class AirstreamMechanism(ConsonantalProperty):
         self._airflow: AirflowType = airflow
         super().__init__(name)
 
-    
     @property
     def value(self) -> float:
         return self._value
@@ -136,7 +129,6 @@ class Height(VocalicProperty):
     def __init__(self, name: str, value: float) -> None:
         self._value: float = value
         super().__init__(name)
-
 
     @property
     def value(self) -> float:
@@ -149,7 +141,6 @@ class Backness(VocalicProperty):
         self._value: float = value
         super().__init__(name)
 
-
     @property
     def value(self) -> float:
         return self._value
@@ -159,7 +150,6 @@ class Roundedness(VocalicProperty):
     def __init__(self, name: str, value: float) -> None:
         self._value: float = value
         super().__init__(name)
-
 
     @property
     def value(self) -> float:

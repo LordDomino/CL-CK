@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 
 
+
+
 class Component(ABC):
     def __init__(self) -> None:
         self._transcript: str = self._create_transcript()

@@ -18,8 +18,11 @@ __all__: list[str] = [
 
 class Phoneme(Component):
 
+    DEFAULT_IPA_PHONEMES: tuple["Phoneme", ...] = ()
+
     def __init__(self, symbol: str,
-            articulatory_properties: tuple[ArticulatoryProperty, ...]) -> None:
+            articulatory_properties: tuple[ArticulatoryProperty, ...],
+            _default: bool = False) -> None:
         """
         Creates an abstract phoneme representation.
 
@@ -29,10 +32,17 @@ class Phoneme(Component):
         - `articulatory_properties` is the tuple of articulatory properties of
             the phoneme.
         """
+        self._is_default: bool = _default
         self._symbol: str = symbol
         self._articulatory_properties: tuple[ArticulatoryProperty, ...] = (
             articulatory_properties)
         self._property_names: list[str] = self._get_property_names()
+        
+        super().__init__()
+
+        if self.is_default_IPA_phoneme():
+            Phoneme._append_to_defaults(self)
+
 
     def __call__(self) -> str:
         return self._symbol
@@ -55,40 +65,49 @@ class Phoneme(Component):
     def symbol(self) -> str:
         return self._symbol
     
+    def is_default_IPA_phoneme(self) -> bool:
+        return self._is_default
+
+    def _create_output(self) -> str:
+        return self._symbol
+
     def _create_transcript(self) -> str:
         return f"/{self._symbol}/"
 
     def _get_property_names(self) -> list[str]:
         return [property.name for property in self._articulatory_properties]
+    
+    @classmethod
+    def _append_to_defaults(cls, phoneme: "Phoneme") -> None:
+        Phoneme.DEFAULT_IPA_PHONEMES = tuple([*Phoneme.DEFAULT_IPA_PHONEMES,
+                                              phoneme])
 
 
 
 class Consonant(Phoneme):
     def __init__(self, symbol: str, place: Place, manner: Manner,
-            *other_properties: ArticulatoryProperty) -> None:
-        super().__init__(symbol, (place, manner, *other_properties))
+            _deafult: bool = False) -> None:
+        super().__init__(symbol, (place, manner), _deafult)
         self._place: Place = place
         self._manner: Manner = manner
 
 
 
 class Vowel(Phoneme):
-    def __init__(self, symbol: str,
-          backness: Backness,
-          height: Height,
-          roundedness: Roundedness) -> None:
+    def __init__(self, symbol: str, backness: Backness, height: Height,
+            roundedness: Roundedness, _default: bool = False) -> None:
+        super().__init__(symbol, (height, backness, roundedness), _default)
         self._height: Height = height
         self._backness: Backness = backness
         self._roundedness: Roundedness = roundedness
-        super().__init__(symbol, (height, backness, roundedness))
 
 
 
 class PulmonicConsonant(Consonant):
     def __init__(self, symbol: str, place: Place, manner: Manner,
-          voicing: Voicing) -> None:
+            voicing: Voicing, _deafult: bool = False) -> None:
         self._voicing: Voicing = voicing
-        super().__init__(symbol, place, manner)
+        super().__init__(symbol, place, manner, _deafult)
 
 
 

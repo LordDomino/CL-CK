@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Type
+from typing import Tuple, Type
 
 from .exceptions import InvalidLabelError
 
@@ -82,11 +82,11 @@ class Pattern:
         return g
 
 
-    def _get_phonemes(self) -> list[Phoneme]:
+    def _get_phonemes(self) -> tuple[Phoneme, ...]:
         l: list[Phoneme] = []
         for pg in self._phoneme_groups:
             l.extend(pg.phonemes)
-        return l
+        return tuple(l)
 
 
 
@@ -99,12 +99,7 @@ class Shape:
         self._pattern_string: str = self._pattern.string
         self._length: int = len(self._pattern.symbols)
 
-        try:
-            self._check_phoneme_types()
-        except TypeError as e:
-            raise InvalidLabelError(f"Invalid phoneme type {e.args[1]}. "
-                f"Expected only {self._comps_type.__name__} for type "
-                f"{self.__class__.__name__}")
+        self._check_phoneme_types()
 
 
     @property
@@ -223,14 +218,15 @@ class SyllableShape:
 class SyllabicComponent(Structure, ABC):
     """
     Class for `SyllabicComponent`.
+
     A syllabic component is any component that comprises a syllable, such as
     phonemes and phoneme clusters.
     """
     @abstractmethod
     def __init__(self,
-            _allowed_types: tuple[Type["SyllabicComponent | Phoneme"]],
+            _allowed_types: tuple[Type["SyllabicComponent | Phoneme"], ...],
             *components: "SyllabicComponent | Phoneme") -> None:
-        super().__init__(_allowed_types, *components)
+        super().__init__(_allowed_types, components)
         self._components: tuple[SyllabicComponent | Phoneme] = components
 
     def get_phonemes(self) -> list[Phoneme]:
@@ -255,7 +251,7 @@ class SyllabicComponent(Structure, ABC):
 
 class Onset(SyllabicComponent):
     def __init__(self, *components: Consonant) -> None:
-        super().__init__([SyllabicComponent, Consonant], *components)
+        super().__init__((Consonant,), *components)
         if len(components) > 1:
             self.add_substructure(ConsonantCluster(*components))
 
@@ -263,7 +259,7 @@ class Onset(SyllabicComponent):
 
 class Nucleus(SyllabicComponent):
     def __init__(self, *components: Vowel) -> None:
-        super().__init__([SyllabicComponent, Vowel], *components)
+        super().__init__((Vowel, VowelCluster), *components)
         if len(components) == 2:
             self.add_substructure(Diphthong(components[0], components[1]))
         elif len(components) == 3:
@@ -276,7 +272,7 @@ class Nucleus(SyllabicComponent):
 
 class Coda(SyllabicComponent):
     def __init__(self, *components: Consonant) -> None:
-        super().__init__([Consonant], *components)
+        super().__init__((Consonant,), *components)
 
 
 
@@ -298,7 +294,7 @@ class PhonemeCluster(SyllabicComponent):
         components. Thus, note that during instantiation of the instance, the
         constructor checks if the number of given phonemes are not below two.
         """
-        super().__init__(list([allowed_type]), *components)
+        super().__init__((allowed_type,), *components)
         self._phonemes: tuple[Phoneme, ...] = components
         self._output: str = self._create_output()
         self._check_cluster_size()
@@ -379,9 +375,9 @@ class Triphthong(VowelCluster):
 class Rhyme(SyllabicComponent):
     def __init__(self, nucleus: Nucleus, coda: Coda | None) -> None:
         if coda is None:
-            super().__init__([Nucleus, Coda], nucleus)
+            super().__init__((Nucleus, Coda), nucleus)
         else:
-            super().__init__([Nucleus, Coda], nucleus, coda)
+            super().__init__((Nucleus, Coda), nucleus, coda)
         self._nucleus: Nucleus = nucleus
         self._coda: Coda | None = coda
 
@@ -405,13 +401,12 @@ class Rhyme(SyllabicComponent):
 class Syllable(Structure):
     def __init__(self, onset: Onset | None, nucleus: Nucleus,
         coda: Coda | None) -> None:
-        super().__init__([SyllabicComponent, Phoneme], onset, nucleus, coda)
+        super().__init__((SyllabicComponent, Phoneme), self._filter_none((onset, nucleus, coda)))
         self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes(Phoneme))
         self._onset: Onset | None = onset
         self._nucleus: Nucleus = nucleus
         self._coda: Coda | None = coda
         self._rhyme: Rhyme = self._generate_rhyme(nucleus, coda)
-        self._transcript: str = self._create_transcript()
 
     @classmethod
     def from_nucleus_only(cls, nucleus: Nucleus) -> "Syllable":

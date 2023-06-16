@@ -1,15 +1,11 @@
 import random
-from typing import List
 
 from ..config import printwarning
 
 from ..language.language import Language
 from ..phonology.containers import PhonologicalInventory
 from ..phonology.phonemes import Consonant, Vowel
-from ..phonology.phonotactics import (
-    PhonemicConstraint,
-    Phonotactics
-)
+from ..phonology.phonotactics import Phonotactics
 from ..phonology.syllabics import Coda, CodaShape, Nucleus, NucleusShape, Onset, OnsetShape, SyllabicComponent, Syllable, SyllableShape
 
 
@@ -19,13 +15,13 @@ class SyllableGenerator:
             language: Language,
             bank: PhonologicalInventory,
             shape: SyllableShape,
-            phonemic_constraints: list[PhonemicConstraint]
+            # phonemic_constraints: tuple[PhonemicConstraint]
             ) -> None:
         self._language: Language = language
         self._init_language()
         self._bank: PhonologicalInventory = bank
         self._shape: SyllableShape = shape
-        self._phonemic_constraints: list[PhonemicConstraint] = phonemic_constraints
+        # self._phonemic_constraints: list[PhonemicConstraint] = phonemic_constraints
 
         # Internal variables
         self._recent_generation: list[Syllable] = []
@@ -43,10 +39,11 @@ class SyllableGenerator:
         return SyllableGenerator(language,
             bank,
             shape,
-            phonotactics.phonemic_constraints)
+            # phonotactics.phonemic_constraints
+        )
 
     def generate(self, size: int = 1, register_to_lang: bool = True) -> tuple[Syllable]:
-        syllables: List[Syllable] = []
+        syllables: list[Syllable] = []
         
         for _ in range(size):
             syllables.append(self._generate_single())

@@ -28,7 +28,7 @@ class Phoneme(Component):
 
         Parameters
         ----------
-        - `symbol` is the character representation of the phoneme.
+        - `symbol` - the character representation of the phoneme.
         - `articulatory_properties` is the tuple of articulatory properties of
             the phoneme.
         """
@@ -38,7 +38,7 @@ class Phoneme(Component):
             articulatory_properties)
         self._property_names: list[str] = self._get_property_names()
         
-        super().__init__()
+        super().__init__()  # only then call the super constructor to initialize the transcript and output
 
         if self.is_default_IPA_phoneme():
             Phoneme._append_to_defaults(self)
@@ -63,9 +63,13 @@ class Phoneme(Component):
 
     @property
     def symbol(self) -> str:
+        """The assigned Unicode character for this phoneme."""
         return self._symbol
     
     def is_default_IPA_phoneme(self) -> bool:
+        """Returns `True` if this phoneme is an official IPA phoneme, otherwise
+        `False`.
+        """
         return self._is_default
 
     def _create_output(self) -> str:

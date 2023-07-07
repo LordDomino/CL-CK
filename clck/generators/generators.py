@@ -6,7 +6,7 @@ from ..language.language import Language
 from ..phonology.containers import PhonologicalInventory
 from ..phonology.phonemes import Consonant, Vowel
 from ..phonology.phonotactics import Phonotactics
-from ..phonology.syllabics import Coda, CodaShape, Nucleus, NucleusShape, Onset, OnsetShape, SyllabicComponent, Syllable, SyllableShape
+from ..phonology.syllabics import Coda, CodaShape, Nucleus, NucleusShape, Onset, OnsetShape, SyllabicComponent, Syllable, SyllableStructure
 
 
 
@@ -14,13 +14,13 @@ class SyllableGenerator:
     def __init__(self,
             language: Language,
             bank: PhonologicalInventory,
-            shape: SyllableShape,
+            shape: SyllableStructure,
             # phonemic_constraints: tuple[PhonemicConstraint]
             ) -> None:
         self._language: Language = language
         self._init_language()
         self._bank: PhonologicalInventory = bank
-        self._shape: SyllableShape = shape
+        self._shape: SyllableStructure = shape
         # self._phonemic_constraints: list[PhonemicConstraint] = phonemic_constraints
 
         # Internal variables
@@ -30,7 +30,7 @@ class SyllableGenerator:
     def from_phonotactics(cls,
         language: Language,
         bank: PhonologicalInventory,
-        shape: SyllableShape,
+        shape: SyllableStructure,
         phonotactics: Phonotactics) -> "SyllableGenerator":
         """
         Creates a `SyllableGenerator` object from a wrapped `Phonotactics`
@@ -54,8 +54,8 @@ class SyllableGenerator:
         
         return tuple(syllables)
 
-    def get_recent_generation(self) -> list[Syllable]:
-        return self._recent_generation
+    def get_recent_generation(self) -> tuple[Syllable]:
+        return tuple(self._recent_generation)
     
 
     # def _does_violate_rule(self, component: SyllabicComponent) -> bool:

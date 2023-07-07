@@ -5,7 +5,8 @@ from clck.phonology.containers import PhonologicalInventory
 from clck.phonology.phonotactics import PhonotacticRule, Phonotactics
 from clck.phonology.syllabics import (
     NucleusShape,
-    SyllableShape
+    OnsetShape,
+    SyllableStructure
 )
 
 
@@ -31,12 +32,17 @@ ph = Phonotactics((PhonotacticRule(),))
 
 lang = Language(inventory)
 
-generator: SyllableGenerator = SyllableGenerator.from_phonotactics(lang, inventory, SyllableShape(
-    None,
-    NucleusShape("VV"),
-    None
-), ph)
+generator: SyllableGenerator = SyllableGenerator.from_phonotactics(
+    lang,
+    inventory,
+    SyllableStructure(
+        OnsetShape("C"),
+        NucleusShape("V"),
+        None
+    ),
+    ph
+)
 
-generator.generate(10)
+generator.generate(1)
 
 print(generator.get_recent_generation())

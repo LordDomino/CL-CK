@@ -1,15 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Type
 
-from .exceptions import InvalidLabelError
-
-from clck.phonology.phonemes import Consonant, Vowel
-
-from .containers import PhonemeGroup, PhonemeGroupsManager
-
-from .phonemes import Consonant, Phoneme
-from .phonemes import Vowel
-from .structures import Structure
+from clck.phonology.phonemes import Phoneme, Consonant, Vowel
+from clck.phonology.containers import PhonemeGroup, PhonemeGroupsManager
+from clck.phonology.structures import Structure
 
 
 __all__ = [
@@ -29,94 +22,104 @@ __all__ = [
 
 class Pattern:
     def __init__(self, string: str) -> None:
-        self._check_pattern_validity(string)
         self._string: str = string
         self._symbols: list[str] = [*self._generate_symbols()]
-        self._phoneme_groups: list[PhonemeGroup] = self._get_phoneme_groups()
-        self._phonemes: list[Phoneme] = list(set(self._get_phonemes()))
-
-
-    @property
-    def phoneme_groups(self) -> tuple[PhonemeGroup]:
-        """The tuple of PhonemeGroup instances used in this pattern."""
-        return tuple(self._phoneme_groups)
-
+        self._check_pattern_validity(self._symbols)  # all initialized symbols should be present in `PhonemeGroupsManager.labels`
+        self._phoneme_groups: tuple[PhonemeGroup] = self._get_phoneme_groups()
+        self._phonemes: tuple[Phoneme] = tuple(set(self._get_phonemes()))
 
     @property
     def phonemes(self) -> tuple[Phoneme]:
+        """The tuple of all recognized `Phoneme`s in this pattern."""
         return tuple(self._phonemes)
 
+    @property
+    def phoneme_groups(self) -> tuple[PhonemeGroup]:
+        """The tuple of all recognized `PhonemeGroup`s in this pattern."""
+        return tuple(self._phoneme_groups)
 
     @property
     def string(self) -> str:
+        """The string representation of this pattern."""
         return self._string
-
 
     @property
     def symbols(self) -> list[str]:
+        """The list of all recognized labels in this pattern."""
         return self._symbols
 
-
-    def _check_pattern_validity(self, string: str) -> bool:
-        for char in string:
+    def _check_pattern_validity(self, labels: list[str]) -> bool:
+        """Checks the existence of each character used in this pattern by
+        comparing it to the list of all registered `PhonemeGroup` labels in
+        `PhonemeGroupsManager.labels`.
+        
+        Returns
+        -------
+            `True` if all the characters in the pattern string are present
+            in `PhonemeGroupsManager.labels`.
+            
+        Raises
+        ------
+            `ValueError` if any character in the pattern string is not in
+            `PhonemeGroupsManager.labels`.
+        """
+        for char in labels:
             if char not in PhonemeGroupsManager.labels:
                 raise ValueError(f"Unknown pattern label \"{char}\" in pattern "
-                    f"string \"{string}\"")
-        return True
-    
+                    f"string \"{labels}\"")
+        
+        return True 
 
     def _generate_symbols(self) -> tuple[str]:
+        """Returns a tuple of all the recognized `PhonemeGroup` labels."""
         l: list[str] = []
         for char in self._string:
             l.append(char)
+        
         return tuple(l)
 
+    def _get_phonemes(self) -> tuple[Phoneme, ...]:
+        """Returns the tuple of all recognized `Phoneme`s in this pattern."""
+        l: list[Phoneme] = []
+        for pg in self._phoneme_groups:
+            l.extend(pg.phonemes)
+        
+        return tuple(l)
 
-    def _get_phoneme_groups(self) -> list[PhonemeGroup]:
+    def _get_phoneme_groups(self) -> tuple[PhonemeGroup]:
         g: list[PhonemeGroup] = []
         for symbol in self._symbols:
             for phoneme_group in PhonemeGroupsManager.global_list:
                 if symbol == phoneme_group.label:
                     g.append(phoneme_group)
                     break
-        return g
-
-
-    def _get_phonemes(self) -> tuple[Phoneme, ...]:
-        l: list[Phoneme] = []
-        for pg in self._phoneme_groups:
-            l.extend(pg.phonemes)
-        return tuple(l)
-
+        
+        return tuple(g)
 
 
 
 class Shape:
-    def __init__(self, _comps_type: Type[Consonant | Vowel],
-            pattern_string: str) -> None:
-        self._comps_type: Type[Consonant] | Type[Vowel] = _comps_type
-        self._pattern: Pattern = Pattern(pattern_string)
+    def __init__(self, _comps_type: type[Consonant | Vowel],
+            pattern_strings: str) -> None:
+        self._comps_type: type[Consonant | Vowel] = _comps_type
+        self._pattern: Pattern = Pattern(pattern_strings)
         self._pattern_string: str = self._pattern.string
         self._length: int = len(self._pattern.symbols)
 
         self._check_phoneme_types()
 
-
     @property
     def length(self) -> int:
         return self._length
-
 
     @property
     def pattern(self) -> Pattern:
         return self._pattern
 
-
     @property
     def pattern_string(self) -> str:
         return self._pattern_string
     
-
     def _check_phoneme_types(self) -> bool:
         for phoneme in self._pattern.phonemes:
             if not isinstance(phoneme, self._comps_type):
@@ -125,6 +128,7 @@ class Shape:
                     f"for {self.__class__.__name__}",
                     phoneme.__class__.__name__)
         return True
+
 
 
 class OnsetShape(Shape):
@@ -145,7 +149,7 @@ class CodaShape(Shape):
 
 
 
-class SyllableShape:
+class SyllableStructure:
     def __init__(self, onset: OnsetShape | None, nucleus: NucleusShape,
             coda: CodaShape | None) -> None:
         self._onset_shape: OnsetShape | None = onset
@@ -153,13 +157,11 @@ class SyllableShape:
         self._coda_shape: CodaShape | None = coda
         self._pattern_string: str = self._create_pattern_string()        
 
-
     @property
     def pattern_string(self) -> str:
         """The combined pattern string of the onset, nucleus, and coda
         shapes."""
         return self._pattern_string
-    
 
     @property
     def onset_shape(self) -> OnsetShape | None:
@@ -167,12 +169,10 @@ class SyllableShape:
         shape permits no onsets."""
         return self._onset_shape
     
-
     @property
     def nucleus_shape(self) -> NucleusShape:
         """The nuclues shape of this instance."""
         return self._nucleus_shape
-
 
     @property
     def coda_shape(self) -> CodaShape | None:
@@ -180,8 +180,7 @@ class SyllableShape:
         shape permits no codas."""
         return self._coda_shape
 
-
-    def get_onc_lengths(self) -> Tuple[int, int, int]:
+    def get_onc_lengths(self) -> tuple[int, int, int]:
         """Returns a tuple of the length of the onset shape, nucleus shape, and
         coda shape."""
         o: int
@@ -197,8 +196,7 @@ class SyllableShape:
         else:
             c = self._coda_shape.length
 
-        return (o, self._nucleus_shape.length, c)
-    
+        return (o, self._nucleus_shape.length, c)  
 
     def _create_pattern_string(self) -> str:
         shapes: list[str] = []
@@ -224,7 +222,7 @@ class SyllabicComponent(Structure, ABC):
     """
     @abstractmethod
     def __init__(self,
-            _allowed_types: tuple[Type["SyllabicComponent | Phoneme"], ...],
+            _allowed_types: tuple[type["SyllabicComponent | Phoneme"], ...],
             *components: "SyllabicComponent | Phoneme") -> None:
         super().__init__(_allowed_types, components)
         self._components: tuple[SyllabicComponent | Phoneme] = components
@@ -277,7 +275,7 @@ class Coda(SyllabicComponent):
 
 
 class PhonemeCluster(SyllabicComponent):
-    def __init__(self, allowed_type: Type[Phoneme],
+    def __init__(self, allowed_type: type[Phoneme],
             *components: Phoneme) -> None:
         """
         Creates a new instance of `Cluster`.

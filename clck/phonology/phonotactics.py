@@ -7,7 +7,7 @@ from .syllabics import SyllabicComponent
 class Phonotactics:
     """
     `Phonotactics` is a special container for storing phonotactic information
-    such as `SyllableShape` and constraints.
+    such as `SyllableShape` and rules.
     """
     def __init__(self, rules: tuple["PhonotacticRule"]) -> None:
         self._rules: tuple[PhonotacticRule] = rules
@@ -35,8 +35,6 @@ class PhonotacticRule:
 
 
 
-class PhonotacticRuleProbability: ...
-
 class PhonotacticRuleAction(ABC):
     @abstractmethod
     def execute(self, *components: Component) -> tuple[Component]:
@@ -44,9 +42,10 @@ class PhonotacticRuleAction(ABC):
 
 class PhonotacticRulePlacement: ...
 
-RULE_MAY = PhonotacticRuleProbability()
-RULE_MUST_NOT = PhonotacticRuleProbability()
-RULE_MUST_ALWAYS = PhonotacticRuleProbability()
+# PRA Probabilities
+RULE_MAY = 0.5
+RULE_MUST_NOT = 0.0
+RULE_MUST_ALWAYS = 1.0
 
 class PRA_Occur(PhonotacticRuleAction):
     def execute(self, *components: Component) -> tuple[Component]:
@@ -63,11 +62,12 @@ class PRA_Delete(PhonotacticRuleAction):
     def execute(self, *components: Component) -> tuple[Component]:
         return super().execute(*components)
 
-
+# PRA Actions
 OCCUR = PRA_Occur()
 REPLACE = PRA_Replace()
 DELETE = PRA_Delete()
 
+# PRA Placements
 BEFORE = PhonotacticRulePlacement()
 AFTER = PhonotacticRulePlacement()
 ANYWHERE_BEFORE = PhonotacticRulePlacement()
@@ -76,22 +76,38 @@ ANYWHERE_AFTER = PhonotacticRulePlacement()
 
 
 class PositionalRule(PhonotacticRule):
-    def __init__(self, bank: tuple[SyllabicComponent] | None,
-            probability: PhonotacticRuleProbability | float,
-            action: PhonotacticRuleAction, placement: PhonotacticRulePlacement,
-            condition: None = None) -> None:
+    def __init__(self, target_structure: type[SyllabicComponent | Phoneme],
+            bank: tuple[SyllabicComponent] | None,
+            probability: float, action: PhonotacticRuleAction,
+            placement: PhonotacticRulePlacement,
+            _condition: None = None) -> None:
+        """Creates a new `PositionalRule` instance.
+        
+        Parameters
+        ----------
+        - `bank` - the tuple of syllabic components that will be used when this
+            rule is executed.
+        - `probability` - a float between 0 and 1 indicating the chance of this
+            rule to be executed. Constants `RULE_MAY`, `RULE_MUST_NOT`, and
+            `RULE_MUST_ALWAYS` correspond to values `0.5`, `0.0`, and `1.0`,
+            respectively.
+        - `action` - the type of positional rule when executing this rule.
+        - `placement` - indicates which places 
+        """
         super().__init__()
+        self._target_structure: type[SyllabicComponent | Phoneme] = target_structure
         self._bank: tuple[SyllabicComponent] | None = bank
-        self._probability: PhonotacticRuleProbability | float = probability
+        self._probability: float = probability
         self._action: PhonotacticRuleAction = action
         self._placement: PhonotacticRulePlacement = placement
+        self._coverage: int = 1
 
     @property
     def bank(self) -> tuple[SyllabicComponent] | None:
         return self._bank
     
     @property
-    def probability(self) -> PhonotacticRuleProbability | float:
+    def probability(self) -> float:
         return self._probability
     
     @property
@@ -102,10 +118,10 @@ class PositionalRule(PhonotacticRule):
     def placement(self) -> PhonotacticRulePlacement:
         return self._placement
 
-    def execute(self, specimen: Component,
+    def execute(self, specimen: SyllabicComponent,
             anonymous_bank: tuple[SyllabicComponent] | None = None,
             override: bool = False) -> bool:
-        """Implements this rule on to the specified specimen. Returns `True` if
+        """Executes this rule on to the specified specimen. Returns `True` if
         the specified specimen obeys the implementation of this rule.
 
         Parameters
@@ -124,25 +140,35 @@ class PositionalRule(PhonotacticRule):
         `override_bank` is `True`.
         """
 
-        bank = self._get_implement_bank(
+        # It may be possible for a user to assign a bank and still override it
+        # with an anonymous one, so we need to know which will be used.
+        bank = self._get_execute_bank(
             anonymous_bank, override)
-        
+
         self._action.execute()
 
     def is_anonymous(self) -> bool:
         """Returns `True` if this rule is anonymous.
         
         An anonymous `PhonotacticRule` is anonymous if `bank` is set to `None`
-        during construction.
+        during construction, which allows the use of different banks every time
+        `execute()` is called.
         """
         if self._bank is None:
             return True
         else:
             return False
-        
-    def _get_implement_bank(self,
-            anonymous_bank: tuple[SyllabicComponent] | None,
+
+    def _create_dummy_structure(self, specimen: SyllabicComponent) -> None:
+        """Creates a dummy structure that will be used during the application of
+        this rule.
+        """
+        for c in specimen.components:
+
+
+    def _get_execute_bank(self, anonymous_bank: tuple[SyllabicComponent] | None,
             override: bool) -> tuple[SyllabicComponent]:
+        """Returns the actual bank to be used in the execution of this rule."""
 
         if self._bank is None:
             if anonymous_bank is None:
@@ -151,23 +177,32 @@ class PositionalRule(PhonotacticRule):
             elif override is True:
                 printwarning(f"Anonymous bank override is unnecessary for "
                              f"anonymous rules.")
-                impl_bank = anonymous_bank
+                exec_bank = anonymous_bank
             else:
-                impl_bank = anonymous_bank
+                exec_bank = anonymous_bank
         else:
             if anonymous_bank is None:
                 if override:
                     printwarning(f"Bank override is unnecessary for "
                         f"unspecified anonymous_bank.")
-                    impl_bank = self._bank
+                    exec_bank = self._bank
                 else:
-                    impl_bank = self._bank
+                    exec_bank = self._bank
             else:
                 if override:
-                    impl_bank = anonymous_bank
+                    exec_bank = anonymous_bank
                 else:
                     printwarning(f"Argument for anonymous_bank is unnecessary "
                         f"for this rule's unoverriden bank.")
-                    impl_bank = self._bank
+                    exec_bank = self._bank
 
-        return impl_bank
+        return exec_bank
+
+    def _get_phonemes_before_target(self, specimen: SyllabicComponent) -> tuple[SyllabicComponent | Phoneme]:
+        components: list[SyllabicComponent | Phoneme] = []
+        for c in specimen.components:
+            if isinstance(c, Phoneme):
+                components.append(c)
+            else:
+                components.append(c)
+                c.

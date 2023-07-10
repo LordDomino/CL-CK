@@ -1,6 +1,6 @@
-from clck.phonology.structures import Component
+from ..skeleton.component import Component
 from ..config import printwarning
-from .structures import *
+from ..skeleton.structure import *
 from .syllabics import SyllabicComponent
 
 
@@ -163,7 +163,7 @@ class PositionalRule(PhonotacticRule):
         """Creates a dummy structure that will be used during the application of
         this rule.
         """
-        for c in specimen.components:
+        for c in specimen.components: ...
 
 
     def _get_execute_bank(self, anonymous_bank: tuple[SyllabicComponent] | None,
@@ -198,11 +198,11 @@ class PositionalRule(PhonotacticRule):
 
         return exec_bank
 
-    def _get_phonemes_before_target(self, specimen: SyllabicComponent) -> tuple[SyllabicComponent | Phoneme]:
-        components: list[SyllabicComponent | Phoneme] = []
-        for c in specimen.components:
-            if isinstance(c, Phoneme):
-                components.append(c)
-            else:
-                components.append(c)
-                c.
+    # def _get_phonemes_before_target(self, specimen: SyllabicComponent) -> tuple[SyllabicComponent | Phoneme]:
+    #     components: list[SyllabicComponent | Phoneme] = []
+    #     for c in specimen.components:
+    #         if isinstance(c, Phoneme):
+    #             components.append(c)
+    #         else:
+    #             components.append(c)
+    #             c.

@@ -4,8 +4,10 @@ from clck.language.language import Language
 from clck.phonology.containers import PhonologicalInventory
 from clck.phonology.phonotactics import PhonotacticRule, Phonotactics
 from clck.phonology.syllabics import (
+    CodaShape,
     NucleusShape,
     OnsetShape,
+    Syllable,
     SyllableStructure
 )
 
@@ -36,13 +38,13 @@ generator: SyllableGenerator = SyllableGenerator.from_phonotactics(
     lang,
     inventory,
     SyllableStructure(
-        OnsetShape("C"),
+        OnsetShape("CC"),
         NucleusShape("V"),
-        None
+        CodaShape("CC")
     ),
     ph
 )
 
 generator.generate(1)
 
-print(generator.get_recent_generation())
+syllable: Syllable = generator.get_recent_generation()[0]

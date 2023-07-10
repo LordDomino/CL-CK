@@ -1,4 +1,5 @@
-from .component import Component
+from clck.phonology.articulation import ArticulatoryProperty
+from ..skeleton.component import Component
 from .articulation import ArticulatoryProperty, Backness, Height, Manner, Roundedness, Voicing, Place
 
 
@@ -55,6 +56,10 @@ class Phoneme(Component):
         for property in self._articulatory_properties:
             s.append(property.name)
         return f"{self.__class__.__name__} /{self._symbol}/ ({' '.join(s)})"
+
+    @property
+    def components(self) -> tuple[Component]:
+        return (self,)
 
     @property
     def name(self) -> str:
@@ -136,3 +141,9 @@ class ImplosiveConsonant(NonpulmonicConsonant):
 class ClickConsonant(NonpulmonicConsonant):
     def __init__(self, symbol: str, place: Place, manner: Manner) -> None:
         super().__init__(symbol, place, manner)
+
+
+
+class DummyPhoneme(Phoneme):
+    def __init__(self) -> None:
+        super().__init__("", ())

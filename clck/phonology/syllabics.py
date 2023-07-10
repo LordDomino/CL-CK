@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
-from clck.phonology.phonemes import Phoneme, Consonant, Vowel
+from clck.phonology.phonemes import DummyPhoneme, Phoneme, Consonant, Vowel
 from clck.phonology.containers import PhonemeGroup, PhonemeGroupsManager
-from clck.phonology.structures import Structure
+from clck.skeleton.structure import Structure
 
 
 __all__ = [
@@ -24,7 +24,7 @@ class Pattern:
     def __init__(self, string: str) -> None:
         self._string: str = string
         self._symbols: list[str] = [*self._generate_symbols()]
-        self._check_pattern_validity(self._symbols)  # all initialized symbols should be present in `PhonemeGroupsManager.labels`
+        self._check_pattern_validity(self._symbols)  # all initialized symbols should be present in PhonemeGroupsManager.labels
         self._phoneme_groups: tuple[PhonemeGroup] = self._get_phoneme_groups()
         self._phonemes: tuple[Phoneme] = tuple(set(self._get_phonemes()))
 
@@ -248,8 +248,8 @@ class SyllabicComponent(Structure, ABC):
 
 
 class Onset(SyllabicComponent):
-    def __init__(self, *components: Consonant) -> None:
-        super().__init__((Consonant,), *components)
+    def __init__(self, *components: Consonant | DummyPhoneme) -> None:
+        super().__init__((Consonant, ConsonantCluster), *components)
         if len(components) > 1:
             self.add_substructure(ConsonantCluster(*components))
 
@@ -335,7 +335,7 @@ class ConsonantCluster(PhonemeCluster):
     Class for `ConsonantCluster`, a special type of phoneme cluster to enclose
     multiple consonants.
     """
-    def __init__(self, *consonants: Consonant) -> None:
+    def __init__(self, *consonants: Consonant | DummyPhoneme) -> None:
         super().__init__(Consonant, *consonants)
 
 
@@ -399,8 +399,9 @@ class Rhyme(SyllabicComponent):
 class Syllable(Structure):
     def __init__(self, onset: Onset | None, nucleus: Nucleus,
         coda: Coda | None) -> None:
-        super().__init__((SyllabicComponent, Phoneme), self._filter_none((onset, nucleus, coda)))
-        self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes(Phoneme))
+        super().__init__((SyllabicComponent, Phoneme),
+            self._filter_none((onset, nucleus, coda)))
+        self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes_of_type(Phoneme))
         self._onset: Onset | None = onset
         self._nucleus: Nucleus = nucleus
         self._coda: Coda | None = coda

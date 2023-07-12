@@ -4,7 +4,7 @@ import clck.generators.generators as generators
 
 from .managers import Manager, PhonemesManager
 from ..phonology.containers import PhonemeGroupsManager, PhonologicalInventory
-from ..skeleton.structure import Structure
+from ..fundamentals.structure import Structure
 
 
 class Language:

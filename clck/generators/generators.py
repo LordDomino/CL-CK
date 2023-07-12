@@ -4,7 +4,7 @@ from ..config import printwarning
 
 from ..language.language import Language
 from ..phonology.containers import PhonologicalInventory
-from ..phonology.phonemes import Consonant, Vowel
+from ..skeleton.phonemes import Consonant, Vowel
 from ..phonology.phonotactics import Phonotactics
 from ..phonology.syllabics import Coda, CodaShape, Nucleus, NucleusShape, Onset, OnsetShape, SyllabicComponent, Syllable, SyllableStructure
 

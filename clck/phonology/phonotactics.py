@@ -1,4 +1,7 @@
 from ..skeleton.component import Component
+from ..skeleton.phonemes import Phoneme
+from ..skeleton.component import Component
+from ..skeleton.component import Component
 from ..config import printwarning
 from ..skeleton.structure import *
 from .syllabics import SyllabicComponent

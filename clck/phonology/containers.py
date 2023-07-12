@@ -1,9 +1,11 @@
 from typing import List, Type
 
+from ..fundamentals.phonemes import Phoneme
+
 from .articulation import PhonologicalProperty
 from ..language.managers import Manager
 
-from .phonemes import *
+from ..fundamentals.phonemes import *
 
 
 class PhonologicalInventory:

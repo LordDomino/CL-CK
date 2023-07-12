@@ -1,5 +1,6 @@
 from clck.config import printdebug
-from clck.phonology.phonemes import DummyPhoneme, Phoneme
+from clck.skeleton.phonemes import Phoneme
+from clck.skeleton.phonemes import DummyPhoneme
 from clck.skeleton.structure import Structure
 
 

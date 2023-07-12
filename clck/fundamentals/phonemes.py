@@ -1,6 +1,6 @@
 from clck.phonology.articulation import ArticulatoryProperty
-from ..skeleton.component import Component
-from .articulation import ArticulatoryProperty, Backness, Height, Manner, Roundedness, Voicing, Place
+from clck.fundamentals.component import Component
+from ..phonology.articulation import Backness, Height, Manner, Roundedness, Voicing, Place
 
 
 
@@ -16,7 +16,6 @@ __all__: list[str] = [
 ]
 
 
-
 class Phoneme(Component):
 
     DEFAULT_IPA_PHONEMES: tuple["Phoneme", ...] = ()
@@ -26,7 +25,6 @@ class Phoneme(Component):
             _default: bool = False) -> None:
         """
         Creates an abstract phoneme representation.
-
         Parameters
         ----------
         - `symbol` - the character representation of the phoneme.
@@ -38,7 +36,7 @@ class Phoneme(Component):
         self._articulatory_properties: tuple[ArticulatoryProperty, ...] = (
             articulatory_properties)
         self._property_names: list[str] = self._get_property_names()
-        
+
         super().__init__()  # only then call the super constructor to initialize the transcript and output
 
         if self.is_default_IPA_phoneme():
@@ -70,7 +68,7 @@ class Phoneme(Component):
     def symbol(self) -> str:
         """The assigned Unicode character for this phoneme."""
         return self._symbol
-    
+
     def is_default_IPA_phoneme(self) -> bool:
         """Returns `True` if this phoneme is an official IPA phoneme, otherwise
         `False`.
@@ -85,7 +83,7 @@ class Phoneme(Component):
 
     def _get_property_names(self) -> list[str]:
         return [property.name for property in self._articulatory_properties]
-    
+
     @classmethod
     def _append_to_defaults(cls, phoneme: "Phoneme") -> None:
         Phoneme.DEFAULT_IPA_PHONEMES = tuple([*Phoneme.DEFAULT_IPA_PHONEMES,

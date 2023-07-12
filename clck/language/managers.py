@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Any, List
 
 from ..phonology.articulation import PhonologicalProperty
-from ..phonology.phonemes import Phoneme
+from ..fundamentals.phonemes import Phoneme
 
 
 class Manager(ABC):

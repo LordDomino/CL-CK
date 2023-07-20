@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from clck.skeleton.phonemes import Phoneme
+from clck.fundamentals.phonemes import Phoneme
 
-from clck.skeleton.phonemes import DummyPhoneme, Consonant, Vowel
+from clck.fundamentals.phonemes import DummyPhoneme, Consonant, Vowel
 from clck.phonology.containers import PhonemeGroup, PhonemeGroupsManager
-from clck.skeleton.structure import Structure
+from clck.fundamentals.structure import Structure
 
 
 __all__ = [

@@ -68,6 +68,7 @@ class Structure(Component, ABC):
 
     @property
     def phonemes(self) -> tuple[Phoneme, ...]:
+        """The phonemes of this structure."""
         return tuple(self._phonemes)
 
     @property
@@ -209,7 +210,7 @@ class Structure(Component, ABC):
 
         return output
 
-    def _filter_none(self, collection: tuple[T, ...] | list[T]) -> tuple[T]:
+    def _filter_none(self, collection: tuple[T | NoneType, ...]) -> tuple[T]:
         """
         Returns a modified version of the given collection in which all `None`
         or `NoneType` values are removed.

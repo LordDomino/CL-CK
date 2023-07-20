@@ -1,6 +1,6 @@
 from clck.phonology.containers import PhonemeGroup
 from .phonology.articulatory_properties import *
-from .skeleton.phonemes import Consonant, PulmonicConsonant, Vowel
+from .fundamentals.phonemes import Consonant, PulmonicConsonant, Vowel
 
 
 

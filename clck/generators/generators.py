@@ -4,8 +4,8 @@ from ..config import printwarning
 
 from ..language.language import Language
 from ..phonology.containers import PhonologicalInventory
-from ..skeleton.phonemes import Consonant, Vowel
-from ..phonology.phonotactics import Phonotactics
+from ..fundamentals.phonemes import Consonant, Vowel
+from ..phonology.phonotactics2 import Phonotactics
 from ..phonology.syllabics import Coda, CodaShape, Nucleus, NucleusShape, Onset, OnsetShape, SyllabicComponent, Syllable, SyllableStructure
 
 
@@ -169,3 +169,15 @@ class SyllableGenerator:
 
     def _init_language(self) -> None:
         self._language._syllable_generator = self # type: ignore
+
+
+# 1. Fetch pre-generation rules
+# 2. Check each pre-generation rule and set the requirements for generation
+
+class Generator:
+    def __init__(self, phonological_inventory: PhonologicalInventory,
+            phonotactics: Phonotactics) -> None:
+        self._phonological_inventory = phonological_inventory
+        self._phonotactics = phonotactics
+
+    def _temp(self) -> None:

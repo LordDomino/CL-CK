@@ -2,7 +2,8 @@ from clck.ipa_phonemes import *
 from clck.generators.generators import SyllableGenerator
 from clck.language.language import Language
 from clck.phonology.containers import PhonologicalInventory
-from clck.phonology.phonotactics import PhonotacticRule, Phonotactics
+from clck.phonology.phonotactics import PhonotacticRule
+from clck.phonology.phonotactics2 import Phonotactics
 from clck.phonology.syllabics import (
     CodaShape,
     NucleusShape,
@@ -48,3 +49,5 @@ generator: SyllableGenerator = SyllableGenerator.from_phonotactics(
 generator.generate(1)
 
 syllable: Syllable = generator.get_recent_generation()[0]
+
+print(syllable)

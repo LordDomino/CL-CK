@@ -56,10 +56,6 @@ class Phoneme(Component):
         return f"{self.__class__.__name__} /{self._symbol}/ ({' '.join(s)})"
 
     @property
-    def components(self) -> tuple[Component]:
-        return (self,)
-
-    @property
     def name(self) -> str:
         """The name of this phoneme."""
         return self.__str__()
@@ -70,7 +66,9 @@ class Phoneme(Component):
         return self._symbol
 
     def is_default_IPA_phoneme(self) -> bool:
-        """Returns `True` if this phoneme is an official IPA phoneme, otherwise
+        """
+        Returns `True` if this phoneme is an official IPA phoneme, otherwise
+        returns 
         `False`.
         """
         return self._is_default

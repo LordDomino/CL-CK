@@ -1,24 +1,10 @@
-from ..skeleton.component import Component
-from ..skeleton.phonemes import Phoneme
-from ..skeleton.component import Component
-from ..skeleton.component import Component
+from ..fundamentals.component import Component
+from ..fundamentals.phonemes import Phoneme
+from ..fundamentals.component import Component
+from ..fundamentals.component import Component
 from ..config import printwarning
-from ..skeleton.structure import *
+from ..fundamentals.structure import *
 from .syllabics import SyllabicComponent
-
-
-class Phonotactics:
-    """
-    `Phonotactics` is a special container for storing phonotactic information
-    such as `SyllableShape` and rules.
-    """
-    def __init__(self, rules: tuple["PhonotacticRule"]) -> None:
-        self._rules: tuple[PhonotacticRule] = rules
-        
-    @property
-    def rules(self) -> tuple["PhonotacticRule"]:
-        return self._rules
-
 
 
 class PhonotacticRule:

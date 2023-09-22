@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 
 
+
 class Component(ABC):
     """Class representing all linguistic component, especially the phonemic
     components of a language.
     
     A linguistic component is an abstract representation of a unit of a language
     which is transcriptable (contains an IPA transcript) and can be outputted
-    as a string that can be read by the user.
+    as a string that is readable by the user.
     """
 
     def __init__(self) -> None:

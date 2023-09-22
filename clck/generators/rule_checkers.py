@@ -18,7 +18,7 @@ def is_post_generation_rule(rule: GeneratorRule) -> bool:
 
 
 def fetch_rules(phonotactics: Phonotactics,
-        subtype: type[GeneratorRule]) -> tuple[GeneratorRule]:
+        subtype: type[GeneratorRule]) -> tuple[GeneratorRule, ...]:
     """
     Returns a tuple of generator rules based on the given :GeneratorRule:
     subtype.

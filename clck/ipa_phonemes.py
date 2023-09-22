@@ -1,8 +1,11 @@
 from clck.phonology.containers import PhonemeGroup
 from .phonology.articulatory_properties import *
-from .fundamentals.phonemes import Consonant, PulmonicConsonant, Vowel
+from .fundamentals.phonemes import Consonant, DummyPhoneme, PulmonicConsonant, Vowel
 
 
+
+# DUMMY PHONEME
+DUMMY_PHONEME                             = DummyPhoneme()
 
 # VOWELS
 IPA_CLOSE_FRONT_UNROUNDED_VOWEL           = Vowel("i", FRONT, CLOSE, UNROUNDED, True)

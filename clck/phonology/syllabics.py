@@ -26,16 +26,16 @@ class Pattern:
         self._string: str = string
         self._symbols: list[str] = [*self._generate_symbols()]
         self._check_pattern_validity(self._symbols)  # all initialized symbols should be present in PhonemeGroupsManager.labels
-        self._phoneme_groups: tuple[PhonemeGroup] = self._get_phoneme_groups()
-        self._phonemes: tuple[Phoneme] = tuple(set(self._get_phonemes()))
+        self._phoneme_groups: tuple[PhonemeGroup, ...] = self._get_phoneme_groups()
+        self._phonemes: tuple[Phoneme, ...] = tuple(set(self._get_phonemes()))
 
     @property
-    def phonemes(self) -> tuple[Phoneme]:
+    def phonemes(self) -> tuple[Phoneme, ...]:
         """The tuple of all recognized `Phoneme`s in this pattern."""
         return tuple(self._phonemes)
 
     @property
-    def phoneme_groups(self) -> tuple[PhonemeGroup]:
+    def phoneme_groups(self) -> tuple[PhonemeGroup, ...]:
         """The tuple of all recognized `PhonemeGroup`s in this pattern."""
         return tuple(self._phoneme_groups)
 
@@ -71,7 +71,7 @@ class Pattern:
         
         return True 
 
-    def _generate_symbols(self) -> tuple[str]:
+    def _generate_symbols(self) -> tuple[str, ...]:
         """Returns a tuple of all the recognized `PhonemeGroup` labels."""
         l: list[str] = []
         for char in self._string:
@@ -87,7 +87,7 @@ class Pattern:
         
         return tuple(l)
 
-    def _get_phoneme_groups(self) -> tuple[PhonemeGroup]:
+    def _get_phoneme_groups(self) -> tuple[PhonemeGroup, ...]:
         g: list[PhonemeGroup] = []
         for symbol in self._symbols:
             for phoneme_group in PhonemeGroupsManager.global_list:
@@ -226,7 +226,7 @@ class SyllabicComponent(Structure, ABC):
             _allowed_types: tuple[type["SyllabicComponent | Phoneme"], ...],
             *components: "SyllabicComponent | Phoneme") -> None:
         super().__init__(_allowed_types, components)
-        self._components: tuple[SyllabicComponent | Phoneme] = components
+        self._components: tuple[SyllabicComponent | Phoneme, ...] = components
 
     def get_phonemes(self) -> list[Phoneme]:
         phonemes: list[Phoneme] = []
@@ -270,7 +270,7 @@ class Nucleus(SyllabicComponent):
 
 
 class Coda(SyllabicComponent):
-    def __init__(self, *components: Consonant) -> None:
+    def __init__(self, *components: Consonant | DummyPhoneme) -> None:
         super().__init__((Consonant,), *components)
 
 
@@ -281,11 +281,13 @@ class PhonemeCluster(SyllabicComponent):
         """
         Creates a new instance of `Cluster`.
         
-        Arguments
+        Parameters
+        ---------
         - `component_type` is the type of the components.
         - `phonemes` are the component phonemes of this cluster.
         
         Raises
+        ------
         - `TypeError` if any element in `phonemes` is not of the given type,
         `component_type`.
         
@@ -320,6 +322,7 @@ class PhonemeCluster(SyllabicComponent):
         Checks if the number of phonemes in the cluster is less than two.
         
         Raises
+        ------
         - `ValueError` if the number of clusters is less than two.
         """
         if len(self.phonemes) < 2:
@@ -402,7 +405,8 @@ class Syllable(Structure):
         coda: Coda | None) -> None:
         super().__init__((SyllabicComponent, Phoneme),
             self._filter_none((onset, nucleus, coda)))
-        self._phonemes: tuple[Phoneme] = tuple(self.find_phonemes_of_type(Phoneme))
+        self._phonemes: tuple[Phoneme, ...] = tuple(
+            self.find_phonemes_of_type(Phoneme))
         self._onset: Onset | None = onset
         self._nucleus: Nucleus = nucleus
         self._coda: Coda | None = coda
@@ -420,7 +424,7 @@ class Syllable(Structure):
         return s
 
     @property
-    def phonemes(self) -> tuple[Phoneme]:
+    def phonemes(self) -> tuple[Phoneme, ...]:
         return self._phonemes
 
     @property

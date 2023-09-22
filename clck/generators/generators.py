@@ -42,7 +42,8 @@ class SyllableGenerator:
             # phonotactics.phonemic_constraints
         )
 
-    def generate(self, size: int = 1, register_to_lang: bool = True) -> tuple[Syllable]:
+    def generate(self, size: int = 1,
+            register_to_lang: bool = True) -> tuple[Syllable, ...]:
         syllables: list[Syllable] = []
         
         for _ in range(size):
@@ -54,7 +55,7 @@ class SyllableGenerator:
         
         return tuple(syllables)
 
-    def get_recent_generation(self) -> tuple[Syllable]:
+    def get_recent_generation(self) -> tuple[Syllable, ...]:
         return tuple(self._recent_generation)
     
 
@@ -180,4 +181,4 @@ class Generator:
         self._phonological_inventory = phonological_inventory
         self._phonotactics = phonotactics
 
-    def _temp(self) -> None:
+    def _temp(self) -> None: ...

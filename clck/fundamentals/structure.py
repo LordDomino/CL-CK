@@ -7,9 +7,8 @@ from clck.fundamentals.phonemes import DummyPhoneme, Phoneme
 from clck.utils import tuple_append, tuple_extend
 
 
-
-
 T = TypeVar("T")
+
 
 
 class Structure(Component, ABC):
@@ -27,9 +26,9 @@ class Structure(Component, ABC):
         
         Parameters
         ----------
-        - `_valid_comp_types` are the permitted types of the structure's
+        - `_valid_comp_types` are the permitted types of this structure's
             components.
-        - `components` are the structure's components.
+        - `components` are this structure's components.
         
         Raises
         ------
@@ -37,12 +36,12 @@ class Structure(Component, ABC):
         types in `_valid_comp_types`.
         """
         _valid_comp_types = tuple([*_valid_comp_types, DummyPhoneme])
-        self._valid_comp_types: tuple[type[Component]] = _valid_comp_types
-        self._components: tuple[Component] = self._filter_none(components)
+        self._valid_comp_types: tuple[type[Component], ...] = _valid_comp_types
+        self._components: tuple[Component, ...] = self._filter_none(components)
         self._assert_components()
 
-        self._phonemes: tuple[Phoneme] = self._get_phonemes()
-        self._substructures: tuple[Structure] = self._get_substructures()
+        self._phonemes: tuple[Phoneme, ...] = self._get_phonemes()
+        self._substructures: tuple[Structure, ...] = self._get_substructures()
 
         # Only then call the parent constructor after all necessary attributes
         # are initialized
@@ -84,6 +83,7 @@ class Structure(Component, ABC):
     def add_components(self, *components: Component) -> None:
         """
         Adds components to this structure.
+
         Parameters
         ----------
         - `components` - the components to add.
@@ -96,6 +96,7 @@ class Structure(Component, ABC):
     def add_substructure(self, substructure: "Structure") -> None:
         """
         Parents a structure to this one.
+
         Parameters
         ----------
         - `substructure` - the structure to be parented (added) to this
@@ -105,10 +106,11 @@ class Structure(Component, ABC):
         self._substructures = tuple_append(self._substructures, substructure)
 
     def find_phonemes_of_type(self,
-            type: type[Phoneme] = Phoneme) -> tuple[Phoneme]:
+            type: type[Phoneme] = Phoneme) -> tuple[Phoneme, ...]:
         """
         Returns a tuple of phonemes that are of the specified `Phoneme` type.
         If no argument is given, it returns all the phonemes of this structure.
+
         Arguments
         ---------
         - `type` - is the `Phoneme` subtype. Defaults to `Phoneme`.
@@ -124,7 +126,7 @@ class Structure(Component, ABC):
         return tuple(rl)
 
     def find_structures_of_type(self,
-            type: type["Structure"]) -> tuple["Structure"]:
+            type: type["Structure"]) -> tuple["Structure", ...]:
         """
         Returns a tuple of all found structures that are of the given
         `Structure` subtype.
@@ -141,7 +143,7 @@ class Structure(Component, ABC):
 
         return tuple(rl)
 
-    def remove_component_duplicates(self, bank: tuple[T]) -> tuple[T]:
+    def remove_component_duplicates(self, bank: tuple[T]) -> tuple[T, ...]:
         return tuple([*set(bank)])
 
     def remove_phoneme_duplicates(self, bank: list[Phoneme]) -> list[Phoneme]:
@@ -210,7 +212,8 @@ class Structure(Component, ABC):
 
         return output
 
-    def _filter_none(self, collection: tuple[T | NoneType, ...]) -> tuple[T]:
+    def _filter_none(self,
+            collection: tuple[T | NoneType, ...]) -> tuple[T, ...]:
         """
         Returns a modified version of the given collection in which all `None`
         or `NoneType` values are removed.
@@ -222,7 +225,7 @@ class Structure(Component, ABC):
 
         return tuple(rl)
 
-    def _get_phonemes(self) -> tuple[Phoneme]:
+    def _get_phonemes(self) -> tuple[Phoneme, ...]:
         """
         Returns a tuple of all found phonemes within the hierarchy of this
         structure.
@@ -237,7 +240,7 @@ class Structure(Component, ABC):
 
         return tuple(rl)
 
-    def _get_substructures(self) -> tuple["Structure"]:
+    def _get_substructures(self) -> tuple["Structure", ...]:
         """
         Returns a tuple of all children structures parented to this structure.
         """

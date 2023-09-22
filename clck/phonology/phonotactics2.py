@@ -1,7 +1,6 @@
 from ctypes import Structure
 from enum import Enum
 
-from clck.phonology.phonotactics2 import RuleType
 
 
 class RuleType(Enum):

@@ -1,43 +1,60 @@
 from clck.config import printdebug
-from clck.skeleton.phonemes import Phoneme
-from clck.skeleton.phonemes import DummyPhoneme
-from clck.skeleton.structure import Structure
+from clck.fundamentals.phonemes import Phoneme
+from clck.fundamentals.phonemes import DummyPhoneme
+from clck.fundamentals.structure import Structure
 
 
 class StructureEvaluator:
     def __init__(self, s: Structure) -> None:
-        self.s = s
-        self.phonemes = s.phonemes
+        """
+        Creates a new instance of a `StructureEvaluator`.
+
+        Parameters
+        ----------
+        - `s` - the `Structure` object to be evaluated
+        """
+        self._structure = s
+        self._phonemes = s.phonemes
 
         self._ph_ref_dict = self._create_phoneme_reference_dictionary()
         self._struct_comps = self._get_structure_components()
         self._struct_ids = self._get_structure_ids()
 
-        printdebug(self.phonemes)
+        printdebug(self._phonemes)
         printdebug(self._struct_comps)
         printdebug(self._struct_ids)
+
+    @property
+    def phonemes(self) -> tuple[Phoneme, ...]:
+        """The tuple of phonemes found in the given structure."""
+        return self._phonemes
+
+    @property
+    def structure(self) -> Structure:
+        """The given structure to this `StructureEvaluator`."""
+        return self._structure
 
     def _create_phoneme_reference_dictionary(self) -> dict[Phoneme, str]:
         d: dict[Phoneme, str] = {}
 
-        print(set(self.phonemes))
+        printdebug(f"Phoneme ref dict {set(self._phonemes)}")
 
-        for i, p in enumerate(set(self.phonemes)):
+        for i, p in enumerate(set(self._phonemes)):
             if not isinstance(p, DummyPhoneme):
                 d[p] = f"p{i+1}"
 
         return d
 
-    def _get_structure_ids(self) -> tuple[str]:
+    def _get_structure_ids(self) -> tuple[str, ...]:
         rl: list[str] = []
         for i, c in enumerate(self._struct_comps):
             rl.append(f"{i+1}{c}")
         
         return tuple(rl)
 
-    def _get_structure_components(self) -> tuple[str]:
+    def _get_structure_components(self) -> tuple[str, ...]:
         rl: list[str] = []
-        for p in self.phonemes:
+        for p in self._phonemes:
             if isinstance(p, DummyPhoneme):
                 rl.append("d0")
             else:

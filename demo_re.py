@@ -1,6 +1,3 @@
+from clck.formula.syntax import _tokenize
 
-
-import re
-
-
-print(list(filter(None, re.split("([\?\(\)\/\-\+\{\}\>])", "/abc/"))))
+print(_tokenize("/(asdad)abc+8/"))

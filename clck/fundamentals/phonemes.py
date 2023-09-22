@@ -25,6 +25,7 @@ class Phoneme(Component):
             _default: bool = False) -> None:
         """
         Creates an abstract phoneme representation.
+        
         Parameters
         ----------
         - `symbol` - the character representation of the phoneme.

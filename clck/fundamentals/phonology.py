@@ -79,6 +79,16 @@ class Vowel(Phoneme):
         super().__init__(_base_phone)
 
 
+class DummyConsonant(Dummy, Consonant):
+    def __init__(self) -> None:
+        super().__init__()
+
+
+class DummyVowel(Dummy, Vowel):
+    def __init__(self) -> None:
+        super().__init__()
+
+
 class PhonemicInventory:
     def __init__(self, *phonemes: Phoneme) -> None:
         """

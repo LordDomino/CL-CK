@@ -1,5 +1,5 @@
 import re
-from clck.config import printdebug
+from clck.config import print_debug
 from clck.formula.syntax_definition import DELIMITER, VALID_CHARS, VALID_TOKENS
 from clck.utils import strip_whitespace
 
@@ -58,7 +58,7 @@ def recombine_tokens(tokens: tuple[str, ...] | list[str]) -> tuple[str, ...]:
             extend_str: str = "".join(tokens[start_i:stop_i])
             while step >= 1:
                 if extend_str in VALID_TOKENS:
-                    printdebug(f"Base element: {t}, {extend_str}")
+                    print_debug(f"Base element: {t}, {extend_str}")
                     l.append(extend_str)
                     skip = True
                     break
@@ -69,7 +69,7 @@ def recombine_tokens(tokens: tuple[str, ...] | list[str]) -> tuple[str, ...]:
                     extend_str = "".join(tokens[start_i:stop_i])
                 else:
                     if len(extend_str) > 1:
-                        printdebug(f"Base element: {t}, {extend_str}")
+                        print_debug(f"Base element: {t}, {extend_str}")
                         l.append(extend_str)
                         step = max_token_len
                         skip = False

@@ -1,194 +1,84 @@
 import random
-
-from ..config import printwarning
-
-from ..language.language import Language
-from ..fundamentals.phonology import PhonemicInventory
-from ..fundamentals.phonetics import ConsonantPhone, VowelPhone
-from ..phonology.phonotactics2 import Phonotactics
-from ..phonology.syllabics import Coda, CodaShape, Nucleus, NucleusShape, Onset, OnsetShape, SyllabicComponent, Syllable, SyllableStructure
-
+from clck.formula.protosyntax import ActionReferences, GroupingIdentifiers
+from clck.fundamentals.component import Component
+from clck.fundamentals.phonology import Consonant, Phoneme, PhonemicInventory, Vowel
+from clck.fundamentals.syllabics import SyllabicComponent
+from clck.phonology.containers import PhonemeGroup
 
 
 class SyllableGenerator:
-    def __init__(self,
-            language: Language,
-            bank: PhonemicInventory,
-            shape: SyllableStructure,
-            # phonemic_constraints: tuple[PhonemicConstraint]
-            ) -> None:
-        self._language: Language = language
-        self._init_language()
-        self._bank: PhonemicInventory = bank
-        self._shape: SyllableStructure = shape
-        # self._phonemic_constraints: list[PhonemicConstraint] = phonemic_constraints
+    def __init__(self, bank: PhonemicInventory) -> None:
+        self._bank = bank
+        self._consonants = self.get_consonants()
+        self._vowels = self.get_vowels()
 
-        # Internal variables
-        self._recent_generation: list[Syllable] = []
-
-    @classmethod
-    def from_phonotactics(cls,
-        language: Language,
-        bank: PhonemicInventory,
-        shape: SyllableStructure,
-        phonotactics: Phonotactics) -> "SyllableGenerator":
-        """
-        Creates a `SyllableGenerator` object from a wrapped `Phonotactics`
-        object of the constraints.
-        """
-        return SyllableGenerator(language,
-            bank,
-            shape,
-            # phonotactics.phonemic_constraints
-        )
-
-    def generate(self, size: int = 1,
-            register_to_lang: bool = True) -> tuple[Syllable, ...]:
-        syllables: list[Syllable] = []
-        
-        for _ in range(size):
-            syllables.append(self._generate_single())
-        self._recent_generation = syllables
-        
-        if register_to_lang:
-            self._language.register_structures(*syllables)
-        
-        return tuple(syllables)
-
-    def get_recent_generation(self) -> tuple[Syllable, ...]:
-        return tuple(self._recent_generation)
+    @property
+    def bank(self) -> PhonemicInventory:
+        """The phonemic inventory used by this generator."""
+        return self._bank
     
-
-    # def _does_violate_rule(self, component: SyllabicComponent) -> bool:
-    #     rules: Sequence[PhonotacticRule] = self._phonotactics.rules
-    #     component_type = component.__class__
-    #     applicable_rules: Sequence[PhonotacticRule] = []
-
-    #     for rule in rules:
-    #         for location in rule.valid_locations:
-    #             if component_type == location:
-    #                 applicable_rules.append(rule)
-
-    #     for rule in applicable_rules:
-    #         if component_type in (Onset, Nucleus, Coda):
-    #             for phoneme in component.components:
-    #                 if isinstance(phoneme, Phoneme):
-    #                     if rule.execute_rule(phoneme) is False:
-    #                         return True
+    def generate(self, formula: str,
+        size: int) -> tuple[tuple[Component, ...], ...]:
+        rl: list[tuple[Component, ...]] = []
         
-    #     return False
+        lap = 1
+        while lap <= size:
+            
+            group_net: int = 0
+            parenthetical: str = ""
+            group_action: None | ActionReferences = None
+            execute_action: bool = False
+            generated: list[Component] = []
 
-    def _generate_single(self) -> Syllable:
-        syllable: list[SyllabicComponent] = []
+            for char in formula:
+                if char == GroupingIdentifiers.OPTIONAL_GROUP_CLOSE.value:
+                    group_net -= 1
 
-        onset: Onset | None
+                if group_net > 0:
+                    parenthetical += char
+                else:
+                    if group_action is not None:
+                        execute_action = True
 
-        if self._shape.onset_shape is not None:
-            # Generate a random onset
-            onset = self._generate_onset(self._shape.onset_shape)
-            onset._components = onset.remove_component_duplicates(onset._components)
-            syllable.append(onset)
-        else:
-            onset = None
+                    if execute_action:
+                        if group_action == ActionReferences.OPTIONAL:
+                            generated.extend(self._generate_optional(parenthetical, 1))
+                            group_action = None
+                            execute_action = False
+                            parenthetical = ""
 
-        # Validate if generated onset is permissible
-        # while self._does_violate_rule(onset):
-        #     onset = self._generate_onset(self._shape.onset_shape)
-        #     if self._does_violate_rule(onset) is False:
-        #         break
+                if char == GroupingIdentifiers.OPTIONAL_GROUP_OPEN.value:
+                    group_net += 1
+                    group_action = ActionReferences.OPTIONAL
 
-        nucleus: Nucleus = self._generate_nucleus(self._shape.nucleus_shape)
-        nucleus._components = nucleus.remove_component_duplicates(nucleus._components)
+            rl.append(tuple(generated))
+            lap += 1
 
-        # Validate if generated nucleus is permissible
-        # while self._does_violate_rule(nucleus):
-        #     nucleus = self._generate_nucleus(self._shape.nucleus_shape)
-        #     if self._does_violate_rule(nucleus) is False:
-        #         break
+        return tuple(rl)
 
-        if self._shape.coda_shape is not None:
-            coda = self._generate_coda(self._shape.coda_shape)
-            coda._components = coda.remove_component_duplicates(coda._components)
-        else:
-            coda = None
-
-        # Validate if generated coda is permissible
-        # while self._does_violate_rule(coda):
-        #     coda = self._generate_coda(self._shape.coda_shape)
-        #     if self._does_violate_rule(coda) is False:
-        #         break
-
-        return Syllable(onset, nucleus, coda)
+    def get_consonants(self) -> tuple[Consonant, ...]:
+        l: list[Consonant] = []
+        IPA_consonants = PhonemeGroup.from_type("C", Consonant).phonemes
+        for ph in self._bank.phonemes:
+            if ph in IPA_consonants and isinstance(ph, Consonant):
+                l.append(ph)
+        return tuple(l)
     
-    def _generate_coda(self, shape: CodaShape) -> Coda:
-        phonemes: list[ConsonantPhone] = []
-
-        # Traverse through each pattern label in the pattern
-        for group in shape.pattern.phoneme_groups:
-            broad_bank = self._bank.consonants
-
-            # Get the actual bank of phonemes
-            bank = list(set(broad_bank) & set(group.phonemes))
-            choice: ConsonantPhone = random.choice(bank)
-            phonemes.append(choice)
-
-        return Coda(*phonemes)
+    def get_vowels(self) -> tuple[Vowel, ...]:
+        l: list[Vowel] = []
+        IPA_vowels = PhonemeGroup.from_type("V", Vowel).phonemes
+        for ph in self._bank.phonemes:
+            if ph in IPA_vowels and isinstance(ph, Vowel):
+                l.append(ph)
+        return tuple(l)
     
-    def _generate_nucleus(self, shape: NucleusShape) -> Nucleus:
-        phonemes: list[VowelPhone] = []
+    def _generate_optional(self, bank_label: str, size: int) -> tuple[SyllabicComponent | Phoneme, ...]:
+        chance = random.randint(0, 1)
 
-        # Traverse through each pattern label in the pattern
-        for group in shape.pattern.phoneme_groups:
-            broad_bank = self._bank.vowels
-
-            # Get the actual bank of phonemes
-            bank = list(set(broad_bank) & set(group.phonemes))
-            choice: VowelPhone = random.choice(bank)
-            phonemes.append(choice)
-
-        return Nucleus(*phonemes)
-
-    def _generate_onset(self, shape: OnsetShape) -> Onset:
-        phonemes: list[ConsonantPhone] = []
-
-        # Traverse through each pattern label in the pattern
-        for group in shape.pattern.phoneme_groups:
-            broad_bank = self._bank.consonants
-
-            # Get the actual bank of phonemes
-            bank = list(set(broad_bank) & set(group.phonemes))
-            if bank == []:
-                printwarning(f"No phoneme from phoneme group \"{group.label}\" "
-                    f"(based on pattern \"{self._shape.pattern_string}\") was "
-                    f"generated. The current phonological inventory provides "
-                    f"no existing phoneme/s of such type.")
+        if chance:
+            if bank_label == "C":
+                return (random.choice(self._consonants),)
             else:
-                choice: ConsonantPhone = random.choice(bank)
-                phonemes.append(choice)
-
-        return Onset(*phonemes)
-
-    def _init_language(self) -> None:
-        self._language._syllable_generator = self # type: ignore
-
-
-# 1. Fetch pre-generation rules
-# 2. Check each pre-generation rule and set the requirements for generation
-
-class Generator:
-    def __init__(self, default_formula: str, phonological_inventory: PhonemicInventory,
-            phonotactics: Phonotactics) -> None:
-        self._default_formula = default_formula
-        self._phonological_inventory = phonological_inventory
-        self._phonotactics = phonotactics
-
-    @property
-    def default_formula(self) -> str:
-        """Returns the default formula being used by this generator."""
-        return self._default_formula
-
-    @property
-    def phonological_inventory(self) -> PhonemicInventory:
-        return self._phonological_inventory
-    
-    
+                return ()
+        else:
+            return ()

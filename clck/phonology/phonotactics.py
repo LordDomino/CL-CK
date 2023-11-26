@@ -1,9 +1,9 @@
+from abc import ABC, abstractmethod
 from ..fundamentals.component import Component
 from ..fundamentals.phonetics import Phone
 from ..fundamentals.component import Component
 from ..fundamentals.component import Component
-from ..config import printwarning
-from ..fundamentals.structure import *
+from ..config import print_warning
 from ..fundamentals.syllabics import SyllabicComponent
 
 
@@ -164,7 +164,7 @@ class PositionalRule(PhonotacticRule):
                 raise ValueError(f"Parameter for anonymous_bank must be "
                                  f"provided since {self} is anonymous.")
             elif override is True:
-                printwarning(f"Anonymous bank override is unnecessary for "
+                print_warning(f"Anonymous bank override is unnecessary for "
                              f"anonymous rules.")
                 exec_bank = anonymous_bank
             else:
@@ -172,7 +172,7 @@ class PositionalRule(PhonotacticRule):
         else:
             if anonymous_bank is None:
                 if override:
-                    printwarning(f"Bank override is unnecessary for "
+                    print_warning(f"Bank override is unnecessary for "
                         f"unspecified anonymous_bank.")
                     exec_bank = self._bank
                 else:
@@ -181,7 +181,7 @@ class PositionalRule(PhonotacticRule):
                 if override:
                     exec_bank = anonymous_bank
                 else:
-                    printwarning(f"Argument for anonymous_bank is unnecessary "
+                    print_warning(f"Argument for anonymous_bank is unnecessary "
                         f"for this rule's unoverriden bank.")
                     exec_bank = self._bank
 

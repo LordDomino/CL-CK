@@ -13,19 +13,16 @@ class TypeIdentifiers(Enum):
     STRUCTURE_CLOSE = "}"
 
 
-
 class StatementIdentifiers(Enum):
     IF = "?"
     THEN = "->"
     SUPPORT_STATEMENT = "\""
 
 
-
 class Operators(Enum):
     OR = ","
     AND = "+"
     MINUS = "-"
-
 
 
 _SYNTAX_TYPES = (TypeIdentifiers, StatementIdentifiers, Operators)

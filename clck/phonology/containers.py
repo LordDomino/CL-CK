@@ -9,21 +9,22 @@ from ..language.managers import Manager
 
 class PhonemeGroupsManager(Manager):
 
-    global_list: List["PhoneGroup"] = []
-    """The global list of all phoneme groups across all `Language` instances."""
+    global_list: List["PhonemeGroup"] = []
+    """
+    The global list of all phoneme groups across all `Language`
+    instances.
+    """
 
     labels: List[str] = []
 
-
     @classmethod  
-    def global_register(cls, *phoneme_groups: "PhoneGroup") -> None:
+    def global_register(cls, *phoneme_groups: "PhonemeGroup") -> None:
         for pg in phoneme_groups:
             PhonemeGroupsManager.labels.append(pg.label)
         return super().global_register(*phoneme_groups)
 
 
-
-class PhoneGroup:
+class PhonemeGroup:
     def __init__(self, label: str, *phonemes: Phoneme) -> None:
         self._label: str = label
         self._phonemes: tuple[Phoneme, ...] = phonemes
@@ -31,17 +32,17 @@ class PhoneGroup:
         PhonemeGroupsManager.global_register(self)
 
     @classmethod
-    def from_type(cls, label: str, phoneme_type: Type[Phoneme]) -> "PhoneGroup":
+    def from_type(cls, label: str, phoneme_type: Type[Phoneme]) -> "PhonemeGroup":
         phonemes: list[Phoneme] = []
 
-        for phoneme in Phone.DEFAULT_IPA_PHONES:
+        for phoneme in Phoneme.DEFAULT_IPA_PHONEMES:
             if isinstance(phoneme, phoneme_type):
                 phonemes.append(phoneme)
 
-        return PhoneGroup(label, *phonemes)
+        return PhonemeGroup(label, *phonemes)
     
     @classmethod
-    def from_property(cls, label: str, *property_names: str) -> "PhoneGroup":
+    def from_property(cls, label: str, *property_names: str) -> "PhonemeGroup":
         phonemes: list[Phoneme] = []
 
         for name in property_names:
@@ -52,7 +53,7 @@ class PhoneGroup:
                 for name in property_names): 
                 phonemes.append(phoneme)
 
-        return PhoneGroup(label, *phonemes)
+        return PhonemeGroup(label, *phonemes)
 
     def __repr__(self) -> str:
         phonemes: list[str] = []

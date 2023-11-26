@@ -1,4 +1,4 @@
-from clck.config import printdebug
+from clck.config import print_debug
 from clck.fundamentals.phonetics import Phone
 from clck.fundamentals.phonetics import DummyPhone
 from clck.fundamentals.structure import Structure
@@ -20,9 +20,9 @@ class StructureEvaluator:
         self._struct_comps = self._get_structure_components()
         self._struct_ids = self._get_structure_ids()
 
-        printdebug(self._phonemes)
-        printdebug(self._struct_comps)
-        printdebug(self._struct_ids)
+        print_debug(self._phonemes)
+        print_debug(self._struct_comps)
+        print_debug(self._struct_ids)
 
     @property
     def phonemes(self) -> tuple[Phone, ...]:
@@ -37,7 +37,7 @@ class StructureEvaluator:
     def _create_phoneme_reference_dictionary(self) -> dict[Phone, str]:
         d: dict[Phone, str] = {}
 
-        printdebug(f"Phoneme ref dict {set(self._phonemes)}")
+        print_debug(f"Phoneme ref dict {set(self._phonemes)}")
 
         for i, p in enumerate(set(self._phonemes)):
             if not isinstance(p, DummyPhone):

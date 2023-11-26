@@ -3,52 +3,57 @@ from types import NoneType
 from typing import TypeVar
 
 from clck.fundamentals.component import Component
-from clck.fundamentals.phonemes import DummyPhoneme, Phoneme
+from clck.fundamentals.phonology import Dummy, Phoneme
 from clck.utils import tuple_append, tuple_extend
 
 
 T = TypeVar("T")
 
 
-
 class Structure(Component, ABC):
     """
-    This is the class that represents all `Component` classes that can contain
-    other components.
+    The class that represents all linguistic structures.
+
+    A linguistic structure is a component that can contain other
+    components.
     """
 
     @abstractmethod
     def __init__(self, _valid_comp_types: tuple[type[Component], ...],
             components: tuple[Component, ...]) -> None:
         """
-        Creates a new instance of `Structure` given the valid component types
-        and its components.
+        Creates a new instance of `Structure` given the only valid
+        component types that this can contain and its initial
+        components.
+
+        New components or substructures can be added to this instance
+        using the `add_components()` and `add_substructure()` methods.
         
         Parameters
         ----------
-        - `_valid_comp_types` are the permitted types of this structure's
-            components.
-        - `components` are this structure's components.
+        - `_valid_comp_types` - the permitted types of components that
+            this structure can contain
+        - `components` - this structure's initial components
         
         Raises
         ------
-        - `TypeError` if any element in `components` is not any of the allowed
-        types in `_valid_comp_types`.
+        - `TypeError` if any element in `components` is not any of the
+        allowed types in `_valid_comp_types`.
         """
-        _valid_comp_types = tuple([*_valid_comp_types, DummyPhoneme])
-        self._valid_comp_types: tuple[type[Component], ...] = _valid_comp_types
-        self._components: tuple[Component, ...] = self._filter_none(components)
+        super().__init__()
+        self._valid_comp_types = tuple([*_valid_comp_types, Dummy])
+        self._components = self._filter_none(components)
         self._assert_components()
 
-        self._phonemes: tuple[Phoneme, ...] = self._get_phonemes()
-        self._substructures: tuple[Structure, ...] = self._get_substructures()
+        self._phonemes = self._get_phonemes()
+        self._substructures = self._get_substructures()
 
-        # Only then call the parent constructor after all necessary attributes
-        # are initialized
-        super().__init__()
+        # Only then call the parent constructor after all necessary
+        # attributes are initialized
+        super()._create_base_properties()
 
-        self._size: int = len(self._phonemes)
-        self._topmost_type: type[Structure] = self.__class__
+        self._size = len(self._phonemes)
+        self._topmost_type = self.__class__
 
     def __str__(self) -> str:
         return f"<{self.__class__.__name__} {self._output}>"
@@ -67,12 +72,12 @@ class Structure(Component, ABC):
 
     @property
     def phonemes(self) -> tuple[Phoneme, ...]:
-        """The phonemes of this structure."""
-        return tuple(self._phonemes)
+        """The phones of this structure."""
+        return tuple(self._phones)
 
     @property
     def size(self) -> int:
-        """The number of phonemes of this structure."""
+        """The number of phones of this structure."""
         return self._size
 
     @property
@@ -95,25 +100,26 @@ class Structure(Component, ABC):
 
     def add_substructure(self, substructure: "Structure") -> None:
         """
-        Parents a structure to this one.
+        Adds a structure to this one.
 
         Parameters
         ----------
-        - `substructure` - the structure to be parented (added) to this
+        - `substructure`: the structure to be parented (added) to this
             structure.
         """
         self._assert_components()
         self._substructures = tuple_append(self._substructures, substructure)
 
-    def find_phonemes_of_type(self,
+    def find_phones_of_type(self,
             type: type[Phoneme] = Phoneme) -> tuple[Phoneme, ...]:
         """
-        Returns a tuple of phonemes that are of the specified `Phoneme` type.
-        If no argument is given, it returns all the phonemes of this structure.
+        Returns a tuple of phones that are of the specified `Phone`
+        type. If no argument is given, it returns all the phonemes of
+        this structure.
 
-        Arguments
-        ---------
-        - `type` - is the `Phoneme` subtype. Defaults to `Phoneme`.
+        Parameters
+        ----------
+        - `type` - is the `Phone` subtype to find. Defaults to `Phone`.
         """
         rl: list[Phoneme] = []
         for s in self._components:
@@ -121,7 +127,7 @@ class Structure(Component, ABC):
                 rl.append(s)
             else:
                 if isinstance(s, Structure):
-                    rl.extend(s.find_phonemes_of_type(type))
+                    rl.extend(s.find_phones_of_type(type))
 
         return tuple(rl)
 
@@ -130,9 +136,10 @@ class Structure(Component, ABC):
         """
         Returns a tuple of all found structures that are of the given
         `Structure` subtype.
+
         Parameters
         ----------
-        - `type` is any of the `Structure` subtype.
+        - `type` - is the `Structure` subtype to find.
         """
         rl: list[Structure] = []
         for s in self._substructures:
@@ -155,8 +162,9 @@ class Structure(Component, ABC):
 
     def _assert_components(self) -> None:
         """
-        Runs checker functions that validates the components of this structure.
-        This raises an exception if one of the checker functions fails.
+        Runs checker functions that validates the components of this
+        structure. This raises an exception if one of the checker
+        functions fails.
         """
 
         # Run the following checker functions
@@ -164,11 +172,13 @@ class Structure(Component, ABC):
 
     def _check_component_types_validity(self) -> None:
         """
-        Checks if the components are of the given types in `_valid_comp_types`.
+        Checks if the components are of the given types in
+        `_valid_comp_types`.
         
         Raises
         ------
-        - `TypeError` if any of the components are not of the given types.
+        - `TypeError` if any of the components are not of the given
+            types in `_valid_comp_types`.
         """
         for c in self._components:
             mistype: bool = False
@@ -193,11 +203,11 @@ class Structure(Component, ABC):
         if isinstance(component, Structure):
             self._substructures = tuple_append(self._substructures, component)
         elif isinstance(component, Phoneme):
-            self._phonemes = tuple_append(self._phonemes, component)
+            self._phones = tuple_append(self._phones, component)
 
     def _create_label(self) -> str:
         names: list[str] = []
-        for p in self._phonemes:
+        for p in self._phones:
             names.append(p.name)
 
         return "_".join(names)
@@ -215,8 +225,8 @@ class Structure(Component, ABC):
     def _filter_none(self,
             collection: tuple[T | NoneType, ...]) -> tuple[T, ...]:
         """
-        Returns a modified version of the given collection in which all `None`
-        or `NoneType` values are removed.
+        Returns a modified version of the given collection in which all
+        `None` or `NoneType` values are removed.
         """
         rl: list[T] = []
         for c in collection:
@@ -227,7 +237,7 @@ class Structure(Component, ABC):
 
     def _get_phonemes(self) -> tuple[Phoneme, ...]:
         """
-        Returns a tuple of all found phonemes within the hierarchy of this
+        Returns a tuple of all found phones within the hierarchy of this
         structure.
         """
         rl: list[Phoneme] = []
@@ -242,7 +252,8 @@ class Structure(Component, ABC):
 
     def _get_substructures(self) -> tuple["Structure", ...]:
         """
-        Returns a tuple of all children structures parented to this structure.
+        Returns a tuple of all children structures parented to this
+        structure.
         """
         rl: list[Structure] = []
         for c in self._components:
@@ -250,5 +261,3 @@ class Structure(Component, ABC):
                 rl.append(c)
 
         return tuple(rl)
-
-

@@ -1,18 +1,19 @@
 from typing import List, Tuple, Type
+from ..fundamentals.phonology import PhonemicInventory
 
 import clck.generators.generators as generators
 
 from .managers import Manager, PhonemesManager
-from ..phonology.containers import PhonemeGroupsManager, PhonologicalInventory
+from ..phonology.containers import PhonemeGroupsManager
 from ..fundamentals.structure import Structure
 
 
 class Language:
-    def __init__(self, inventory: PhonologicalInventory) -> None:
-        self._inventory: PhonologicalInventory = inventory
+    def __init__(self, inventory: PhonemicInventory) -> None:
+        self._inventory: PhonemicInventory = inventory
         self._structures: List[Structure] = []
         self._syllable_generator: generators.SyllableGenerator
-        self._phonological_inventory: PhonologicalInventory | None = None
+        self._phonological_inventory: PhonemicInventory | None = None
         
         # Manager classes
         self._phonemes_manager: PhonemesManager = PhonemesManager()

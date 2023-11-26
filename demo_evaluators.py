@@ -1,9 +1,9 @@
-from clck.fundamentals.phonemes import DummyPhoneme
-from clck.ipa_phonemes import DUMMY_PHONEME, IPA_VOICELESS_DENTAL_FRICATIVE
-from clck.phonology.structure_evaluator import StructureEvaluator
-from clck.phonology.syllabics import *
+from clck.IPA import IPA_VOICELESS_LABIODENTAL_TAP
+from clck.fundamentals.phonetics import PulmonicConsonant
+from clck.fundamentals.phonology import Phoneme
+from clck.phonology.articulatory_properties import MannerOfArticulation, Phonation, PlaceOfArticulation
 
-
-evaluator = StructureEvaluator(Coda(IPA_VOICELESS_DENTAL_FRICATIVE, IPA_VOICELESS_DENTAL_FRICATIVE, DUMMY_PHONEME, DummyPhoneme()))
-
-print(evaluator.structure)
+# Attribute equivalence checking between two different instances that 
+# contain the same attributes
+if IPA_VOICELESS_LABIODENTAL_TAP == Phoneme(PulmonicConsonant("p", PlaceOfArticulation.LABIODENTAL, MannerOfArticulation.FLAP, Phonation.VOICELESS, (), True)):
+    print("==")

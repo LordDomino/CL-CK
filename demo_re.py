@@ -1,3 +1,4 @@
-from clck.formula.syntax import _tokenize
+from clck.formula.tokenization import recombine_tokens
+from clck.formula.tokenization import tokenize_formula
 
-print(_tokenize("/(asdad)abc+8/"))
+print(recombine_tokens(tokenize_formula("abc/def/ghi")))

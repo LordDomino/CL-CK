@@ -1,6 +1,6 @@
-import re
 import string
 from enum import Enum
+
 
 
 class TypeIdentifiers(Enum):
@@ -12,10 +12,14 @@ class TypeIdentifiers(Enum):
     STRUCTURE_OPEN = "{"
     STRUCTURE_CLOSE = "}"
 
+
+
 class StatementIdentifiers(Enum):
     IF = "?"
     THEN = "->"
     SUPPORT_STATEMENT = "\""
+
+
 
 class Operators(Enum):
     OR = ","
@@ -23,11 +27,15 @@ class Operators(Enum):
     MINUS = "-"
 
 
+
 _SYNTAX_TYPES = (TypeIdentifiers, StatementIdentifiers, Operators)
+DELIMITER = r"([\?\(\)\/\-\+\{\}\>])"
+VALID_LETTERS = string.ascii_letters
+VALID_DIGITS = string.digits
 
 
-def _get_valid_chars(*valid_chars: str) -> str:
-    chars = ""
+def get_valid_chars(*valid_chars: str) -> str:
+    chars: str = ""
 
     for v in valid_chars:
         chars += v
@@ -39,8 +47,10 @@ def _get_valid_chars(*valid_chars: str) -> str:
     return "".join(list(set(list(chars))))
 
 
-def _get_valid_tokens(*enum_types: type[Enum]) -> tuple[str, ...]:
-    """Returns a tuple of all valid tokens possible in a syntax."""
+def get_valid_tokens(*enum_types: type[Enum]) -> tuple[str, ...]:
+    """
+    Returns a tuple of all valid tokens possible in a syntax.
+    """
     tokens: list[str] = []
 
     for enum_type in enum_types:  # register tokens from enum classes
@@ -52,27 +62,5 @@ def _get_valid_tokens(*enum_types: type[Enum]) -> tuple[str, ...]:
     return tuple(tokens)
 
 
-VALID_LETTERS = string.ascii_letters
-VALID_DIGITS = string.digits
-VALID_CHARS = _get_valid_chars(VALID_LETTERS, VALID_DIGITS)
-VALID_TOKENS = _get_valid_tokens(TypeIdentifiers, StatementIdentifiers, Operators)
-
-
-def _check_if_formula_valid(formula: str) -> bool:
-    for char in formula:
-        if char not in VALID_CHARS:
-            return False
-
-    return True
-
-
-def _strip_formula(formula: str) -> str:
-    return "".join(formula.split())  # strip formula off of whitespaces
-
-
-def _tokenize(formula: str) -> tuple[str, ...]:
-    """Returns a tuple of tokens from the formula."""
-    delimiter = r"([\?\(\)\/\-\+\{\}\>])"
-    tokens = filter(None, re.split(delimiter, formula))
-
-    return tuple(tokens)
+VALID_CHARS = get_valid_chars(VALID_LETTERS, VALID_DIGITS)
+VALID_TOKENS = get_valid_tokens(TypeIdentifiers, StatementIdentifiers, Operators)

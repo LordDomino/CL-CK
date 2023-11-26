@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from clck.fundamentals.phonemes import Phoneme
 
-from clck.fundamentals.phonemes import DummyPhoneme, Consonant, Vowel
-from clck.phonology.containers import PhonemeGroup, PhonemeGroupsManager
+from clck.fundamentals.phonology import Consonant, Dummy, Phoneme, Vowel
+from clck.phonology.containers import PhoneGroup, PhonemeGroupsManager
 from clck.fundamentals.structure import Structure
 
 
@@ -20,13 +19,12 @@ __all__ = [
 ]
 
 
-
 class Pattern:
     def __init__(self, string: str) -> None:
         self._string: str = string
         self._symbols: list[str] = [*self._generate_symbols()]
         self._check_pattern_validity(self._symbols)  # all initialized symbols should be present in PhonemeGroupsManager.labels
-        self._phoneme_groups: tuple[PhonemeGroup, ...] = self._get_phoneme_groups()
+        self._phoneme_groups: tuple[PhoneGroup, ...] = self._get_phoneme_groups()
         self._phonemes: tuple[Phoneme, ...] = tuple(set(self._get_phonemes()))
 
     @property
@@ -35,7 +33,7 @@ class Pattern:
         return tuple(self._phonemes)
 
     @property
-    def phoneme_groups(self) -> tuple[PhonemeGroup, ...]:
+    def phoneme_groups(self) -> tuple[PhoneGroup, ...]:
         """The tuple of all recognized `PhonemeGroup`s in this pattern."""
         return tuple(self._phoneme_groups)
 
@@ -87,8 +85,8 @@ class Pattern:
         
         return tuple(l)
 
-    def _get_phoneme_groups(self) -> tuple[PhonemeGroup, ...]:
-        g: list[PhonemeGroup] = []
+    def _get_phoneme_groups(self) -> tuple[PhoneGroup, ...]:
+        g: list[PhoneGroup] = []
         for symbol in self._symbols:
             for phoneme_group in PhonemeGroupsManager.global_list:
                 if symbol == phoneme_group.label:
@@ -96,7 +94,6 @@ class Pattern:
                     break
         
         return tuple(g)
-
 
 
 class Shape:
@@ -131,11 +128,9 @@ class Shape:
         return True
 
 
-
 class OnsetShape(Shape):
     def __init__(self, pattern: str) -> None:
         super().__init__(Consonant, pattern)
-
 
 
 class NucleusShape(Shape):
@@ -143,11 +138,9 @@ class NucleusShape(Shape):
         super().__init__(Vowel, pattern)
 
 
-
 class CodaShape(Shape):
     def __init__(self, pattern: str) -> None:
         super().__init__(Consonant, pattern)
-
 
 
 class SyllableStructure:
@@ -213,7 +206,6 @@ class SyllableStructure:
         return "".join(shapes)
 
 
-
 class SyllabicComponent(Structure, ABC):
     """
     Class for `SyllabicComponent`.
@@ -223,7 +215,7 @@ class SyllabicComponent(Structure, ABC):
     """
     @abstractmethod
     def __init__(self,
-            _allowed_types: tuple[type["SyllabicComponent | Phoneme"], ...],
+            _allowed_types: tuple[type["SyllabicComponent | Phoneme | Dummy"], ...],
             *components: "SyllabicComponent | Phoneme") -> None:
         super().__init__(_allowed_types, components)
         self._components: tuple[SyllabicComponent | Phoneme, ...] = components
@@ -247,18 +239,16 @@ class SyllabicComponent(Structure, ABC):
         return t
 
 
-
 class Onset(SyllabicComponent):
-    def __init__(self, *components: Consonant | DummyPhoneme) -> None:
+    def __init__(self, *components: Consonant | Dummy) -> None:
         super().__init__((Consonant, ConsonantCluster), *components)
         if len(components) > 1:
             self.add_substructure(ConsonantCluster(*components))
 
 
-
 class Nucleus(SyllabicComponent):
-    def __init__(self, *components: Vowel) -> None:
-        super().__init__((Vowel, VowelCluster), *components)
+    def __init__(self, *components: Vowel | Dummy) -> None:
+        super().__init__((Vowel, VowelCluster | Dummy), *components)
         if len(components) == 2:
             self.add_substructure(Diphthong(components[0], components[1]))
         elif len(components) == 3:
@@ -268,23 +258,22 @@ class Nucleus(SyllabicComponent):
             self.add_substructure(VowelCluster(*components))
 
 
-
 class Coda(SyllabicComponent):
-    def __init__(self, *components: Consonant | DummyPhoneme) -> None:
+    def __init__(self, *components: Consonant | Dummy) -> None:
         super().__init__((Consonant,), *components)
-
 
 
 class PhonemeCluster(SyllabicComponent):
     def __init__(self, allowed_type: type[Phoneme],
             *components: Phoneme) -> None:
         """
-        Creates a new instance of `Cluster`.
+        Creates a new `Cluster` instance given the only allowed types
+        and initial components.
         
         Parameters
-        ---------
-        - `component_type` is the type of the components.
-        - `phonemes` are the component phonemes of this cluster.
+        ----------
+        - `component_type`: the only allowed type of the components
+        - `phonemes`: the initial component phonemes of this cluster
         
         Raises
         ------
@@ -292,8 +281,9 @@ class PhonemeCluster(SyllabicComponent):
         `component_type`.
         
         A cluster logically exists as a group of at least two phoneme
-        components. Thus, note that during instantiation of the instance, the
-        constructor checks if the number of given phonemes are not below two.
+        components. Thus, note that during instantiation of the
+        instance, the constructor checks if the number of given phonemes
+        are not below two.
         """
         super().__init__((allowed_type,), *components)
         self._phonemes: tuple[Phoneme, ...] = components
@@ -319,7 +309,8 @@ class PhonemeCluster(SyllabicComponent):
 
     def _check_cluster_size(self) -> bool:
         """
-        Checks if the number of phonemes in the cluster is less than two.
+        Checks if the number of phonemes in the cluster is less than
+        two.
         
         Raises
         ------
@@ -333,15 +324,13 @@ class PhonemeCluster(SyllabicComponent):
             return True
 
 
-
 class ConsonantCluster(PhonemeCluster):
     """
     Class for `ConsonantCluster`, a special type of phoneme cluster to enclose
     multiple consonants.
     """
-    def __init__(self, *consonants: Consonant | DummyPhoneme) -> None:
+    def __init__(self, *consonants: Consonant | Dummy) -> None:
         super().__init__(Consonant, *consonants)
-
 
 
 class VowelCluster(PhonemeCluster):
@@ -349,9 +338,8 @@ class VowelCluster(PhonemeCluster):
     Class for `VowelCluster`, a special type of phoneme cluster to enclose
     multiple vowels.
     """
-    def __init__(self, *vowels: Vowel) -> None:
+    def __init__(self, *vowels: Vowel | Dummy) -> None:
         super().__init__(Vowel, *vowels)
-
 
 
 class Diphthong(VowelCluster):
@@ -359,9 +347,8 @@ class Diphthong(VowelCluster):
     Class for `Diphthong` objects.
     A diphthong is a combination of two vowels.
     """
-    def __init__(self, vowel_1: Vowel, vowel_2: Vowel) -> None:
+    def __init__(self, vowel_1: Vowel | Dummy, vowel_2: Vowel | Dummy) -> None:
         super().__init__(vowel_1, vowel_2)
-
 
 
 class Triphthong(VowelCluster):
@@ -369,9 +356,9 @@ class Triphthong(VowelCluster):
     Class for `Triphthong` objects.
     A triphthong is a combination of three vowels.
     """
-    def __init__(self, vowel_1: Vowel, vowel_2: Vowel, vowel_3: Vowel) -> None:
+    def __init__(self, vowel_1: Vowel | Dummy, vowel_2: Vowel | Dummy,
+            vowel_3: Vowel | Dummy) -> None:
         super().__init__(vowel_1, vowel_2, vowel_3)
-
 
 
 class Rhyme(SyllabicComponent):
@@ -385,12 +372,12 @@ class Rhyme(SyllabicComponent):
 
     @property
     def nucleus(self) -> Nucleus:
-        """The nucleus component of this object."""
+        """The nucleus component of this rhyme."""
         return self._nucleus
 
     @property
     def coda(self) -> Coda | None:
-        """The coda component of this object."""
+        """The coda component of this rhyme."""
         return self._coda
 
     def _create_transcript(self) -> str:
@@ -403,44 +390,82 @@ class Rhyme(SyllabicComponent):
 class Syllable(Structure):
     def __init__(self, onset: Onset | None, nucleus: Nucleus,
         coda: Coda | None) -> None:
+        """
+        Creates a new `Syllable` instance from the given onset, nucleus,
+        and coda components.
+
+        Parameters
+        ----------
+        - `onset`: the onset component of this syllable
+        - `nucleus`: the nucleus component of this syllable
+        - `coda`: the coda component of this syllable
+        """
         super().__init__((SyllabicComponent, Phoneme),
             self._filter_none((onset, nucleus, coda)))
         self._phonemes: tuple[Phoneme, ...] = tuple(
-            self.find_phonemes_of_type(Phoneme))
+            self.find_phones_of_type(Phoneme))
         self._onset: Onset | None = onset
         self._nucleus: Nucleus = nucleus
         self._coda: Coda | None = coda
-        self._rhyme: Rhyme = self._generate_rhyme(nucleus, coda)
+        self._rhyme: Rhyme = self.get_rhyme()
 
     @classmethod
     def from_nucleus_only(cls, nucleus: Nucleus) -> "Syllable":
+        """
+        Creates a new `Syllable` instance with only a given nucleus
+        component.
+
+        Parameters
+        ----------
+        - `nucleus`: the nucleus component of this syllable
+        """
         s = Syllable(None, nucleus, None)
         return s
 
     @classmethod
     def from_onset_and_rhyme(cls, onset: Onset, rhyme: Rhyme) -> "Syllable":
+        """
+        Creates a new `Syllable` instance from a given onset and rhyme
+        components.
+
+        Parameters
+        ----------
+        - `onset`: the onset component of this syllable
+        - `rhyme`: the rhyme component of this syllable, containing both
+            the nucleus and coda
+        """
         s = Syllable(onset, rhyme.nucleus, rhyme.coda)
         s._post_init(rhyme=rhyme)
         return s
 
     @property
-    def phonemes(self) -> tuple[Phoneme, ...]:
+    def phones(self) -> tuple[Phoneme, ...]:
         return self._phonemes
 
     @property
-    def rhyme(self) -> Rhyme | None:
+    def rhyme(self) -> Rhyme:
+        """
+        The rhyme of this syllable. The rhyme either contains both
+        the nucleus and a coda, or the nucleus only if there is no
+        existing coda.
+        """
         return self._rhyme
+
+    def get_rhyme(self) -> Rhyme:
+        """
+        Returns the rhyme of this syllable. The rhyme either contains
+        both the nucleus and a coda, or the nucleus only if there is no
+        existing coda.
+        """
+        rhyme = Rhyme(self._nucleus, self._coda)
+        self.add_substructure(rhyme)
+        return rhyme
 
     def _create_transcript(self) -> str:
         t: str = ""
         for p in self._phonemes:
             t += p.symbol
         return f"/{t}/"
-
-    def _generate_rhyme(self, nucleus: Nucleus, coda: Coda | None) -> Rhyme:
-        rhyme = Rhyme(nucleus, coda)
-        self.add_substructure(rhyme)
-        return rhyme
 
     def _post_init(self, rhyme: Rhyme | None = None) -> None:
         if rhyme is not None: self._rhyme = rhyme

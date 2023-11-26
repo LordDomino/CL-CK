@@ -1,5 +1,5 @@
-CONFIG_PRINT_WARNINGS: bool = True
-CONFIG_PRINT_DEBUGS: bool = True
+CONFIG_PRINT_WARNINGS: bool = False
+CONFIG_PRINT_DEBUGS: bool = False
 
 def printwarning(message: str) -> None:
     if CONFIG_PRINT_WARNINGS:

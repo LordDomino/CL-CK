@@ -3,8 +3,8 @@ import random
 from ..config import printwarning
 
 from ..language.language import Language
-from ..phonology.containers import PhonologicalInventory
-from ..fundamentals.phonemes import Consonant, Vowel
+from ..fundamentals.phonology import PhonemicInventory
+from ..fundamentals.phonetics import ConsonantPhone, VowelPhone
 from ..phonology.phonotactics2 import Phonotactics
 from ..phonology.syllabics import Coda, CodaShape, Nucleus, NucleusShape, Onset, OnsetShape, SyllabicComponent, Syllable, SyllableStructure
 
@@ -13,13 +13,13 @@ from ..phonology.syllabics import Coda, CodaShape, Nucleus, NucleusShape, Onset,
 class SyllableGenerator:
     def __init__(self,
             language: Language,
-            bank: PhonologicalInventory,
+            bank: PhonemicInventory,
             shape: SyllableStructure,
             # phonemic_constraints: tuple[PhonemicConstraint]
             ) -> None:
         self._language: Language = language
         self._init_language()
-        self._bank: PhonologicalInventory = bank
+        self._bank: PhonemicInventory = bank
         self._shape: SyllableStructure = shape
         # self._phonemic_constraints: list[PhonemicConstraint] = phonemic_constraints
 
@@ -29,7 +29,7 @@ class SyllableGenerator:
     @classmethod
     def from_phonotactics(cls,
         language: Language,
-        bank: PhonologicalInventory,
+        bank: PhonemicInventory,
         shape: SyllableStructure,
         phonotactics: Phonotactics) -> "SyllableGenerator":
         """
@@ -121,7 +121,7 @@ class SyllableGenerator:
         return Syllable(onset, nucleus, coda)
     
     def _generate_coda(self, shape: CodaShape) -> Coda:
-        phonemes: list[Consonant] = []
+        phonemes: list[ConsonantPhone] = []
 
         # Traverse through each pattern label in the pattern
         for group in shape.pattern.phoneme_groups:
@@ -129,13 +129,13 @@ class SyllableGenerator:
 
             # Get the actual bank of phonemes
             bank = list(set(broad_bank) & set(group.phonemes))
-            choice: Consonant = random.choice(bank)
+            choice: ConsonantPhone = random.choice(bank)
             phonemes.append(choice)
 
         return Coda(*phonemes)
     
     def _generate_nucleus(self, shape: NucleusShape) -> Nucleus:
-        phonemes: list[Vowel] = []
+        phonemes: list[VowelPhone] = []
 
         # Traverse through each pattern label in the pattern
         for group in shape.pattern.phoneme_groups:
@@ -143,13 +143,13 @@ class SyllableGenerator:
 
             # Get the actual bank of phonemes
             bank = list(set(broad_bank) & set(group.phonemes))
-            choice: Vowel = random.choice(bank)
+            choice: VowelPhone = random.choice(bank)
             phonemes.append(choice)
 
         return Nucleus(*phonemes)
 
     def _generate_onset(self, shape: OnsetShape) -> Onset:
-        phonemes: list[Consonant] = []
+        phonemes: list[ConsonantPhone] = []
 
         # Traverse through each pattern label in the pattern
         for group in shape.pattern.phoneme_groups:
@@ -163,7 +163,7 @@ class SyllableGenerator:
                     f"generated. The current phonological inventory provides "
                     f"no existing phoneme/s of such type.")
             else:
-                choice: Consonant = random.choice(bank)
+                choice: ConsonantPhone = random.choice(bank)
                 phonemes.append(choice)
 
         return Onset(*phonemes)
@@ -176,9 +176,19 @@ class SyllableGenerator:
 # 2. Check each pre-generation rule and set the requirements for generation
 
 class Generator:
-    def __init__(self, phonological_inventory: PhonologicalInventory,
+    def __init__(self, default_formula: str, phonological_inventory: PhonemicInventory,
             phonotactics: Phonotactics) -> None:
+        self._default_formula = default_formula
         self._phonological_inventory = phonological_inventory
         self._phonotactics = phonotactics
 
-    def _temp(self) -> None: ...
+    @property
+    def default_formula(self) -> str:
+        """Returns the default formula being used by this generator."""
+        return self._default_formula
+
+    @property
+    def phonological_inventory(self) -> PhonemicInventory:
+        return self._phonological_inventory
+    
+    

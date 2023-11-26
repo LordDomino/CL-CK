@@ -1,10 +1,10 @@
 from ..fundamentals.component import Component
-from ..fundamentals.phonemes import Phoneme
+from ..fundamentals.phonetics import Phone
 from ..fundamentals.component import Component
 from ..fundamentals.component import Component
 from ..config import printwarning
 from ..fundamentals.structure import *
-from .syllabics import SyllabicComponent
+from ..fundamentals.syllabics import SyllabicComponent
 
 
 class PhonotacticRule:
@@ -65,7 +65,7 @@ ANYWHERE_AFTER = PhonotacticRulePlacement()
 
 
 class PositionalRule(PhonotacticRule):
-    def __init__(self, target_structure: type[SyllabicComponent | Phoneme],
+    def __init__(self, target_structure: type[SyllabicComponent | Phone],
             bank: tuple[SyllabicComponent] | None,
             probability: float, action: PhonotacticRuleAction,
             placement: PhonotacticRulePlacement,
@@ -84,7 +84,7 @@ class PositionalRule(PhonotacticRule):
         - `placement` - indicates which places 
         """
         super().__init__()
-        self._target_structure: type[SyllabicComponent | Phoneme] = target_structure
+        self._target_structure: type[SyllabicComponent | Phone] = target_structure
         self._bank: tuple[SyllabicComponent] | None = bank
         self._probability: float = probability
         self._action: PhonotacticRuleAction = action

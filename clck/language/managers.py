@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Any, List
 
 from ..phonology.articulation import PhonologicalProperty
-from ..fundamentals.phonemes import Phoneme
+from ..fundamentals.phonetics import Phone
 
 
 class Manager(ABC):
@@ -26,20 +26,20 @@ class Manager(ABC):
 
 class PhonemesManager(Manager):
 
-    global_list: List[Phoneme] = []
+    global_list: List[Phone] = []
     """The global list of all phonemes across all `Language` instances."""
 
 
     def __init__(self) -> None:
-        self.elements: List[Phoneme] = []
+        self.elements: List[Phone] = []
 
 
-    def register(self, *phonemes: Phoneme) -> None:
+    def register(self, *phonemes: Phone) -> None:
         super().register(*phonemes)
 
 
     @classmethod
-    def global_register(cls, *phonemes: Phoneme) -> None:
+    def global_register(cls, *phonemes: Phone) -> None:
         super().global_register(*phonemes)
 
 

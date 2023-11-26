@@ -1,7 +1,7 @@
-from clck.ipa_phonemes import *
+from clck.IPA import *
 from clck.generators.generators import SyllableGenerator
 from clck.language.language import Language
-from clck.phonology.containers import PhonologicalInventory
+from clck.fundamentals.phonology import PhonemicInventory
 from clck.phonology.phonotactics import PhonotacticRule
 from clck.phonology.phonotactics2 import Phonotactics
 from clck.phonology.syllabics import (
@@ -13,7 +13,7 @@ from clck.phonology.syllabics import (
 )
 
 
-inventory: PhonologicalInventory = PhonologicalInventory(
+inventory: PhonemicInventory = PhonemicInventory(
     # Consonants
     IPA_VOICELESS_BILABIAL_PLOSIVE,
     IPA_VOICELESS_ALVEOLAR_PLOSIVE,

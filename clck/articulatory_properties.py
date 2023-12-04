@@ -30,8 +30,7 @@ class MannerOfArticulation(ConsonantArticulatoryProperty):
     PLOSIVE = auto()
     NASAL = auto()
     TRILL = auto()
-    TAP = auto()
-    FLAP = TAP
+    FLAP = TAP = auto()
     FRICATIVE = auto()
     LATERAL_FRICATIVE = auto()
     APPROXIMANT = auto()

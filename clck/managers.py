@@ -1,8 +1,8 @@
 from abc import ABC
 from typing import Any, List
 
-from ..phonology.articulation import PhonologicalProperty
-from ..fundamentals.phonetics import Phone
+from clck.articulation import PhonologicalProperty
+from clck.phonetics import Phone
 
 
 class Manager(ABC):

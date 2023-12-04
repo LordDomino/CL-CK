@@ -1,7 +1,7 @@
 from clck.config import print_debug
-from clck.fundamentals.phonetics import Phone
-from clck.fundamentals.phonetics import DummyPhone
-from clck.fundamentals.structure import Structure
+from clck.phonetics import Phone
+from clck.phonetics import DummyPhone
+from clck.syllabics import Structure
 
 
 class StructureEvaluator:

@@ -1,4 +1,4 @@
-from clck.phonology.phonotactics2 import GeneratorRule, Phonotactics, PostGenerationRule, PreGenerationRule
+from clck.phonotactics2 import GeneratorRule, Phonotactics, PostGenerationRule, PreGenerationRule
 
 
 def is_pre_generation_rule(rule: GeneratorRule) -> bool:

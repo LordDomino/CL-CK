@@ -1,9 +1,9 @@
 import random
 from clck.formula.protosyntax import ActionReferences, GroupingIdentifiers
-from clck.fundamentals.component import Component
-from clck.fundamentals.phonology import Consonant, Phoneme, PhonemicInventory, Vowel
-from clck.fundamentals.syllabics import SyllabicComponent
-from clck.phonology.containers import PhonemeGroup
+from clck.component import Component
+from clck.phonology import ConsonantPhoneme, Phoneme, PhonemicInventory, VowelPhoneme
+from clck.syllabics import SyllabicComponent
+from clck.containers import PhonemeGroup
 
 
 class SyllableGenerator:
@@ -56,19 +56,19 @@ class SyllableGenerator:
 
         return tuple(rl)
 
-    def get_consonants(self) -> tuple[Consonant, ...]:
-        l: list[Consonant] = []
-        IPA_consonants = PhonemeGroup.from_type("C", Consonant).phonemes
+    def get_consonants(self) -> tuple[ConsonantPhoneme, ...]:
+        l: list[ConsonantPhoneme] = []
+        IPA_consonants = PhonemeGroup.from_type("C", ConsonantPhoneme).phonemes
         for ph in self._bank.phonemes:
-            if ph in IPA_consonants and isinstance(ph, Consonant):
+            if ph in IPA_consonants and isinstance(ph, ConsonantPhoneme):
                 l.append(ph)
         return tuple(l)
     
-    def get_vowels(self) -> tuple[Vowel, ...]:
-        l: list[Vowel] = []
-        IPA_vowels = PhonemeGroup.from_type("V", Vowel).phonemes
+    def get_vowels(self) -> tuple[VowelPhoneme, ...]:
+        l: list[VowelPhoneme] = []
+        IPA_vowels = PhonemeGroup.from_type("V", VowelPhoneme).phonemes
         for ph in self._bank.phonemes:
-            if ph in IPA_vowels and isinstance(ph, Vowel):
+            if ph in IPA_vowels and isinstance(ph, VowelPhoneme):
                 l.append(ph)
         return tuple(l)
     

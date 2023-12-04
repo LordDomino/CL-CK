@@ -1,11 +1,10 @@
 from typing import List, Tuple, Type
-from ..fundamentals.phonology import PhonemicInventory
 
-import clck.generators.generators as generators
-
-from .managers import Manager, PhonemesManager
-from ..phonology.containers import PhonemeGroupsManager
-from ..fundamentals.structure import Structure
+import clck.generators as generators
+from clck.phonology import PhonemicInventory
+from clck.managers import Manager, PhonemesManager
+from clck.containers import PhonemeGroupsManager
+from clck.syllabics import Structure
 
 
 class Language:

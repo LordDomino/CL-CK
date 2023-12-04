@@ -1,13 +1,15 @@
-from clck.fundamentals.component import Component
-from clck.phonology.articulatory_properties import (
+from clck.component import Component
+from clck.articulatory_properties import (
     AirstreamMechanism,
     ArticulatoryProperty,
+    ConsonantArticulatoryProperty,
     MannerOfArticulation,
     Phonation,
     PlaceOfArticulation,
     Backness,
     Height,
-    Roundedness
+    Roundedness,
+    VowelArticulatoryProperty
 )
 
 
@@ -146,7 +148,7 @@ class ConsonantPhone(Phone):
 
     def __init__(self, symbol: str, place: PlaceOfArticulation,
             manner: MannerOfArticulation,
-            other_properties: tuple[ArticulatoryProperty, ...] = (),
+            other_properties: tuple[ConsonantArticulatoryProperty, ...] = (),
             _is_IPA_default: bool = False) -> None:
         """
         Creates a new `Consonant` instance.
@@ -172,7 +174,7 @@ class ConsonantPhone(Phone):
 class VowelPhone(Phone):
     def __init__(self, symbol: str, backness: Backness, height: Height,
             roundedness: Roundedness,
-            other_properties: tuple[ArticulatoryProperty, ...],
+            other_properties: tuple[VowelArticulatoryProperty, ...],
             _is_IPA_default: bool = False) -> None:
         super().__init__(symbol, (height, backness, roundedness,
             *other_properties), _is_IPA_default)
@@ -182,9 +184,9 @@ class VowelPhone(Phone):
 
 
 
-class PulmonicConsonant(ConsonantPhone):
+class PulmonicConsonantPhone(ConsonantPhone):
     """
-    The class representing all pulmonic consonants.
+    The class representing all pulmonic consonant phones.
 
     'Pulmonic consonants are consonants that depend upon an egressive
     (outward-flowing) air stream originating in the lungs.'
@@ -193,12 +195,12 @@ class PulmonicConsonant(ConsonantPhone):
 
     def __init__(self, symbol: str, place: PlaceOfArticulation,
             manner: MannerOfArticulation, voicing: Phonation,
-            other_properties: tuple[ArticulatoryProperty, ...] = (),
+            other_properties: tuple[ConsonantArticulatoryProperty, ...] = (),
             _is_IPA_default: bool = False) -> None:
         """
-        Creates a new `PulmonicConsonant` instance.
+        Creates a new `PulmonicConsonantPhone` instance.
 
-        A `PulmonicConsonant` instance contains an
+        A `PulmonicConsonantPhone` instance contains an
         `AirstreamMechanism.PULMONIC` property by default.
 
         Parameters
@@ -224,40 +226,40 @@ class PulmonicConsonant(ConsonantPhone):
 
 
 
-class NonpulmonicConsonant(ConsonantPhone):
+class NonpulmonicConsonantPhone(ConsonantPhone):
     def __init__(self, symbol: str, place: PlaceOfArticulation,
             manner: MannerOfArticulation,
-            other_properties: tuple[ArticulatoryProperty, ...] = (),
+            other_properties: tuple[ConsonantArticulatoryProperty, ...] = (),
             _is_IPA_default: bool = False) -> None:
         super().__init__(symbol, place, manner, other_properties,
             _is_IPA_default)
 
 
 
-class EjectiveConsonant(NonpulmonicConsonant):
+class EjectiveConsonantPhone(NonpulmonicConsonantPhone):
     def __init__(self, symbol: str, place: PlaceOfArticulation,
             manner: MannerOfArticulation,
-            other_properties: tuple[ArticulatoryProperty, ...] = (),
+            other_properties: tuple[ConsonantArticulatoryProperty, ...] = (),
             _is_IPA_default: bool = False) -> None:
         super().__init__(symbol, place, manner, other_properties,
             _is_IPA_default)
 
 
 
-class ImplosiveConsonant(NonpulmonicConsonant):
+class ImplosiveConsonantPhone(NonpulmonicConsonantPhone):
     def __init__(self, symbol: str, place: PlaceOfArticulation,
             manner: MannerOfArticulation,
-            other_properties: tuple[ArticulatoryProperty, ...] = (),
+            other_properties: tuple[ConsonantArticulatoryProperty, ...] = (),
             _is_IPA_default: bool = False) -> None:
         super().__init__(symbol, place, manner, other_properties,
             _is_IPA_default)
 
 
 
-class ClickConsonant(NonpulmonicConsonant):
+class ClickConsonantPhone(NonpulmonicConsonantPhone):
     def __init__(self, symbol: str, place: PlaceOfArticulation,
             manner: MannerOfArticulation,
-            other_properties: tuple[ArticulatoryProperty, ...] = (),
+            other_properties: tuple[ConsonantArticulatoryProperty, ...] = (),
             _is_IPA_default: bool = False) -> None:
         super().__init__(symbol, place, manner, other_properties,
             _is_IPA_default)

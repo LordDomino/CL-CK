@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from ..fundamentals.component import Component
-from ..fundamentals.phonetics import Phone
-from ..fundamentals.component import Component
-from ..fundamentals.component import Component
-from ..config import print_warning
-from ..fundamentals.syllabics import SyllabicComponent
+from clck.component import Component
+from clck.phonetics import Phone
+from clck.component import Component
+from clck.component import Component
+from clck.config import print_warning
+from clck.syllabics import SyllabicComponent
 
 
 class PhonotacticRule:

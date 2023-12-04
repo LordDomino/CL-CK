@@ -1,40 +1,44 @@
-from clck.fundamentals.component import Component
-from clck.fundamentals.phonetics import (
-    ConsonantPhone,
-    DummyPhone,
-    Phone,
-    VowelPhone
-)
-from clck.phonology.articulatory_properties import (
-    ArticulatoryProperty,
-    MannerOfArticulation,
-    PlaceOfArticulation
-)
+from clck.component import Component
+from clck.phonetics import ConsonantPhone
+from clck.phonetics import DummyPhone
+from clck.phonetics import Phone
+from clck.phonetics import VowelPhone
+from clck.articulatory_properties import ArticulatoryProperty
+from clck.articulatory_properties import MannerOfArticulation
+from clck.articulatory_properties import PlaceOfArticulation
 
 
 class Phoneme(Component):
 
     DEFAULT_IPA_PHONEMES: list["Phoneme"] = []
 
-    def __init__(self, _base_phone: Phone) -> None:
+    def __init__(self, base_phone: Phone) -> None:
         """
         Creates a `Phoneme` instance having one initial allophone.
+
+        Parameters
+        ----------
+        - `base_phone`: is the initial allophone (a `Phone` instance)
+            assigned to this phoneme
         """
         super().__init__()
-        self._base_phone = _base_phone
-        self._symbol = _base_phone.symbol
+        self._base_phone = base_phone
+        self._symbol = base_phone.symbol
         self._create_base_properties()
 
-        self._allophones: list[Phone] = [_base_phone]
+        self._allophones: list[Phone] = [base_phone]
 
-        if _base_phone.is_default_IPA_phone():
+        if base_phone.is_default_IPA_phone():
             Phoneme.DEFAULT_IPA_PHONEMES.append(self)
 
     def __call__(self) -> str:
         return self._symbol
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self._symbol}>"
+        s: list[str] = []
+        for property in self._base_phone.articulatory_properties:
+            s.append(property.name)
+        return f"<{self.__class__.__name__} {self._transcript} {' '.join(s)}>"
 
     def __str__(self) -> str:
         s: list[str] = []
@@ -64,27 +68,32 @@ class Phoneme(Component):
         return f"/{self._symbol}/"
 
 
-class Dummy(Phoneme):
+class DummyPhoneme(Phoneme):
     def __init__(self) -> None:
         super().__init__(DummyPhone())
 
 
-class Consonant(Phoneme):
+class ConsonantPhoneme(Phoneme):
+
+    IPA_CONSONANTS: list["ConsonantPhoneme"] = []
+
     def __init__(self, _base_phone: ConsonantPhone) -> None:
         super().__init__(_base_phone)
+        if _base_phone.is_default_IPA_phone():
+            ConsonantPhoneme.IPA_CONSONANTS.append(self)
 
 
-class Vowel(Phoneme):
+class VowelPhoneme(Phoneme):
     def __init__(self, _base_phone: VowelPhone) -> None:
         super().__init__(_base_phone)
 
 
-class DummyConsonant(Dummy, Consonant):
+class DummyConsonantPhoneme(DummyPhoneme, ConsonantPhoneme):
     def __init__(self) -> None:
         super().__init__()
 
 
-class DummyVowel(Dummy, Vowel):
+class DummyVowelPhoneme(DummyPhoneme, VowelPhoneme):
     def __init__(self) -> None:
         super().__init__()
 
@@ -148,8 +157,11 @@ class PhonemicInventory:
     def get_phonemes_by_place_of_articulation(self,
             place: PlaceOfArticulation) -> tuple[Phoneme, ...]:
         """
-        Returns all phonemes in this inventory containing the given
-        place of articulation.
+        Returns all (consonant) phonemes in this inventory containing
+        the given place of articulation. Note that the
+        `PlaceOfArticulation` property is only attributable to
+        `Consonant` instances, thus it is not applicable to
+        non-consonantal phonemes.
 
         Parameters
         ----------
@@ -158,7 +170,11 @@ class PhonemicInventory:
         """
         l: list[Phoneme] = []
         for phoneme in self._phonemes:
-            if place in phoneme.base_phone.articulatory_properties:
+            # safeguard code to prevent non-consonant phonemes to be
+            # accepted in the if statement (see second clause of if
+            # statement)
+            if (place in phoneme.base_phone.articulatory_properties and
+                isinstance(phoneme.base_phone, ConsonantPhoneme)):
                 l.append(phoneme)
         return tuple(l)
     

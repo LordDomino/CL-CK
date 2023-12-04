@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from clck.config import print_debug
+
 
 
 class Component(ABC):
@@ -14,6 +16,7 @@ class Component(ABC):
         """Creates a new `Component` object."""
         self._transcript: str
         self._output: str
+        self._are_base_properties_initialized = False
 
     def __eq__(self, __value: object) -> bool:
         if self.__class__ != __value.__class__:
@@ -66,3 +69,7 @@ class Component(ABC):
         """
         self._transcript: str = self._create_transcript()
         self._output: str = self._create_output()
+        self._are_base_properties_initialized = True
+
+        if self._are_base_properties_initialized:
+            print_debug(f"{self} base properties initialized")

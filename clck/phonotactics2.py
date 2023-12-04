@@ -1,5 +1,6 @@
-from ctypes import Structure
 from enum import Enum
+
+from clck.syllabics import Structure
 
 
 

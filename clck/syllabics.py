@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from types import NoneType
 from typing import TypeVar
 
-from clck.fundamentals.component import Component
-from clck.fundamentals.phonology import Consonant, Dummy, Phoneme, Vowel
-from clck.phonology.containers import PhonemeGroup, PhonemeGroupsManager
+from clck.component import Component
+from clck.phonology import ConsonantPhoneme, DummyPhoneme, Phoneme, VowelPhoneme
+from clck.containers import PhonemeGroup, PhonemeGroupsManager
 from clck.utils import tuple_append, tuple_extend
 
 
@@ -20,7 +20,6 @@ __all__ = [
     "Diphthong",
     "Triphthong",
 ]
-
 
 T = TypeVar("T")
 
@@ -88,7 +87,7 @@ class Structure(Component, ABC):
         return tuple(self._components)
 
     @property
-    def consonants(self) -> tuple[Consonant, ...]:
+    def consonants(self) -> tuple[ConsonantPhoneme, ...]:
         """The consonants of this structure."""
         return tuple(self._consonants)
 
@@ -108,7 +107,7 @@ class Structure(Component, ABC):
         return tuple(self._substructures)
     
     @property
-    def vowels(self) -> tuple[Vowel, ...]:
+    def vowels(self) -> tuple[VowelPhoneme, ...]:
         """The vowels of this structure."""
         return tuple(self._vowels)
 
@@ -137,30 +136,30 @@ class Structure(Component, ABC):
         self._assert_components()
         self._substructures = tuple_append(self._substructures, substructure)
 
-    def get_consonants(self) -> tuple[Consonant, ...]:
+    def get_consonants(self) -> tuple[ConsonantPhoneme, ...]:
         """
         Returns all the consonants of this structure. This also returns
         dummy consonant phonemes that are used as placeholders in
         consonant-based structures and positions.
         """
-        consonants: list[Consonant] = []
+        consonants: list[ConsonantPhoneme] = []
         for component in self._components:
-            if isinstance(component, Consonant):
+            if isinstance(component, ConsonantPhoneme):
                 consonants.append(component)
             else:
                 if isinstance(component, SyllabicComponent):
                     consonants.extend(component.get_consonants())
         return tuple(consonants)
     
-    def get_vowels(self) -> tuple[Vowel, ...]:
+    def get_vowels(self) -> tuple[VowelPhoneme, ...]:
         """
         Returns all the vowels of this structure. This also returns
         dummy vowel phonemes that are used as placeholders in
         vowel-based structures and positions.
         """
-        vowels: list[Vowel] = []
+        vowels: list[VowelPhoneme] = []
         for component in self._components:
-            if isinstance(component, Vowel):
+            if isinstance(component, VowelPhoneme):
                 vowels.append(component)
             else:
                 if isinstance(component, SyllabicComponent):
@@ -217,10 +216,10 @@ class Structure(Component, ABC):
             bank: list["Structure"]) -> list["Structure"]:
         return [*set(bank)]
 
-    def _append_dummies(self, to: tuple[T, ...]) -> tuple[T | Dummy, ...]:
-        nl: list[T | Dummy] = [*to]
+    def _append_dummies(self, to: tuple[T, ...]) -> tuple[T | DummyPhoneme, ...]:
+        nl: list[T | DummyPhoneme] = [*to]
         for c in self._components:
-            if isinstance(c, Dummy):
+            if isinstance(c, DummyPhoneme):
                 nl.append(c)
 
         return tuple(nl)
@@ -406,9 +405,9 @@ class Pattern:
 
 
 class Shape:
-    def __init__(self, _comps_type: type[Consonant | Vowel],
+    def __init__(self, _comps_type: type[ConsonantPhoneme | VowelPhoneme],
             pattern_strings: str) -> None:
-        self._comps_type: type[Consonant | Vowel] = _comps_type
+        self._comps_type: type[ConsonantPhoneme | VowelPhoneme] = _comps_type
         self._pattern: Pattern = Pattern(pattern_strings)
         self._pattern_string: str = self._pattern.string
         self._length: int = len(self._pattern.symbols)
@@ -439,17 +438,17 @@ class Shape:
 
 class OnsetShape(Shape):
     def __init__(self, pattern: str) -> None:
-        super().__init__(Consonant, pattern)
+        super().__init__(ConsonantPhoneme, pattern)
 
 
 class NucleusShape(Shape):
     def __init__(self, pattern: str) -> None:
-        super().__init__(Vowel, pattern)
+        super().__init__(VowelPhoneme, pattern)
 
 
 class CodaShape(Shape):
     def __init__(self, pattern: str) -> None:
-        super().__init__(Consonant, pattern)
+        super().__init__(ConsonantPhoneme, pattern)
 
 
 class SyllableStructure:
@@ -551,8 +550,8 @@ class SyllabicComponent(Structure, ABC):
 
 
 class Onset(SyllabicComponent):
-    def __init__(self, *components: Consonant) -> None:
-        super().__init__((Consonant, ConsonantCluster), *components)
+    def __init__(self, *components: ConsonantPhoneme) -> None:
+        super().__init__((ConsonantPhoneme, ConsonantCluster), *components)
         self._consonants = self._append_dummies(self._consonants)
 
         if len(components) > 1:
@@ -560,8 +559,8 @@ class Onset(SyllabicComponent):
 
 
 class Nucleus(SyllabicComponent):
-    def __init__(self, *components: Vowel) -> None:
-        super().__init__((Vowel, VowelCluster), *components)
+    def __init__(self, *components: VowelPhoneme) -> None:
+        super().__init__((VowelPhoneme, VowelCluster), *components)
         self._vowels = self._append_dummies(self._vowels)
 
         if len(components) == 2:
@@ -574,8 +573,8 @@ class Nucleus(SyllabicComponent):
 
 
 class Coda(SyllabicComponent):
-    def __init__(self, *components: Consonant) -> None:
-        super().__init__((Consonant,), *components)
+    def __init__(self, *components: ConsonantPhoneme) -> None:
+        super().__init__((ConsonantPhoneme,), *components)
         self._consonants = self._append_dummies(self._consonants)
 
         if len(components) > 1:
@@ -648,8 +647,8 @@ class ConsonantCluster(PhonemeCluster):
     Class for `ConsonantCluster`, a special type of phoneme cluster to
     enclose multiple consonants.
     """
-    def __init__(self, *consonants: Consonant) -> None:
-        super().__init__(Consonant, *consonants)
+    def __init__(self, *consonants: ConsonantPhoneme) -> None:
+        super().__init__(ConsonantPhoneme, *consonants)
 
 
 class VowelCluster(PhonemeCluster):
@@ -657,8 +656,8 @@ class VowelCluster(PhonemeCluster):
     Class for `VowelCluster`, a special type of phoneme cluster to
     enclose multiple vowels.
     """
-    def __init__(self, *vowels: Vowel) -> None:
-        super().__init__(Vowel, *vowels)
+    def __init__(self, *vowels: VowelPhoneme) -> None:
+        super().__init__(VowelPhoneme, *vowels)
 
 
 class Diphthong(VowelCluster):
@@ -666,7 +665,7 @@ class Diphthong(VowelCluster):
     Class for `Diphthong` objects.
     A diphthong is a combination of two vowels.
     """
-    def __init__(self, vowel_1: Vowel, vowel_2: Vowel) -> None:
+    def __init__(self, vowel_1: VowelPhoneme, vowel_2: VowelPhoneme) -> None:
         super().__init__(vowel_1, vowel_2)
 
 
@@ -675,8 +674,8 @@ class Triphthong(VowelCluster):
     Class for `Triphthong` objects.
     A triphthong is a combination of three vowels.
     """
-    def __init__(self, vowel_1: Vowel, vowel_2: Vowel,
-            vowel_3: Vowel) -> None:
+    def __init__(self, vowel_1: VowelPhoneme, vowel_2: VowelPhoneme,
+            vowel_3: VowelPhoneme) -> None:
         super().__init__(vowel_1, vowel_2, vowel_3)
 
 

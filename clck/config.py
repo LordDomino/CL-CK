@@ -8,4 +8,4 @@ def print_warning(message: str) -> None:
 
 def print_debug(message: object) -> None:
     if CONFIG_PRINT_DEBUGS:
-        print(f"Debug: {message}")
+        print(f"CLCK Debug: {message}")

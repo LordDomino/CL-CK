@@ -13,7 +13,6 @@ from clck.articulatory_properties import (
 )
 
 
-
 class Phone(Component):
     """
     The class representing phones in phonetics.
@@ -126,7 +125,6 @@ class Phone(Component):
         Phone.DEFAULT_IPA_PHONES = tuple([*Phone.DEFAULT_IPA_PHONES, phoneme])
 
 
-
 class DummyPhone(Phone):
     def __init__(self) -> None:
         """
@@ -138,7 +136,6 @@ class DummyPhone(Phone):
         `$` symbol.
         """
         super().__init__("$", ())
-
 
 
 class ConsonantPhone(Phone):

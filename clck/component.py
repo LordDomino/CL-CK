@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from clck.config import print_debug
 
 
-
 class Component(ABC):
     """The class representing all linguistic component.
     

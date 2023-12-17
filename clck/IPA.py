@@ -1,10 +1,10 @@
-from clck.phonology import ConsonantPhoneme
-from clck.phonology import VowelPhoneme
-from clck.containers import PhonemeGroup
 from clck.articulatory_properties import MannerOfArticulation
 from clck.articulatory_properties import Phonation
 from clck.articulatory_properties import PlaceOfArticulation
+from clck.containers import PhonemeGroup
 from clck.phonetics import PulmonicConsonantPhone
+from clck.phonology import ConsonantPhoneme
+from clck.phonology import VowelPhoneme
 
 
 IPA_VOICED_BILABIAL_PLOSIVE     = ConsonantPhoneme(PulmonicConsonantPhone("\u0062", PlaceOfArticulation.BILABIAL, MannerOfArticulation.PLOSIVE, Phonation.VOICED, (), True))

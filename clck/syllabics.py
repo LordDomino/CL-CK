@@ -35,8 +35,7 @@ class Structure(Component, ABC):
     @abstractmethod
     def __init__(self, _valid_comp_types: tuple[type[Component], ...],
             components: tuple[Component, ...]) -> None:
-        """
-        Creates a new instance of `Structure` given the only valid
+        """Creates a new instance of `Structure` given the only valid
         component types that this can contain and its initial
         components.
 

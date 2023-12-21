@@ -1,6 +1,29 @@
 from typing import Any
 
 
+def clean_collection(c: list[Any] | tuple[Any, ...]) -> tuple[Any, ...]:
+    """Returns the version of the given collection of either a list or
+    tuple without all `None` or empty string elements.
+
+    Parameters
+    ----------
+    c : list[Any] | tuple[Any, ...]
+        the list or tuple to remove all `None` or empty string elements
+        from
+
+    Returns
+    -------
+    tuple[Any, ...]
+        the tuple version of the given list or tuple without all its
+        `None` or empty string elements
+    """
+    temp: list[Any] = []
+    for e in c:
+        if e != None and e != "":
+            temp.append(e)
+    return tuple(temp)
+
+
 def strip_whitespace(s: str) -> str:
     """Returns the version of the given string `s` with all its
     whitespaces removed.
@@ -15,6 +38,7 @@ def strip_whitespace(s: str) -> str:
     str
         the version of the given string without all its whitespaces
     """
+
     return "".join(s.split())
 
 

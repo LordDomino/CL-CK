@@ -1,3 +1,4 @@
+from clck.lexer.parser import Parser
 from clck.lexer.tokenizer import Tokenizer
 
 
@@ -20,4 +21,8 @@ formula = "a|b|c"  # Choose one from "/a/", "/b/", or "/c/"
 
 my_tokenizer = Tokenizer(formula)
 my_tokenizer.analyze()
-print(my_tokenizer.get_tokens())
+my_tokenizer.get_tokens()
+
+# my_tokenizer.update_formula("ad")
+
+my_tokenizer.get_tokens()

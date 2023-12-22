@@ -1,25 +1,28 @@
-from typing import Any
+from typing import Any, TypeVar
 
 
-def clean_collection(c: list[Any] | tuple[Any, ...]) -> tuple[Any, ...]:
+T = TypeVar("T")
+
+
+def clean_collection(c: list[T]) -> tuple[T, ...]:
     """Returns the version of the given collection of either a list or
     tuple without all `None` or empty string elements.
 
     Parameters
     ----------
-    c : list[Any] | tuple[Any, ...]
+    c : list[T] | tuple[T, ...]
         the list or tuple to remove all `None` or empty string elements
         from
 
     Returns
     -------
-    tuple[Any, ...]
+    tuple[T, ...]
         the tuple version of the given list or tuple without all its
         `None` or empty string elements
     """
-    temp: list[Any] = []
+    temp: list[T] = []
     for e in c:
-        if e != None and e != "":
+        if e != "":
             temp.append(e)
     return tuple(temp)
 

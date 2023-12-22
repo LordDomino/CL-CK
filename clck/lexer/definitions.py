@@ -13,14 +13,23 @@ STANDARD_TOKENS: list["StandardTokens"] = []
 
 
 class SyntaxObjectTypes(Enum):
-    TOKEN = auto()
     STRUCTURE = auto()
     PHONEME = auto()
 
 class StandardTokens(Enum):
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}.{self.name}"
+
     @classmethod
     def get_all_subclasses(cls) -> tuple[type["StandardTokens"], ...]:
+        """Returns a tuple of all `StandardTokens` enum subclasses.
+
+        Returns
+        -------
+        tuple[type[StandardTokens]]
+            the tuple of all `StandardTokens`
+        """
         temp: list[type[StandardTokens]] = []
 
         temp.extend(cls.__subclasses__())
@@ -57,6 +66,9 @@ class StandardTokens(Enum):
         """
 
         chars: list[str] = []
+        chars.extend(list(string.ascii_letters))
+        chars.extend(list(string.digits))
+    
         for enum_class in StandardTokens.get_all_subclasses():
             for enum in enum_class:
                 if isinstance(enum.value, str):
@@ -113,7 +125,30 @@ class StandardTokens(Enum):
         return StandardTokens.get_enum_classes_by_type(Wildcards)
     
     @staticmethod
-    def get_tokens_by_type(cls_type: type["StandardTokens"]) -> tuple[str, ...]:
+    def get_token_definitions_by_type(cls_type: type["StandardTokens"]) -> tuple["StandardTokens", ...]:
+        """Returns the tuple of strings representing the tokens of the
+        given type `cls_type`.
+
+        Parameters
+        ----------
+        cls_type : type[&quot;StandardTokens&quot;]
+            the enum superclass of the token strings to be retrieved
+
+        Returns
+        -------
+        tuple[str, ...]
+            the tuple of strings representing the tokens of the given
+            type `cls_type`
+        """
+        temp: list[StandardTokens] = []
+        for enum_cls in StandardTokens.get_enum_classes_by_type(cls_type):
+            for enum in enum_cls:
+                temp.append(enum)
+
+        return tuple(temp)
+
+    @staticmethod
+    def get_raw_token_definitions_by_type() -> tuple[str, ...]:
         """Returns the tuple of strings representing the tokens of the
         given type `cls_type`.
 
@@ -129,9 +164,8 @@ class StandardTokens(Enum):
             type `cls_type`
         """
         temp: list[str] = []
-        for enum_cls in StandardTokens.get_enum_classes_by_type(cls_type):
-            for enum in enum_cls:
-                temp.append(enum.value)
+        for token_definition in STANDARD_TOKENS:
+            temp.append(token_definition.value)
 
         return tuple(temp)
 
@@ -139,11 +173,11 @@ class StandardTokens(Enum):
 class SyntaxTokens(StandardTokens): ...
 class NativeTokens(StandardTokens): ...
 
+
 class Characters(NativeTokens):
-    LOWERCASE_LETTERS = string.ascii_lowercase
-    UPPERCASE_LETTERS = string.ascii_uppercase
-    LETTERS = string.ascii_letters
-    DIGITS = string.digits
+    LITERAL_STRINGS = r"[a-zA-Z]+"
+    LITERAL_DIGITS = r"[0-9]+"
+
 
 class Wildcards(NativeTokens): ...
 
@@ -154,33 +188,34 @@ class PhonemeGroupIdentifiers(Wildcards):
 
 
 class Operators(SyntaxTokens):
-    ASSIGNMENT_OPERATOR = ASSIGNER = "="
-    CONCATENATOR = "+"
-    CONDITIONAL_IF = "?"
-    CONDITIONAL_THEN = "=>"
-    MODIFIER = "^"
-    MUTATOR = "->"
-    SELECTOR = "|"
-    SUBTRACTOR = "-"
+    ASSIGNMENT_OPERATOR = ASSIGNER = r"\="
+    CONCATENATOR = r"\+"
+    CONDITIONAL_IF = r"\?"
+    CONDITIONAL_THEN = r"\=>"
+    MODIFIER = r"\^"
+    MUTATOR = r"\->"
+    SELECTOR = r"\|"
+    SUBTRACTOR = r"\-"
 
 
 class Comparator(SyntaxTokens):
-    IS_EQUALS = "=="
-    IS_NOT_EQUALS = "!="
+    IS_EQUALS = r"\=="
+    IS_NOT_EQUALS = r"\!="
+
 
 class Identifiers(SyntaxTokens): ...
 
 
 class GroupingIdentifiers(Identifiers):
-    PROBABILITY_GROUP_OPEN = "("
-    PROBABILITY_GROUP_CLOSE = ")"
+    PROBABILITY_GROUP_OPEN = r"\("
+    PROBABILITY_GROUP_CLOSE = r"\)"
 
 
 class TypeIdentifiers(Identifiers):
-    PHONEME_OPEN = "/"
-    PHONEME_CLOSE = "/"
-    STRUCTURE_OPEN = "{"
-    STRUCTURE_CLOSE = "}"
+    PHONEME_OPEN = r"\/"
+    PHONEME_CLOSE = r"\/"
+    STRUCTURE_OPEN = r"\{"
+    STRUCTURE_CLOSE = r"\}"
 
 
 TOKEN_CLASSES: tuple[type[StandardTokens], ...] = StandardTokens.get_all_subclasses()

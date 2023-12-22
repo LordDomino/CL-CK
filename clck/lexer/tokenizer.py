@@ -1,13 +1,21 @@
 import re
-from typing import Any, TypeAlias
+from dataclasses import dataclass
+from typing import Any
+from typing import TypeAlias
 
-from clck.lexer.definitions import SyntaxTokens, Wildcards
-from clck.lexer.definitions import StandardTokens
+from clck.lexer.definitions import STANDARD_TOKENS, StandardTokens
 from clck.lexer.definitions import VALID_CHARS
-from clck.utils import clean_collection, strip_whitespace
+from clck.utils import clean_collection
+from clck.utils import strip_whitespace
 
 
 ResultName: TypeAlias = str
+
+
+@dataclass()
+class Token:
+    type: StandardTokens
+    value: str
 
 
 class Tokenizer:
@@ -72,32 +80,6 @@ class Tokenizer:
         """
 
         return self._result_data
-    
-    def _get_tokens_init(self) -> tuple[str, ...]:
-        """Returns a tuple of string values representing the tokens
-        retrieved from this tokenizer's formula string.
-
-        Returns
-        -------
-        tuple[str, ...]
-            the tuple of string values representing the tokens
-            retrieved
-        """
-        formula: str = strip_whitespace(self._formula)
-        delimiters: list[str] = []
-        
-        # Register syntax tokens as delimiters
-        for token_str in StandardTokens.get_tokens_by_type(SyntaxTokens):
-            delimiters.append(rf"\{token_str}")
-
-        # Also register wildcards as delimiters,
-        # but without the escape characters
-        delimiters.extend(StandardTokens.get_tokens_by_type(Wildcards))
-
-        delimiters.sort(key=len, reverse=True)
-        delimiter: str = "|".join(delimiters)
-
-        return clean_collection(tuple(re.split(rf"({delimiter}|\d+)", formula)))
 
     def analyze(self) -> None:
         """Analyzes this instance's formula string and stores each
@@ -115,9 +97,9 @@ class Tokenizer:
         """
 
         if self.are_formula_characters_valid():
-            self._result_data["tokens"] = self._get_tokens_init()
-            self._result_data["string_length"] = self.get_string_length()
-            self._result_data["sequence_length"] = self.get_sequence_length()
+            self._result_data["tokens"] = self._analyze_tokens()
+            self._result_data["string_length"] = self._analyze_string_length()
+            self._result_data["sequence_length"] = self._analyze_sequence_length()
         else:
             raise Exception("Invalid formula string detected")
 
@@ -137,7 +119,7 @@ class Tokenizer:
             if char not in VALID_CHARS:
                 raise Exception(f"Invalid character '{char}' found in formula string")
         return True
-    
+
     def get_result_data_by_name(self, result_name: str) -> Any:
         """Returns the respective value for the requested key string,
         `result_name`.
@@ -156,47 +138,24 @@ class Tokenizer:
         try:
             return self._result_data[result_name]
         except KeyError:
-            raise Exception(f"Non-existent result data name '{result_name}'")
+            raise Exception(f"Non-existent result data name '{result_name}'. "
+                + "It may not have been initialized yet, thus, consider "
+                + "calling analyze() to initialize the result data "
+                + "dictionary.")
 
-
-    def get_string_length(self) -> int:
-        """Returns the length of the formula string without all the
-        whitespaces.
-
-        Returns
-        -------
-        int
-            the length of the formula string without all the whitespaces
-        """
-
-        return len(strip_whitespace(self._formula))
-
-    def get_tokens(self) -> tuple[str, ...]:
-        """Returns a tuple of string values representing the tokens
-        retrieved from this tokenizer's formula string.
+    def get_tokens(self) -> tuple[Token, ...]:
+        """Returns a tuple of `Tokens` retrieved from this tokenizer's
+        formula string. This is a convenience method for directly
+        retrieving this tokenizer's tokens as an alternative to calling
+        `get_result_data_by_name()`.
 
         Returns
         -------
         tuple[str, ...]
-            the tuple of string values representing the tokens
-            retrieved
+            the tuple of Tokens
         """
-        try:
-            return self._result_data["tokens"]
-        except KeyError:
-            raise Exception("Formula string is not yet analyzed!")
-
-    def get_sequence_length(self) -> int:
-        """Returns the number of tokens recognized in this tokenizer's
-        string formula.
-
-        Returns
-        -------
-        int
-            the number of tokens recognized in this tokenizer's string
-            formula
-        """
-        return len(self.get_tokens())
+        
+        return self.get_result_data_by_name("tokens")
     
     def update_formula(self, new_formula: str) -> None:
         """Updates the formula string stored to this tokenizer and
@@ -209,6 +168,72 @@ class Tokenizer:
             the new formula string to be stored to this tokenizer
         """
         self._formula = new_formula
+        self._result_data.clear()
 
-        for key in list(self._result_data.keys()):
-            self._result_data[key] = None
+    def _analyze_tokens(self) -> tuple[Token, ...]:
+        """Returns a tuple of string values representing the tokens
+        retrieved from this tokenizer's formula string.
+
+        Returns
+        -------
+        tuple[str, ...]
+            the tuple of string values representing the tokens
+            retrieved
+        """
+        formula: str = strip_whitespace(self._formula)
+        ret: list[Token] = []
+
+        delimiter: str = self._get_delimiter_str()
+
+        # Get the strings of tokens
+        raw_tokens = clean_collection(re.split(rf"({delimiter}|\d+)", formula))
+
+        # Create Token objects from strings
+        for token in raw_tokens:
+            for token_definition in STANDARD_TOKENS:
+                if re.match(token_definition.value, token):
+                    ret.append(Token(token_definition, token))
+                    continue
+
+        return tuple(ret)
+
+    def _analyze_string_length(self) -> int:
+        """Returns the length of the formula string without all the
+        whitespaces.
+
+        Returns
+        -------
+        int
+            the length of the formula string without all the whitespaces
+        """
+
+        return len(strip_whitespace(self._formula))
+
+    def _analyze_sequence_length(self) -> int:
+        """Returns the number of tokens recognized in this tokenizer's
+        string formula.
+
+        Returns
+        -------
+        int
+            the number of tokens recognized in this tokenizer's string
+            formula
+        """
+        return len(self.get_tokens())
+
+    def _get_delimiter_str(self) -> str:
+        """Returns the delimiter string of all the defined standard
+        tokens in `clck.lexer.definitions.STANDARD_TOKENS`.
+
+        Returns
+        -------
+        str
+            the delimiter string based on the defined standard tokens
+        """
+        dls: list[str] = []
+        for token_definition in STANDARD_TOKENS:
+            dls.append(token_definition.value)
+        dls.sort(key=len, reverse=True)
+        d: str = "|".join(dls)
+
+        return d

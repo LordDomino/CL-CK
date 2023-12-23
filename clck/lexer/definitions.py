@@ -4,6 +4,8 @@ from enum import auto
 import string
 from typing import TypeVar
 
+from clck.phonology import Phoneme
+
 
 T = TypeVar("T")
 
@@ -15,6 +17,7 @@ STANDARD_TOKENS: list["StandardTokens"] = []
 class SyntaxObjectTypes(Enum):
     STRUCTURE = auto()
     PHONEME = auto()
+    LANGUAGE_INPUT = auto()
 
 class StandardTokens(Enum):
 
@@ -203,6 +206,10 @@ class Comparator(SyntaxTokens):
     IS_NOT_EQUALS = r"\!="
 
 
+class Delimiters(SyntaxTokens):
+    SEPARATOR = r"\."
+
+
 class Identifiers(SyntaxTokens): ...
 
 
@@ -212,8 +219,8 @@ class GroupingIdentifiers(Identifiers):
 
 
 class TypeIdentifiers(Identifiers):
-    PHONEME_OPEN = r"\/"
-    PHONEME_CLOSE = r"\/"
+    # PHONEME_OPEN = r"\/"
+    # PHONEME_CLOSE = r"\/"
     STRUCTURE_OPEN = r"\{"
     STRUCTURE_CLOSE = r"\}"
 
@@ -264,6 +271,11 @@ class MainOperations(Operations):
     SUBTRACTION = OperationDefinition(
         (SyntaxObjectTypes.STRUCTURE, Operators.SUBTRACTOR, SyntaxObjectTypes.STRUCTURE),
         True
+    )
+
+    PROBABILITY = OperationDefinition(
+        (GroupingIdentifiers.PROBABILITY_GROUP_OPEN, SyntaxObjectTypes.STRUCTURE, GroupingIdentifiers.PROBABILITY_GROUP_CLOSE),
+        False
     )
 
 

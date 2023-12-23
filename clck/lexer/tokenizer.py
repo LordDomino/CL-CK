@@ -154,7 +154,7 @@ class Tokenizer:
         tuple[str, ...]
             the tuple of Tokens
         """
-        
+
         return self.get_result_data_by_name("tokens")
     
     def update_formula(self, new_formula: str) -> None:

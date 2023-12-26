@@ -1,5 +1,4 @@
 import random
-from clck.formula.protosyntax import ActionReferences, GroupingIdentifiers
 from clck.component import Component
 from clck.phonology import ConsonantPhoneme, Phoneme, PhonemicInventory, VowelPhoneme
 from clck.syllabics import SyllabicComponent

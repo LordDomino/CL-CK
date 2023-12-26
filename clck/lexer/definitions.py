@@ -15,7 +15,7 @@ STANDARD_TOKENS: list["StandardTokens"] = []
 class SyntaxObjectTypes(Enum):
     STRUCTURE = auto()
     PHONEME = auto()
-    LANGUAGE_INPUT = auto()
+    LITERAL = auto()
 
 class StandardTokens(Enum):
 
@@ -118,8 +118,8 @@ class StandardTokens(Enum):
         return tuple(temp)
     
     @staticmethod
-    def get_identifier_classes() -> tuple[type["Identifiers"], ...]:
-        return StandardTokens.get_enum_classes_by_type(Identifiers)
+    def get_identifier_classes() -> tuple[type["Groupings"], ...]:
+        return StandardTokens.get_enum_classes_by_type(Groupings)
 
     @staticmethod
     def get_wildcard_classes() -> tuple[type["Wildcards"], ...]:
@@ -171,24 +171,47 @@ class StandardTokens(Enum):
         return tuple(temp)
 
 
-class SyntaxTokens(StandardTokens): ...
-class NativeTokens(StandardTokens): ...
+class SyntaxTokens(StandardTokens):
+    """Syntax tokens are tokens that are essential to the formulation
+    of the formula meta-syntax.
+    """
 
 
-class Characters(NativeTokens):
-    LITERAL_STRINGS = r"[a-zA-Z]+"
-    NUMBER = r"[0-9]+"
+class NativeTokens(StandardTokens):
+    """Native tokens are non-special tokens containing literals etc.
+    """
 
 
-class Wildcards(NativeTokens): ...
+class Literals(NativeTokens):
+    """`Literals` contain the string literal and numeric literal
+    definitions.
+    """
+    STRING_LITERAL = r"[a-zA-Z]+"
+    NUMERIC_LITERAL = r"[0-9]+"
+
+
+class Wildcards(NativeTokens):
+    """`Wildcards` define default wildcard literals that are reserved
+    for special wildcard purposes, such as declaring a consonant or a
+    vowel in a formula string.
+    """
 
 
 class PhonemeGroupIdentifiers(Wildcards):
+    """`PhonemeGroupIdentifiers` define the reserved string literals
+    used for declaring phoneme groups in a formula string.
+    """
     CONSONANTS = "C"
     VOWELS = "V"
 
 
 class Operators(SyntaxTokens):
+    """`Operators` defines the regex delimiter definitions for
+    tokenizing and parsing a formula string.
+
+    Note: Unary, binary, ternary, and possible n-ary operators are
+    combined here.
+    """
     ASSIGNMENT_OPERATOR = ASSIGNER = r"\="
     CONCATENATOR = r"\+"
     CONDITIONAL_IF = r"\?"
@@ -197,26 +220,26 @@ class Operators(SyntaxTokens):
     MUTATOR = r"\->"
     SELECTOR = r"\|"
     SUBTRACTOR = r"\-"
-
-
-class Comparator(SyntaxTokens):
     IS_EQUALS = r"\=="
     IS_NOT_EQUALS = r"\!="
 
 
 class Delimiters(SyntaxTokens):
+    """`Delimiters` defines different delimiters in the formula meta-
+    syntax.
+    """
     SEPARATOR = r"\."
 
 
-class Identifiers(SyntaxTokens): ...
+class Groupings(SyntaxTokens): ...
 
 
-class GroupingIdentifiers(Identifiers):
+class CommonGroupings(Groupings):
     PROBABILITY_GROUP_OPEN = r"\("
     PROBABILITY_GROUP_CLOSE = r"\)"
 
 
-class TypeIdentifiers(Identifiers):
+class TypeGroupings(Groupings):
     # PHONEME_OPEN = r"\/"
     # PHONEME_CLOSE = r"\/"
     STRUCTURE_OPEN = r"\{"
@@ -229,9 +252,46 @@ TOKEN_CLASSES: tuple[type[StandardTokens], ...] = StandardTokens.get_all_subclas
 VALID_CHARS: tuple[str, ...] = StandardTokens.get_valid_chars()
 """The tuple of all valid characters acceptable in a string formula."""
 
-# It's important to register all tokens to STANDARD_TOKENS
-# Without this, tokens will not be able to be recognized by CLCK
+# It's important to register all tokens to STANDARD_TOKENS.
+# Without this, tokens will not be able to be recognized by CLCK.
 StandardTokens.register_enums_from_classes(TOKEN_CLASSES)
+
+
+"""
+Formal grammar for the formula syntax for CLCK
+
+PHONEME:
+    | STRING_LITERAL
+
+STRUCTURE:
+    | STRUCTURE_OPEN PHONEME STRUCTURE_CLOSE
+    | STRUCTURE_OPEN STRUCTURE STRUCTURE_CLOSE
+    | STRUCTURE_OPEN PHONEME (CONCATENATOR PHONEME)+ STRUCTURE_CLOSE
+
+UNIT:
+    | PHONEME
+    | STRUCTURE
+
+
+CONCATENATION:
+    | UNIT CONCATENATOR UNIT
+
+MUTATION:
+    | UNIT MUTATOR UNIT
+
+SUBTRACTION:
+    | UNIT SUBTRACTOR UNIT
+
+expression:
+    | expression concatenation string_literal
+    | expression subtraction string_literal
+    | string_literal
+    | string_literal concatenation string_literal
+    | string_literal subtraction string_literal
+
+group:
+    | probability_group
+"""
 
 
 class SyntaxDefinitions(Enum): ...
@@ -245,7 +305,7 @@ class OperationDefinition:
     is_chainable: bool
 
 
-class MainOperations(Operations):
+class BinaryOperations(Operations):
     ASSIGNMENT = OperationDefinition(
         (SyntaxObjectTypes.STRUCTURE, Operators.ASSIGNER, SyntaxObjectTypes.STRUCTURE),
         False
@@ -272,7 +332,7 @@ class MainOperations(Operations):
     )
 
     PROBABILITY = OperationDefinition(
-        (GroupingIdentifiers.PROBABILITY_GROUP_OPEN, SyntaxObjectTypes.STRUCTURE, GroupingIdentifiers.PROBABILITY_GROUP_CLOSE),
+        (CommonGroupings.PROBABILITY_GROUP_OPEN, SyntaxObjectTypes.STRUCTURE, CommonGroupings.PROBABILITY_GROUP_CLOSE),
         False
     )
 

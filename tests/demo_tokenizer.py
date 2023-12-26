@@ -2,7 +2,7 @@ from clck.lexer.parser import Parser
 from clck.lexer.tokenizer import Tokenizer
 
 
-formula = "th.(a|eo).r"  # Example
+formula = "(a)((yu)bc)(d)"  # Example
 
 "a|b|c"
     # SELECTOR. Choose one from "a", "b", or "c"

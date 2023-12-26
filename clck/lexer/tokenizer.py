@@ -15,7 +15,7 @@ ResultName: TypeAlias = str
 @dataclass()
 class Token:
     type: StandardTokens
-    value: str
+    value: Any
 
 
 class Tokenizer:

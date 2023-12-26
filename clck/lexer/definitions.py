@@ -4,8 +4,6 @@ from enum import auto
 import string
 from typing import TypeVar
 
-from clck.phonology import Phoneme
-
 
 T = TypeVar("T")
 
@@ -179,7 +177,7 @@ class NativeTokens(StandardTokens): ...
 
 class Characters(NativeTokens):
     LITERAL_STRINGS = r"[a-zA-Z]+"
-    LITERAL_DIGITS = r"[0-9]+"
+    NUMBER = r"[0-9]+"
 
 
 class Wildcards(NativeTokens): ...

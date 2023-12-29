@@ -66,8 +66,8 @@ class Component(ABC):
         Convenience method to execute common post-initialization to
         work with inheritance.
         """
-        self._transcript: str = self._create_transcript()
         self._output: str = self._create_output()
+        self._transcript: str = self._create_transcript()
         self._are_base_properties_initialized = True
 
         if self._are_base_properties_initialized:

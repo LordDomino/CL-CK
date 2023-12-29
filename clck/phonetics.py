@@ -75,10 +75,13 @@ class Phone(Component):
         return f"<{self.__class__.__name__} {self._transcript}>"
 
     def __str__(self) -> str:
-        s: list[str] = []
-        for property in self._articulatory_properties:
-            s.append(property.name)
-        return f"{self.__class__.__name__} {self._transcript} ({' '.join(s)})"
+        s: str = ""
+        properties: list[str] = []
+        if len(self._articulatory_properties) > 0:
+            for property in self._articulatory_properties:
+                properties.append(property.name)
+            s = f" ({' '.join(properties)})"
+        return f"{self.__class__.__name__} {self._transcript}{s}"
 
     @property
     def articulatory_properties(self) -> tuple[ArticulatoryProperty, ...]:
@@ -126,7 +129,7 @@ class Phone(Component):
 
 
 class DummyPhone(Phone):
-    def __init__(self) -> None:
+    def __init__(self, symbol: str) -> None:
         """
         Creates a `Dummy` instance containing no articulatory
         properties.
@@ -135,7 +138,7 @@ class DummyPhone(Phone):
         during the generation process. They are always represented by a
         `$` symbol.
         """
-        super().__init__("$", ())
+        super().__init__(symbol, ())
 
 
 class ConsonantPhone(Phone):

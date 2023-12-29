@@ -16,5 +16,4 @@ class ProtoTokenizer:
         string = self._string[0:self._cursor]
 
         if not isinstance(string[0], int):
-            number = ""
-            while ()
+            pass

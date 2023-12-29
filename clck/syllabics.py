@@ -78,7 +78,7 @@ class Structure(Component, ABC):
 
     @abstractmethod
     def _create_transcript(self) -> str:
-        super()._create_transcript()
+        return f"/{self._output}/"
 
     @property
     def components(self) -> tuple[Component, ...]:
@@ -798,3 +798,11 @@ class Syllable(Structure):
 
     def _post_init(self, rime: Rime | None = None) -> None:
         if rime is not None: self._rime = rime
+
+
+class CustomStructure(Structure):
+    def __init__(self, _valid_comp_types: tuple[type[Component], ...], components: tuple[Component, ...]) -> None:
+        super().__init__(_valid_comp_types, components)
+
+    def _create_transcript(self) -> str:
+        return super()._create_transcript()

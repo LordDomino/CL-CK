@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-from enum import Enum
-from enum import auto
 import string
+from dataclasses import dataclass
+from enum import auto
+from enum import Enum
 from typing import TypeVar
 
 
@@ -255,43 +255,6 @@ VALID_CHARS: tuple[str, ...] = StandardTokens.get_valid_chars()
 # It's important to register all tokens to STANDARD_TOKENS.
 # Without this, tokens will not be able to be recognized by CLCK.
 StandardTokens.register_enums_from_classes(TOKEN_CLASSES)
-
-
-"""
-Formal grammar for the formula syntax for CLCK
-
-PHONEME:
-    | STRING_LITERAL
-
-STRUCTURE:
-    | STRUCTURE_OPEN PHONEME STRUCTURE_CLOSE
-    | STRUCTURE_OPEN STRUCTURE STRUCTURE_CLOSE
-    | STRUCTURE_OPEN PHONEME (CONCATENATOR PHONEME)+ STRUCTURE_CLOSE
-
-UNIT:
-    | PHONEME
-    | STRUCTURE
-
-
-CONCATENATION:
-    | UNIT CONCATENATOR UNIT
-
-MUTATION:
-    | UNIT MUTATOR UNIT
-
-SUBTRACTION:
-    | UNIT SUBTRACTOR UNIT
-
-expression:
-    | expression concatenation string_literal
-    | expression subtraction string_literal
-    | string_literal
-    | string_literal concatenation string_literal
-    | string_literal subtraction string_literal
-
-group:
-    | probability_group
-"""
 
 
 class SyntaxDefinitions(Enum): ...

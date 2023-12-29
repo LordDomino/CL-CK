@@ -4,7 +4,7 @@ from typing import Any, TypeVar
 T = TypeVar("T")
 
 
-def clean_collection(c: list[T]) -> tuple[T, ...]:
+def clean_collection(c: list[T] | tuple[T, ...]) -> tuple[T, ...]:
     """Returns the version of the given collection of either a list or
     tuple without all `None` or empty string elements.
 
@@ -22,7 +22,7 @@ def clean_collection(c: list[T]) -> tuple[T, ...]:
     """
     temp: list[T] = []
     for e in c:
-        if e != "":
+        if e:
             temp.append(e)
     return tuple(temp)
 

@@ -41,10 +41,13 @@ class Phoneme(Component):
         return f"<{self.__class__.__name__} {self._transcript} {' '.join(s)}>"
 
     def __str__(self) -> str:
-        s: list[str] = []
-        for property in self._base_phone.articulatory_properties:
-            s.append(property.name)
-        return f"{self.__class__.__name__} {self._transcript} ({' '.join(s)})"
+        s: str = ""
+        properties: list[str] = []
+        if len(self._base_phone.articulatory_properties) > 0:
+            for property in self._base_phone.articulatory_properties:
+                properties.append(property.name)
+            s = f" ({' '.join(properties)})"
+        return f"{self.__class__.__name__} {self._transcript}{s}"
 
     @property
     def allophones(self) -> tuple[Phone, ...]:
@@ -69,8 +72,8 @@ class Phoneme(Component):
 
 
 class DummyPhoneme(Phoneme):
-    def __init__(self) -> None:
-        super().__init__(DummyPhone())
+    def __init__(self, symbol: str = "$") -> None:
+        super().__init__(DummyPhone(symbol))
 
 
 class ConsonantPhoneme(Phoneme):

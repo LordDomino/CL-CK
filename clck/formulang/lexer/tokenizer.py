@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from typing import Any
 from typing import TypeAlias
 
-from clck.lexer.definitions import STANDARD_TOKENS, StandardTokens
-from clck.lexer.definitions import VALID_CHARS
+from clck.formulang.definitions.tokens import STANDARD_TOKENS, Literals, StandardTokens
+from clck.formulang.definitions.tokens import VALID_CHARS
 from clck.utils import clean_collection
 from clck.utils import strip_whitespace
 
@@ -16,6 +16,18 @@ ResultName: TypeAlias = str
 class Token:
     type: StandardTokens
     value: Any
+
+    def __repr__(self) -> str:
+        if self.type.name == Literals.STRING_LITERAL.name:
+            return f"<Token {self.type.name} \"{self.value}\">"
+        else:
+            return f"<Token {self.type.name} {self.value}>"
+
+    def __str__(self) -> str:
+        if self.type.name == Literals.STRING_LITERAL.name:
+            return f"<Token {self.type.name} \"{self.value}\">"
+        else:
+            return f"<Token {self.type.name} {self.value}>"
 
 
 class Tokenizer:

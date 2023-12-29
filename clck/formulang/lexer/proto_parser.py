@@ -1,6 +1,6 @@
 from typing import Any
 
-from clck.lexer.definitions import Literals
+from clck.formulang.definitions.tokens import Literals
 
 
 class ProtoParser:

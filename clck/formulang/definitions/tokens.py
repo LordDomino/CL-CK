@@ -4,6 +4,8 @@ from enum import auto
 from enum import Enum
 from typing import TypeVar
 
+from clck.phonology import Phoneme
+
 
 T = TypeVar("T")
 
@@ -74,6 +76,9 @@ class StandardTokens(Enum):
             for enum in enum_class:
                 if isinstance(enum.value, str):
                     chars.extend(list(enum.value))
+
+        for phoneme in Phoneme.DEFAULT_IPA_PHONEMES:
+            chars.append(phoneme.symbol)
 
         return tuple(set(chars))
     
@@ -186,6 +191,7 @@ class Literals(NativeTokens):
     """`Literals` contain the string literal and numeric literal
     definitions.
     """
+    IPA_CHARS = rf"[{''.join(Phoneme.DEFAULT_IPA_SYMBOLS)}]+" 
     STRING_LITERAL = r"[a-zA-Z]+"
     NUMERIC_LITERAL = r"[0-9]+"
 

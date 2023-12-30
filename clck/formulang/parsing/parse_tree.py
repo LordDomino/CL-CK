@@ -1,16 +1,17 @@
 from clck.component import Component
 from clck.formulang.definitions.tokens import Operators
 from clck.formulang.lexer.tokenizer import Token
-from clck.syllabics import CustomStructure
+from clck.phonology import Phoneme
+from clck.syllabics import CustomStructure, Structure
 from clck.utils import clean_collection
 
 
 class TreeNode:
 
     _indent_count: int = 0
-    _indent_size: int = 4
+    _indent_size: int = 2
 
-    def __init__(self, *subnodes: "TreeNode | Component") -> None:
+    def __init__(self, *subnodes: "TreeNode | Phoneme | Structure") -> None:
         self._subnodes = subnodes
 
     def __repr__(self) -> str:
@@ -20,27 +21,27 @@ class TreeNode:
         _str = "{\n"
         TreeNode._indent_in()
 
-        _str += self._get_indentation() + f"\"type\": \"{self.__class__.__name__}\",\n"
+        _str += self._get_indentation() + f"type: {self.__class__.__name__},\n"
 
         if len(self._subnodes) == 1:
-            _str += self._get_indentation() + "\"value\": "
+            _str += self._get_indentation() + "value: "
             _str += f"{self._subnodes[0].__str__()}"
         else:
-            _str += self._get_indentation() + "\"value\": {\n"
+            _str += self._get_indentation() + "value: [\n"
 
             TreeNode._indent_in()
             for arg in self._subnodes:
-                _str += self._get_indentation() + f"\"{arg.__str__()}\"" + ",\n"
+                _str += self._get_indentation() + f"{arg.__str__()}" + ",\n"
 
             TreeNode._indent_out()
-            _str += self._get_indentation() + "}"
+            _str += self._get_indentation() + "]"
 
         TreeNode._indent_out()
         _str += "\n" + self._get_indentation() + "}"
 
         return _str
 
-    def eval(self) -> Component:
+    def eval(self) -> Phoneme | Structure:
         for subnode in self._subnodes:
             if isinstance(subnode, TreeNode):
                 return subnode.eval()
@@ -91,7 +92,7 @@ class Concatenation(BinaryOperator):
         right: TreeNode | Component) -> None:
         super().__init__(left, right, Token(Operators.CONCATENATOR, "+"))
 
-    def eval(self) -> Component:
+    def eval(self) -> Phoneme | Structure:
         operands = super().eval()
         s = CustomStructure((Component,), (operands[0], operands[1]))
         s._substructures = ()
@@ -103,7 +104,7 @@ class Subtraction(BinaryOperator):
         right: TreeNode | Component) -> None:
         super().__init__(left, right, Token(Operators.SUBTRACTOR, "-"))
 
-    def eval(self) -> Component:
+    def eval(self) -> Phoneme | Structure:
         operands = super().eval()
         return CustomStructure((Component,), (operands[0], operands[1]))
 

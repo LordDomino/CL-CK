@@ -18,15 +18,9 @@ from clck.formulang.lexer.tokenizer import Tokenizer
 "? a + b = ab => c"
     # CONDITIONAL. If "a" is equal to "b" then perform "c"
 
-
 # DEMONSTRATION
-my_tokenizer = Tokenizer("a + b")
+my_tokenizer = Tokenizer("ɳ")
 my_tokenizer.analyze()
 
-tokens = my_tokenizer.get_tokens()
-my_parser = Parser(tokens)
-
-ast = my_parser.parse()
+ast = Parser(my_tokenizer.get_tokens()).parse()
 result = ast.eval()
-
-print(result)

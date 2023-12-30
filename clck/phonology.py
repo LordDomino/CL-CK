@@ -11,6 +11,7 @@ from clck.articulatory_properties import PlaceOfArticulation
 class Phoneme(Component):
 
     DEFAULT_IPA_PHONEMES: list["Phoneme"] = []
+    DEFAULT_IPA_SYMBOLS: list[str] = []
 
     def __init__(self, base_phone: Phone) -> None:
         """
@@ -30,6 +31,7 @@ class Phoneme(Component):
 
         if base_phone.is_default_IPA_phone():
             Phoneme.DEFAULT_IPA_PHONEMES.append(self)
+            Phoneme.DEFAULT_IPA_SYMBOLS.append(self._symbol)
 
     def __call__(self) -> str:
         return self._symbol

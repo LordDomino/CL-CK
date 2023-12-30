@@ -17,7 +17,7 @@ class Parser:
         self._next_token: Token | None = self._get_next_token()
         
         # initially start with None for sequence position -1
-        self._current_token: Token | None = None 
+        self._current_token: Token | None = None
 
     def parse(self) -> Formula:
         return Formula(self._parse_expr())
@@ -44,7 +44,8 @@ class Parser:
         return Term(self._parse_expr())
     
     def _parse_phoneme(self) -> Phoneme:
-        if self._next_token != None and self._next_token.type == Literals.STRING_LITERAL:
+        if self._next_token != None and self._next_token.type in (
+            Literals.STRING_LITERAL, Literals.IPA_CHARS):
             return DummyPhoneme(self._next_token.value)
         else:
             raise Exception(f"{self._next_token} is not a phoneme")

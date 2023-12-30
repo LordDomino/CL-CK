@@ -205,7 +205,7 @@ class Tokenizer:
             for token_definition in STANDARD_TOKENS:
                 if re.match(token_definition.value, token):
                     ret.append(Token(token_definition, token))
-                    continue
+                    break
 
         return tuple(ret)
 

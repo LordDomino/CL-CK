@@ -40,16 +40,10 @@ class Phoneme(Component):
         s: list[str] = []
         for property in self._base_phone.articulatory_properties:
             s.append(property.name)
-        return f"<{self.__class__.__name__} {self._transcript} {' '.join(s)}>"
+        return f"<{self.__class__.__name__} {self._transcript}>"
 
     def __str__(self) -> str:
-        s: str = ""
-        properties: list[str] = []
-        if len(self._base_phone.articulatory_properties) > 0:
-            for property in self._base_phone.articulatory_properties:
-                properties.append(property.name)
-            s = f" ({' '.join(properties)})"
-        return f"{self.__class__.__name__} {self._transcript}{s}"
+        return f"{self.__class__.__name__} {self._transcript}"
 
     @property
     def allophones(self) -> tuple[Phone, ...]:

@@ -71,10 +71,10 @@ class Structure(Component, ABC):
         self._topmost_type = self.__class__
 
     def __str__(self) -> str:
-        return f"<{self.__class__.__name__} {self._output}>"
+        return f"<{self.__class__.__name__} {{{self._output}}}>"
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self._output}>"
+        return f"<{self.__class__.__name__} {{{self._output}}}>"
 
     @abstractmethod
     def _create_transcript(self) -> str:
@@ -89,6 +89,10 @@ class Structure(Component, ABC):
     def consonants(self) -> tuple[ConsonantPhoneme, ...]:
         """The consonants of this structure."""
         return tuple(self._consonants)
+    
+    @property
+    def output(self) -> str:
+        return f"/{self._output}/"
 
     @property
     def phonemes(self) -> tuple[Phoneme, ...]:
@@ -276,14 +280,14 @@ class Structure(Component, ABC):
         return "_".join(names)
 
     def _create_output(self) -> str:
-        output: str = ""
+        output: list[str] = []
         for s in self._components:
             if isinstance(s, Structure):
                 output += s._create_output()
             elif isinstance(s, Phoneme):
                 output += s.symbol
 
-        return output
+        return ".".join(output)
 
     def _filter_none(self,
             collection: tuple[T | NoneType, ...]) -> tuple[T, ...]:

@@ -41,7 +41,7 @@ class TreeNode:
 
         return _str
 
-    def eval(self) -> Phoneme | Structure:
+    def eval(self) -> Phoneme | Structure:        
         for subnode in self._subnodes:
             if isinstance(subnode, TreeNode):
                 return subnode.eval()
@@ -61,64 +61,75 @@ class TreeNode:
 
 
 class Operator(TreeNode):
-    def __init__(self, *args: TreeNode | Component) -> None:
+    def __init__(self, *args: TreeNode | Phoneme | Structure) -> None:
         super().__init__(*args)
 
 
 class BinaryOperator(Operator):
-    def __init__(self, left: TreeNode | Component,
-        right: TreeNode | Component, operator: Token) -> None:
+    def __init__(self, left: TreeNode | Phoneme | Structure,
+        right: TreeNode | Phoneme | Structure, operator: Token) -> None:
         super().__init__(left, right)
         self._left = left
         self._right = right
         self._operator = operator
 
-    def eval(self) -> tuple[Component, Component]:
-        if isinstance(self._left, TreeNode):
-            lval = self._left.eval()
-        else:
-            lval = self._left
+    # def eval(self) -> Phoneme | Structure:
+    #     if isinstance(self._left, TreeNode):
+    #         lval = self._left.eval()
+    #     else:
+    #         lval = self._left
 
-        if isinstance(self._right, TreeNode):
-            rval = self._right.eval()
-        else:
-            rval = self._right
+    #     if isinstance(self._right, TreeNode):
+    #         rval = self._right.eval()
+    #     else:
+    #         rval = self._right
 
-        return (lval, rval)
+    #     return (lval, rval)
 
 
 class Concatenation(BinaryOperator):
-    def __init__(self, left: TreeNode | Component,
-        right: TreeNode | Component) -> None:
+
+    _level: int = 0
+
+    def __init__(self, left: TreeNode | Phoneme | Structure,
+        right: TreeNode | Phoneme | Structure) -> None:
         super().__init__(left, right, Token(Operators.CONCATENATOR, "+"))
 
-    def eval(self) -> Phoneme | Structure:
-        operands = super().eval()
-        s = CustomStructure((Component,), (operands[0], operands[1]))
-        s._substructures = ()
-        return s
+    def eval(self) -> Structure:
+        Concatenation._level += 1
+        components: list[Phoneme | Structure] = []
+
+        for subnode in self._subnodes:
+            if isinstance(subnode, Phoneme):
+                components.append(subnode)
+            elif isinstance(subnode, Structure):
+                components.append(subnode)
+            else:
+                components.append(subnode.eval())
+
+        return CustomStructure((Component,), tuple(components))
 
 
 class Subtraction(BinaryOperator):
-    def __init__(self, left: TreeNode | Component,
-        right: TreeNode | Component) -> None:
+    def __init__(self, left: TreeNode | Phoneme | Structure,
+        right: TreeNode | Phoneme | Structure) -> None:
         super().__init__(left, right, Token(Operators.SUBTRACTOR, "-"))
 
-    def eval(self) -> Phoneme | Structure:
-        operands = super().eval()
-        return CustomStructure((Component,), (operands[0], operands[1]))
-
-
-class Term(TreeNode):
-    def __init__(self, *args: TreeNode | Component) -> None:
-        super().__init__(*clean_collection(args))
+    # def eval(self) -> Phoneme | Structure:
+    #     operands = super().eval()
+    #     return CustomStructure((Component,), (operands[0], operands[1]))
 
 
 class Expression(TreeNode):
-    def __init__(self, *args: TreeNode | Component) -> None:
+    def __init__(self, *args: TreeNode | Phoneme | Structure) -> None:
         super().__init__(*args)
 
 
+class Term(TreeNode):
+    def __init__(self, *args: TreeNode | Phoneme | Structure) -> None:
+        super().__init__(*clean_collection(args))
+
+
 class Formula(TreeNode):
-    def __init__(self, *args: TreeNode | Component) -> None:
+    def __init__(self, *args: TreeNode | Phoneme | Structure) -> None:
         super().__init__(*args)

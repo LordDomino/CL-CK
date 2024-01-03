@@ -19,7 +19,7 @@ from clck.formulang.lexer.tokenizer import Tokenizer
     # CONDITIONAL. If "a" is equal to "b" then perform "c"
 
 # DEMONSTRATION
-my_tokenizer = Tokenizer("a+b+c+d")
+my_tokenizer = Tokenizer("a + b + {c + a}")
 my_tokenizer.analyze()
 
 ast = Parser(my_tokenizer.get_tokens()).parse()

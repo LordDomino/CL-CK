@@ -11,13 +11,16 @@ class TreeNode:
     _indent_count: int = 0
     _indent_size: int = 2
 
-    def __init__(self, *subnodes: "TreeNode | Phoneme | Structure") -> None:
+    def __init__(self, subnodes: tuple["TreeNode | Phoneme | Structure", ...],
+        brace_level: int) -> None:
         self._subnodes = subnodes
+        self._brace_level = brace_level
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}>"
+        return f"<{self.__class__.__name__} brace_level={self._brace_level}>"
 
     def __str__(self) -> str:
+        print(self.__repr__())
         _str = "{\n"
         TreeNode._indent_in()
 
@@ -61,14 +64,16 @@ class TreeNode:
 
 
 class Operator(TreeNode):
-    def __init__(self, *args: TreeNode | Phoneme | Structure) -> None:
-        super().__init__(*args)
+    def __init__(self, subnodes: tuple[TreeNode | Phoneme | Structure, ...],
+        brace_level: int) -> None:
+        super().__init__(subnodes, brace_level)
 
 
 class BinaryOperator(Operator):
     def __init__(self, left: TreeNode | Phoneme | Structure,
-        right: TreeNode | Phoneme | Structure, operator: Token) -> None:
-        super().__init__(left, right)
+        right: TreeNode | Phoneme | Structure, operator: Token,
+        brace_level: int) -> None:
+        super().__init__((left, right), brace_level)
         self._left = left
         self._right = right
         self._operator = operator
@@ -92,8 +97,9 @@ class Concatenation(BinaryOperator):
     _level: int = 0
 
     def __init__(self, left: TreeNode | Phoneme | Structure,
-        right: TreeNode | Phoneme | Structure) -> None:
-        super().__init__(left, right, Token(Operators.CONCATENATOR, "+"))
+        right: TreeNode | Phoneme | Structure, brace_level: int) -> None:
+        super().__init__(left, right, Token(Operators.CONCATENATOR, "+", -1), brace_level)
+
 
     def eval(self) -> Structure:
         Concatenation._level += 1
@@ -112,8 +118,8 @@ class Concatenation(BinaryOperator):
 
 class Subtraction(BinaryOperator):
     def __init__(self, left: TreeNode | Phoneme | Structure,
-        right: TreeNode | Phoneme | Structure) -> None:
-        super().__init__(left, right, Token(Operators.SUBTRACTOR, "-"))
+        right: TreeNode | Phoneme | Structure, brace_level: int) -> None:
+        super().__init__(left, right, Token(Operators.SUBTRACTOR, "-", -1), brace_level)
 
     # def eval(self) -> Phoneme | Structure:
     #     operands = super().eval()
@@ -121,15 +127,23 @@ class Subtraction(BinaryOperator):
 
 
 class Expression(TreeNode):
-    def __init__(self, *args: TreeNode | Phoneme | Structure) -> None:
-        super().__init__(*args)
+    def __init__(self, subnodes: tuple[TreeNode | Phoneme | Structure, ...],
+        brace_level: int) -> None:
+        super().__init__(subnodes, brace_level)
 
 
 class Term(TreeNode):
-    def __init__(self, *args: TreeNode | Phoneme | Structure) -> None:
-        super().__init__(*clean_collection(args))
+    def __init__(self, subnodes: tuple[TreeNode | Phoneme | Structure, ...],
+        brace_level: int) -> None:
+        super().__init__(clean_collection(subnodes), brace_level)
 
 
 class Formula(TreeNode):
-    def __init__(self, *args: TreeNode | Phoneme | Structure) -> None:
-        super().__init__(*args)
+    def __init__(self, subnodes: tuple[TreeNode | Phoneme | Structure, ...]) -> None:
+        super().__init__(subnodes, -1)
+
+
+class StructureNode(TreeNode):
+    def __init__(self, subnodes: tuple[TreeNode | Phoneme | Structure, ...],
+        brace_level: int) -> None:
+        super().__init__(subnodes, brace_level)

@@ -16,6 +16,7 @@ ResultName: TypeAlias = str
 class Token:
     type: StandardTokens
     value: Any
+    brace_level: int
 
     def __repr__(self) -> str:
         if self.type.name == Literals.STRING_LITERAL.name:
@@ -198,13 +199,23 @@ class Tokenizer:
         delimiter: str = self._get_delimiter_str()
 
         # Get the strings of tokens
-        raw_tokens = clean_collection(re.split(rf"({delimiter}|\d+)", formula))
+        raw_tokens: tuple[str, ...] = clean_collection(re.split(rf"({delimiter}|\d+)", formula))
+
+        brace_level: int = 0
 
         # Create Token objects from strings
         for token in raw_tokens:
             for token_definition in STANDARD_TOKENS:
+                
+                # Used to indicate brace levels
+                if token == "{":
+                    brace_level += 1
+                elif token == "}":
+                    brace_level -= 1
+
+                # Actually match the tokens to the definitions
                 if re.match(token_definition.value, token):
-                    ret.append(Token(token_definition, token))
+                    ret.append(Token(token_definition, token, brace_level))
                     break
 
         return tuple(ret)

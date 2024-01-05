@@ -71,12 +71,10 @@ class Operator(TreeNode):
 
 class BinaryOperator(Operator):
     def __init__(self, left: TreeNode | Phoneme | Structure,
-        right: TreeNode | Phoneme | Structure, operator: Token,
-        brace_level: int) -> None:
+        right: TreeNode | Phoneme | Structure, brace_level: int) -> None:
         super().__init__((left, right), brace_level)
         self._left = left
         self._right = right
-        self._operator = operator
 
     # def eval(self) -> Phoneme | Structure:
     #     if isinstance(self._left, TreeNode):
@@ -98,7 +96,7 @@ class Concatenation(BinaryOperator):
 
     def __init__(self, left: TreeNode | Phoneme | Structure,
         right: TreeNode | Phoneme | Structure, brace_level: int) -> None:
-        super().__init__(left, right, Token(Operators.CONCATENATOR, "+", -1), brace_level)
+        super().__init__(left, right, brace_level)
 
 
     def eval(self) -> Structure:
@@ -119,7 +117,7 @@ class Concatenation(BinaryOperator):
 class Subtraction(BinaryOperator):
     def __init__(self, left: TreeNode | Phoneme | Structure,
         right: TreeNode | Phoneme | Structure, brace_level: int) -> None:
-        super().__init__(left, right, Token(Operators.SUBTRACTOR, "-", -1), brace_level)
+        super().__init__(left, right, brace_level)
 
     # def eval(self) -> Phoneme | Structure:
     #     operands = super().eval()

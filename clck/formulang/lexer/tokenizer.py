@@ -205,18 +205,20 @@ class Tokenizer:
 
         # Create Token objects from strings
         for token in raw_tokens:
-            for token_definition in STANDARD_TOKENS:
-                
-                # Used to indicate brace levels
-                if token == "{":
-                    brace_level += 1
-                elif token == "}":
-                    brace_level -= 1
 
+            # Used to indicate closing brace levels
+            if token in ("}", ")"):
+                brace_level -= 1
+
+            for token_definition in STANDARD_TOKENS:
                 # Actually match the tokens to the definitions
                 if re.match(token_definition.value, token):
                     ret.append(Token(token_definition, token, brace_level))
                     break
+
+            # Used to indicate opening brace levels
+            if token in ("{", "("):
+                brace_level += 1
 
         return tuple(ret)
 

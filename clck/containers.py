@@ -63,7 +63,7 @@ class PhonemeGroup:
     def __str__(self) -> str:
         phonemes: list[str] = []
         for phoneme in self._phonemes:
-            phonemes.append(phoneme.transcript)
+            phonemes.append(phoneme.ipa_transcript)
         return f"PhonemeGroup \"{self._label}\" containing phonemes {', '.join(phonemes)}"
 
     @property

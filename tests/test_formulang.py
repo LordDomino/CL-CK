@@ -1,3 +1,4 @@
+import time
 from clck.formulang.parsing.parser import Parser
 from clck.formulang.lexer.tokenizer import Tokenizer
 
@@ -19,11 +20,23 @@ from clck.formulang.lexer.tokenizer import Tokenizer
     # CONDITIONAL. If "a" is equal to "b" then perform "c"
 
 # DEMONSTRATION
-my_tokenizer = Tokenizer("{a} + (a + (a)) + c")
+my_tokenizer = Tokenizer("a + b")
 my_tokenizer.analyze()
 
 ast = Parser(my_tokenizer.get_tokens()).parse()
-result = ast.eval()
 
-print(ast)
-print(result)
+def iterate():
+    iter = int(input("Iterations: "))
+
+    for _ in range(iter):
+        result = ast.eval()
+        # print(ast)
+        print(result)
+        time.sleep(0.1)
+
+def single():
+    result = ast.eval()
+    # print(ast)
+    print(result)
+
+single()

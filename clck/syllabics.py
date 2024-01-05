@@ -71,14 +71,28 @@ class Structure(Component, ABC):
         self._topmost_type = self.__class__
 
     def __str__(self) -> str:
-        return f"<{self.__class__.__name__} {{{self._output}}}>"
+        comps: list[str] = []
+        for c in self._components:
+            comps.append(c._formulang_transcript)
+
+        return f"<{self.__class__.__name__} {{{'.'.join(comps)}}}>"
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {{{self._output}}}>"
+        comps: list[str] = []
+        for c in self._components:
+            comps.append(c._formulang_transcript)
+
+        return f"<{self.__class__.__name__} {{{'.'.join(comps)}}}>"
 
     @abstractmethod
-    def _create_transcript(self) -> str:
+    def _create_ipa_transcript(self) -> str:
         return f"/{self._output}/"
+    
+    def _create_formulang_transcript(self) -> str:
+        strs: list[str] = []
+        for c in self._components:
+            strs.append(c.formulang_transcript)
+        return f"{{{'.'.join(strs)}}}"
 
     @property
     def components(self) -> tuple[Component, ...]:
@@ -92,7 +106,7 @@ class Structure(Component, ABC):
     
     @property
     def output(self) -> str:
-        return f"/{self._output}/"
+        return f"{self._output}"
 
     @property
     def phonemes(self) -> tuple[Phoneme, ...]:
@@ -280,14 +294,11 @@ class Structure(Component, ABC):
         return "_".join(names)
 
     def _create_output(self) -> str:
-        output: list[str] = []
-        for s in self._components:
-            if isinstance(s, Structure):
-                output += s._create_output()
-            elif isinstance(s, Phoneme):
-                output += s.symbol
+        comps: list[str] = []
+        for c in self._phonemes:
+            comps.append(c.output)
 
-        return ".".join(output)
+        return "".join(comps)
 
     def _filter_none(self,
             collection: tuple[T | NoneType, ...]) -> tuple[T, ...]:
@@ -542,13 +553,13 @@ class SyllabicComponent(Structure, ABC):
                 component.get_phonemes()
         return phonemes
 
-    def _create_transcript(self) -> str:
+    def _create_ipa_transcript(self) -> str:
         t: str = ""
         for c in self._components:
             if isinstance(c, Phoneme):
-                t += c.transcript
+                t += c.ipa_transcript
             else:
-                t += c._create_transcript()
+                t += c._create_ipa_transcript()
         return t
 
 
@@ -701,7 +712,7 @@ class Rime(SyllabicComponent):
         """The coda component of this rime."""
         return self._coda
 
-    def _create_transcript(self) -> str:
+    def _create_ipa_transcript(self) -> str:
         t: str = ""
         for c in self._phonemes:
             t += c.symbol
@@ -784,7 +795,7 @@ class Syllable(Structure):
         """
         return self._rime
 
-    def _create_transcript(self) -> str:
+    def _create_ipa_transcript(self) -> str:
         t: str = ""
         for p in self._phonemes:
             t += p.symbol
@@ -802,11 +813,3 @@ class Syllable(Structure):
 
     def _post_init(self, rime: Rime | None = None) -> None:
         if rime is not None: self._rime = rime
-
-
-class CustomStructure(Structure):
-    def __init__(self, _valid_comp_types: tuple[type[Component], ...], components: tuple[Component, ...]) -> None:
-        super().__init__(_valid_comp_types, components)
-
-    def _create_transcript(self) -> str:
-        return super()._create_transcript()

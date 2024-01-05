@@ -40,10 +40,10 @@ class Phoneme(Component):
         s: list[str] = []
         for property in self._base_phone.articulatory_properties:
             s.append(property.name)
-        return f"<{self.__class__.__name__} {self._transcript}>"
+        return f"<{self.__class__.__name__} {self._ipa_transcript}>"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} {self._transcript}"
+        return f"{self.__class__.__name__} {self._ipa_transcript}"
 
     @property
     def allophones(self) -> tuple[Phone, ...]:
@@ -63,7 +63,10 @@ class Phoneme(Component):
     def _create_output(self) -> str:
         return self._symbol
     
-    def _create_transcript(self) -> str:
+    def _create_ipa_transcript(self) -> str:
+        return f"/{self._symbol}/"
+
+    def _create_formulang_transcript(self) -> str:
         return f"/{self._symbol}/"
 
 

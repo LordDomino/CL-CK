@@ -13,7 +13,8 @@ class Component(ABC):
 
     def __init__(self) -> None:
         """Creates a new `Component` object."""
-        self._transcript: str
+        self._ipa_transcript: str
+        self._formulang_transcript: str
         self._output: str
         self._are_base_properties_initialized = False
 
@@ -30,7 +31,7 @@ class Component(ABC):
                 return False
 
     @abstractmethod
-    def _create_transcript(self) -> str:
+    def _create_ipa_transcript(self) -> str:
         """
         Creates and returns the IPA transcript for this component.
         
@@ -38,6 +39,10 @@ class Component(ABC):
         -------
         - The IPA transcript for this component.
         """
+        pass
+
+    @abstractmethod
+    def _create_formulang_transcript(self) -> str:
         pass
 
     @abstractmethod
@@ -57,9 +62,13 @@ class Component(ABC):
         return self._output
 
     @property
-    def transcript(self) -> str:
+    def ipa_transcript(self) -> str:
         """The IPA transcript of this component."""
-        return self._transcript
+        return self._ipa_transcript
+    
+    @property
+    def formulang_transcript(self) -> str:
+        return self._formulang_transcript
 
     def _create_base_properties(self) -> None:
         """
@@ -67,7 +76,8 @@ class Component(ABC):
         work with inheritance.
         """
         self._output: str = self._create_output()
-        self._transcript: str = self._create_transcript()
+        self._ipa_transcript: str = self._create_ipa_transcript()
+        self._formulang_transcript: str = self._create_formulang_transcript()
         self._are_base_properties_initialized = True
 
         if self._are_base_properties_initialized:

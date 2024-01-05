@@ -1,4 +1,4 @@
-from typing import Any, TypeVar
+from typing import TypeVar
 
 
 T = TypeVar("T")
@@ -45,14 +45,14 @@ def strip_whitespace(s: str) -> str:
     return "".join(s.split())
 
 
-def tuple_append(t: tuple[Any, ...], item: Any) -> tuple[Any, ...]:
+def tuple_append(t: tuple[T, ...], item: T) -> tuple[T, ...]:
     """
     Provides a functionality to append items to a tuple.
     """
     return tuple([*t, item])
 
 
-def tuple_extend(t: tuple[Any, ...], collection: list[Any] | tuple[Any, ...]) -> tuple[Any, ...]:
+def tuple_extend(t: tuple[T, ...], collection: list[T] | tuple[T, ...]) -> tuple[T, ...]:
     """
     Provides a functionality to extend a collection to a tuple.
     """

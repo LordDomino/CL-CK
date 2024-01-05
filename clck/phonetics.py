@@ -72,7 +72,7 @@ class Phone(Component):
         return self._symbol
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self._transcript}>"
+        return f"<{self.__class__.__name__} {self._ipa_transcript}>"
 
     def __str__(self) -> str:
         s: str = ""
@@ -81,7 +81,7 @@ class Phone(Component):
             for property in self._articulatory_properties:
                 properties.append(property.name)
             s = f" ({' '.join(properties)})"
-        return f"{self.__class__.__name__} {self._transcript}{s}"
+        return f"{self.__class__.__name__} {self._ipa_transcript}{s}"
 
     @property
     def articulatory_properties(self) -> tuple[ArticulatoryProperty, ...]:
@@ -113,8 +113,11 @@ class Phone(Component):
     def _create_output(self) -> str:
         return self._symbol
 
-    def _create_transcript(self) -> str:
+    def _create_ipa_transcript(self) -> str:
         return f"[{self._symbol}]"
+    
+    def _create_formulang_transcript(self) -> str:
+        return f"{self._symbol}"
 
     def _get_property_names(self) -> list[str]:
         """

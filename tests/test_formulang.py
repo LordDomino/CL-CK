@@ -1,4 +1,3 @@
-import time
 from clck.formulang.parsing.parser import Parser
 from clck.formulang.lexer.tokenizer import Tokenizer
 
@@ -23,20 +22,13 @@ from clck.formulang.lexer.tokenizer import Tokenizer
 my_tokenizer = Tokenizer("a + b")
 my_tokenizer.analyze()
 
-ast = Parser(my_tokenizer.get_tokens()).parse()
+my_parser = Parser(my_tokenizer.get_tokens())
+ast = my_parser.parse()
 
-def iterate():
-    iter = int(input("Iterations: "))
+print(ast.get_json())
+result = ast.eval()
 
-    for _ in range(iter):
-        result = ast.eval()
-        # print(ast)
-        print(result)
-        time.sleep(0.1)
-
-def single():
-    result = ast.eval()
-    # print(ast)
-    print(result)
-
-single()
+if result != None:
+    print(result.output)
+else:
+    print("EMPTY")

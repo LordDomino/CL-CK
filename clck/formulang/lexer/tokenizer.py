@@ -31,6 +31,9 @@ class Token:
             return f"<Token {self.type.name} {self.value}>"
 
 
+EPSILON_TOKEN = Token(Literals.EPSILON, "", -1)
+
+
 class Tokenizer:
     """The class for `Tokenizer`.
     
@@ -219,6 +222,8 @@ class Tokenizer:
             # Used to indicate opening brace levels
             if token in ("{", "("):
                 brace_level += 1
+
+        ret.append(EPSILON_TOKEN)
 
         return tuple(ret)
 

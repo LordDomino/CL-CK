@@ -191,9 +191,10 @@ class Literals(NativeTokens):
     """`Literals` contain the string literal and numeric literal
     definitions.
     """
-    IPA_CHARS = rf"[{''.join(Phoneme.DEFAULT_IPA_SYMBOLS)}]+" 
     STRING_LITERAL = r"[a-zA-Z]+"
     NUMERIC_LITERAL = r"[0-9]+"
+    EPSILON = ""
+    # IPA_CHARS = rf"[{''.join(Phoneme.DEFAULT_IPA_SYMBOLS)}]+" 
 
 
 class Wildcards(NativeTokens):

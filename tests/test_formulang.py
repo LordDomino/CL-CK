@@ -1,5 +1,4 @@
-from clck.formulang.parsing.parser import Parser
-from clck.formulang.lexer.tokenizer import Tokenizer
+from clck.formulang.common import generate_multiple
 
 "(a)((yu)bc)(d)"  # Example
 
@@ -19,16 +18,6 @@ from clck.formulang.lexer.tokenizer import Tokenizer
     # CONDITIONAL. If "a" is equal to "b" then perform "c"
 
 # DEMONSTRATION
-my_tokenizer = Tokenizer("a + b")
-my_tokenizer.analyze()
-
-my_parser = Parser(my_tokenizer.get_tokens())
-ast = my_parser.parse()
-
-print(ast.get_json())
-result = ast.eval()
-
-if result != None:
-    print(result.output)
-else:
-    print("EMPTY")
+for r in generate_multiple("{m | n | p} + {a | e | i | o | u} + {t | g | m}", 10):
+    if r != None:
+        print(r, r.output)

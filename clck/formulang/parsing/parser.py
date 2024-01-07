@@ -1,7 +1,7 @@
 from typing import Callable
 from clck.formulang.definitions.tokens import CommonGroupings, Literals, StandardTokens, TypeGroupings
 from clck.formulang.definitions.tokens import Operators
-from clck.formulang.lexer.tokenizer import EPSILON_TOKEN, Token
+from clck.formulang.parsing.tokenizer import EPSILON_TOKEN, Token
 from clck.formulang.parsing.parse_tree import Concatenation, Factor, FormulangPhoneme, ProbabilityNode, Selection, StructureNode, Operation, TreeNode
 from clck.formulang.parsing.parse_tree import Expression
 from clck.formulang.parsing.parse_tree import Formula
@@ -20,6 +20,12 @@ class Parser:
         self._current_brace_level: int = -1
 
     def parse(self) -> Formula:
+        ast = self._raw_parse()
+        self._reset()
+
+        return ast
+
+    def _raw_parse(self) -> Formula:
         expr = self._parse_expr()
 
         if self._sequence_pos < len(self._tokens) - 2:
@@ -141,7 +147,7 @@ class Parser:
                 ret.append(EPSILON_TOKEN)
                 current_ahead += 1
             return tuple(ret)
-        
+
     def _advance(self, steps: int) -> None:
         self._sequence_pos += 1
 
@@ -186,3 +192,9 @@ class Parser:
                 self._advance(1)
                 parsed = match_to[key]()
                 return (parsed, key)
+            
+    def _reset(self) -> None:
+        self._sequence_pos: int = -1
+        self._next_tokens: tuple[Token, ...] = self._get_next_tokens(1)
+        self._current_token = None
+        self._current_brace_level: int = -1

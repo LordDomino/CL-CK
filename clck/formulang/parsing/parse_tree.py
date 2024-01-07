@@ -6,12 +6,24 @@ from clck.utils import clean_collection
 
 
 class TreeNode:
+    """Class for all Formulang parse tree nodes.
+    """
 
     _indent_count: int = 0
     _indent_size: int = 4
 
     def __init__(self, subnodes: tuple["TreeNode", ...],
         brace_level: int) -> None:
+        """Creates a new `TreeNode` object.
+
+        Parameters
+        ----------
+        subnodes : tuple[TreeNode, ...]
+            the subnodes of this `TreeNode`
+        brace_level : int
+            the indicator of this `TreeNode`'s level in the hierarchy of
+            structures
+        """
         self._subnodes = subnodes
         self._brace_level = brace_level
 
@@ -22,68 +34,100 @@ class TreeNode:
         _str = "{\n"
         TreeNode._indent_in()
 
-        _str += self._get_indentation() + f"type: {self.__class__.__name__} brace_level={self._brace_level},\n"
+        _str += self._get_indentation(4) + f"type: {self.__class__.__name__} brace_level={self._brace_level},\n"
 
         if len(self._subnodes) == 1:
-            _str += self._get_indentation() + "value: "
+            _str += self._get_indentation(4) + "value: "
             _str += f"{self._subnodes[0].__str__()}"
         else:
-            _str += self._get_indentation() + "value: [\n"
+            _str += self._get_indentation(4) + "value: [\n"
 
             TreeNode._indent_in()
             for arg in self._subnodes:
-                _str += self._get_indentation() + f"{arg.__str__()}" + ",\n"
+                _str += self._get_indentation(4) + f"{arg.__str__()}" + ",\n"
 
             TreeNode._indent_out()
-            _str += self._get_indentation() + "]"
+            _str += self._get_indentation(4) + "]"
 
         TreeNode._indent_out()
-        _str += "\n" + self._get_indentation() + "}"
+        _str += "\n" + self._get_indentation(4) + "}"
 
         return _str
 
     @property
     def brace_level(self) -> int:
+        """The indicator of this `TreeNode`'s level in the hierarchy of
+        structures.
+        """
         return self._brace_level
     
     @property
     def subnodes(self) -> tuple["TreeNode", ...]:
+        """The subnodes of this `TreeNode`.
+        """
         return self._subnodes
 
     def eval(self) -> "FormulangPhoneme | FormulangStructure | None":
+        """Evaluates each subnode of this current `TreeNode` and returns
+        a resultant `Phoneme`, `Structure`, or `None` based on the
+        recursive evaluation in the parse tree.
+
+        Returns
+        -------
+        FormulangPhoneme | FormulangStructure | None
+            the result after recursive evaluation starting from this
+            `TreeNode`
+
+        Raises
+        ------
+        Exception
+            if there are no subnodes for this instance
+        """
         for subnode in self._subnodes:
             return subnode.eval()
         raise Exception("Evaluation error")
 
     def get_json(self, indent: int = 4) -> str:
-        TreeNode._indent_size = indent
+        """Returns a JSON string copy of the parse tree branch starting
+        from this `TreeNode`.
 
+        Parameters
+        ----------
+        indent : int, optional
+            the number of spaces to indent each level in the JSON
+            string, by default 4
+
+        Returns
+        -------
+        str
+            the JSON string of the parse tree branch
+        """
         _str = "{\n"
         TreeNode._indent_in()
 
-        _str += self._get_indentation() + f"\"type\": \"{self.__class__.__name__} bl={self._brace_level}\",\n"
+        _str += self._get_indentation(indent) + f"\"type\": \"{self.__class__.__name__} bl={self._brace_level}\",\n"
 
         if len(self._subnodes) == 1:
-            _str += self._get_indentation() + "\"value\": "
+            _str += self._get_indentation(indent) + "\"value\": "
             _str += f"{self._subnodes[0].get_json(indent)}"
         else:
-            _str += self._get_indentation() + "\"value\": [\n"
+            _str += self._get_indentation(indent) + "\"value\": [\n"
             array: list[str] = []
             TreeNode._indent_in()
             for arg in self._subnodes:
-                array.append(self._get_indentation() + f"{arg.get_json(indent)}")
+                array.append(self._get_indentation(indent) + f"{arg.get_json(indent)}")
             TreeNode._indent_out()
             _str += ",\n".join(array) + "\n"
-            _str += self._get_indentation() + "]"
+            _str += self._get_indentation(indent) + "]"
 
 
         TreeNode._indent_out()
-        _str += "\n" + self._get_indentation() + "}"
+        _str += "\n" + self._get_indentation(indent) + "}"
 
         return _str
 
-    def _get_indentation(self) -> str:
-        return " " * TreeNode._indent_count * TreeNode._indent_size
+    def _get_indentation(self, indent_size: int) -> str:
+        return " " * TreeNode._indent_count * indent_size
     
     @classmethod
     def _indent_in(cls) -> None:
@@ -118,9 +162,9 @@ class FormulangPhoneme(DummyPhoneme, TreeNode):
 
         _str += "{\n"
         TreeNode._indent_in()
-        _str += self._get_indentation() + f"\"{self.__class__.__name__}\": \"{self.ipa_transcript}\"\n"
+        _str += self._get_indentation(indent) + f"\"{self.__class__.__name__}\": \"{self.ipa_transcript}\"\n"
         TreeNode._indent_out()
-        _str += self._get_indentation() + "}"
+        _str += self._get_indentation(indent) + "}"
         return _str
 
 
@@ -191,7 +235,7 @@ class Concatenation(Operation):
         super().__init__(operands, brace_level)
         self._operands = operands
 
-    def eval(self) -> FormulangStructure:
+    def eval(self) -> FormulangStructure | None:
         # The following code allows detection of 'chained' operations to
         # add either as structures or phonemes depending on the brace level
         components: list[Component] = []
@@ -208,7 +252,10 @@ class Concatenation(Operation):
                 else:
                     components.append(operand)
 
-        return FormulangStructure((Component,), tuple(components),
+        if components == []:
+            return None
+        else:
+            return FormulangStructure((Component,), tuple(components),
             self._brace_level)
 
 

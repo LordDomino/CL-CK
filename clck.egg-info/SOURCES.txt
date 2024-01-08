@@ -23,8 +23,5 @@ clck.egg-info/PKG-INFO
 clck.egg-info/SOURCES.txt
 clck.egg-info/dependency_links.txt
 clck.egg-info/top_level.txt
-clck/lexer/__init__.py
-clck/lexer/definitions.py
-clck/lexer/parser.py
-clck/lexer/proto_parser.py
-clck/lexer/tokenizer.py
+tests/test_formulang.py
+tests/test_syllabics.py

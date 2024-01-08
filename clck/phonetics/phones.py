@@ -43,11 +43,11 @@ class Phone(Component):
         - `_is_default`: whether or not to create this as a default
             object
         """
-        super().__init__()
         self._is_default = _is_IPA_default
         self._symbol = symbol
         self._articulatory_properties = (articulatory_properties)
-        self._create_base_properties()
+        
+        super().__init__()
 
         if self.is_default_IPA_phone():
             Phone._append_to_defaults(self)
@@ -110,14 +110,17 @@ class Phone(Component):
         """
         return self._is_default
 
-    def _create_output(self) -> str:
+    def _init_output(self) -> str:
         return self._symbol
 
-    def _create_ipa_transcript(self) -> str:
+    def _init_ipa_transcript(self) -> str:
         return f"[{self._symbol}]"
     
-    def _create_formulang_transcript(self) -> str:
+    def _init_formulang_transcript(self) -> str:
         return f"{self._symbol}"
+    
+    def _init_romanization(self) -> str | None:
+        return super()._init_romanization()
 
     def _get_property_names(self) -> list[str]:
         """
@@ -132,7 +135,7 @@ class Phone(Component):
 
 
 class DummyPhone(Phone):
-    def __init__(self, symbol: str) -> None:
+    def __init__(self, symbol: str = "$") -> None:
         """
         Creates a `Dummy` instance containing no articulatory
         properties.

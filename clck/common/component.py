@@ -11,12 +11,17 @@ class Component(ABC):
     can be outputted as a string that is readable by the user.
     """
 
+    @abstractmethod
     def __init__(self) -> None:
-        """Creates a new `Component` object."""
-        self._ipa_transcript: str
-        self._formulang_transcript: str
-        self._output: str
-        self._are_base_properties_initialized = False
+        """Convenience method to execute common post-initialization to
+        work with inheritance.
+        """
+        self._output: str = self._init_output()
+        self._ipa_transcript: str = self._init_ipa_transcript()
+        self._formulang_transcript: str = self._init_formulang_transcript()
+        self._romanization: str | None = self._init_romanization()
+
+        print_debug(f"{self} base properties initialized")
 
     def __eq__(self, __value: object) -> bool:
         if self.__class__ != __value.__class__:
@@ -31,7 +36,7 @@ class Component(ABC):
                 return False
 
     @abstractmethod
-    def _create_ipa_transcript(self) -> str:
+    def _init_ipa_transcript(self) -> str:
         """
         Creates and returns the IPA transcript for this component.
         
@@ -42,11 +47,11 @@ class Component(ABC):
         pass
 
     @abstractmethod
-    def _create_formulang_transcript(self) -> str:
+    def _init_formulang_transcript(self) -> str:
         pass
 
     @abstractmethod
-    def _create_output(self) -> str:
+    def _init_output(self) -> str:
         """
         Creates and returns the output string of this component.
 
@@ -54,6 +59,10 @@ class Component(ABC):
         -------
         - The output string of this component.
         """
+        pass
+
+    @abstractmethod
+    def _init_romanization(self) -> str | None:
         pass
 
     @property
@@ -69,16 +78,3 @@ class Component(ABC):
     @property
     def formulang_transcript(self) -> str:
         return self._formulang_transcript
-
-    def _create_base_properties(self) -> None:
-        """
-        Convenience method to execute common post-initialization to
-        work with inheritance.
-        """
-        self._output: str = self._create_output()
-        self._ipa_transcript: str = self._create_ipa_transcript()
-        self._formulang_transcript: str = self._create_formulang_transcript()
-        self._are_base_properties_initialized = True
-
-        if self._are_base_properties_initialized:
-            print_debug(f"{self} base properties initialized")

@@ -185,8 +185,8 @@ class FormulangStructure(Structure, TreeNode):
     def eval(self) -> "FormulangStructure":
         return self
 
-    def _create_ipa_transcript(self) -> str:
-        return super()._create_ipa_transcript()
+    def _init_ipa_transcript(self) -> str:
+        return super()._init_ipa_transcript()
 
 
 class Formula(TreeNode):

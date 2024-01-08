@@ -1,4 +1,5 @@
-from clck.formulang import generate_multiple
+import time
+from clck.formulang.common import generate_multiple
 
 "(a)((yu)bc)(d)"  # Example
 
@@ -18,6 +19,9 @@ from clck.formulang import generate_multiple
     # CONDITIONAL. If "a" is equal to "b" then perform "c"
 
 # DEMONSTRATION
-for r in generate_multiple("{m | n | p} + {a | e | i | o | u} + {t | g | m}", 10):
-    if r != None:
-        print(r, r.output)
+iters: int = 10
+start = time.time()
+generate_multiple("{m | n | p} + {a | e | i | o | u} + {t | g | m}", iters)
+stop = time.time()
+
+print(f"{stop - start} elapsed time for {iters} iterations")

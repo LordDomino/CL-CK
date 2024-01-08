@@ -59,7 +59,6 @@ class Structure(Component, ABC):
         - `TypeError` if any element in `components` is not any of the
         allowed types in `_valid_comp_types`.
         """
-        super().__init__()
         self._valid_comp_types = tuple([*_valid_comp_types])
         self._components = self._filter_none(components)
         self._assert_components()
@@ -71,7 +70,7 @@ class Structure(Component, ABC):
 
         # Only then call the parent constructor after all necessary
         # attributes are initialized
-        super()._create_base_properties()
+        super().__init__()
 
         self._size = len(self._phonemes)
         self._topmost_type = self.__class__
@@ -91,14 +90,17 @@ class Structure(Component, ABC):
         return f"<{self.__class__.__name__} {{{'.'.join(comps)}}}>"
 
     @abstractmethod
-    def _create_ipa_transcript(self) -> str:
+    def _init_ipa_transcript(self) -> str:
         return f"/{self._output}/"
     
-    def _create_formulang_transcript(self) -> str:
+    def _init_formulang_transcript(self) -> str:
         strs: list[str] = []
         for c in self._components:
             strs.append(c.formulang_transcript)
         return f"{{{'.'.join(strs)}}}"
+    
+    def _init_romanization(self) -> str:
+        return "_create_romanization() WIP"
 
     @property
     def components(self) -> tuple[Component, ...]:
@@ -278,6 +280,7 @@ class Structure(Component, ABC):
                     break
                 else:
                     mistype = True
+                    break
             if mistype:
                 raise TypeError(f"Component {c} is not of any type "
                     f"in allowed types: {self._valid_comp_types}")
@@ -299,7 +302,7 @@ class Structure(Component, ABC):
 
         return "_".join(names)
 
-    def _create_output(self) -> str:
+    def _init_output(self) -> str:
         comps: list[str] = []
         for c in self._phonemes:
             comps.append(c.output)
@@ -559,13 +562,13 @@ class SyllabicComponent(Structure, ABC):
                 component.get_phonemes()
         return phonemes
 
-    def _create_ipa_transcript(self) -> str:
+    def _init_ipa_transcript(self) -> str:
         t: str = ""
         for c in self._components:
             if isinstance(c, Phoneme):
                 t += c.ipa_transcript
             else:
-                t += c._create_ipa_transcript()
+                t += c._init_ipa_transcript()
         return t
 
 
@@ -625,7 +628,7 @@ class PhonemeCluster(SyllabicComponent):
         """
         super().__init__((allowed_type,), *components)
         self._phonemes: tuple[Phoneme, ...] = components
-        self._output: str = self._create_output()
+        self._output: str = self._init_output()
         self._check_cluster_size()
 
     def __str__(self) -> str:
@@ -718,7 +721,7 @@ class Rime(SyllabicComponent):
         """The coda component of this rime."""
         return self._coda
 
-    def _create_ipa_transcript(self) -> str:
+    def _init_ipa_transcript(self) -> str:
         t: str = ""
         for c in self._phonemes:
             t += c.symbol
@@ -801,7 +804,7 @@ class Syllable(Structure):
         """
         return self._rime
 
-    def _create_ipa_transcript(self) -> str:
+    def _init_ipa_transcript(self) -> str:
         t: str = ""
         for p in self._phonemes:
             t += p.symbol

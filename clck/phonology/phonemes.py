@@ -13,7 +13,7 @@ class Phoneme(Component):
     DEFAULT_IPA_PHONEMES: list["Phoneme"] = []
     DEFAULT_IPA_SYMBOLS: list[str] = []
 
-    def __init__(self, base_phone: Phone) -> None:
+    def __init__(self, base_phone: Phone, romanization: str | None = None) -> None:
         """
         Creates a `Phoneme` instance having one initial allophone.
 
@@ -22,10 +22,10 @@ class Phoneme(Component):
         - `base_phone`: is the initial allophone (a `Phone` instance)
             assigned to this phoneme
         """
-        super().__init__()
         self._base_phone = base_phone
         self._symbol = base_phone.symbol
-        self._create_base_properties()
+        self._romanization = romanization
+        super().__init__()
 
         self._allophones: list[Phone] = [base_phone]
 
@@ -60,14 +60,17 @@ class Phoneme(Component):
         """The assigned Unicode symbol for this phoneme."""
         return self._symbol
 
-    def _create_output(self) -> str:
+    def _init_output(self) -> str:
         return self._symbol
     
-    def _create_ipa_transcript(self) -> str:
+    def _init_ipa_transcript(self) -> str:
         return f"/{self._symbol}/"
 
-    def _create_formulang_transcript(self) -> str:
+    def _init_formulang_transcript(self) -> str:
         return f"/{self._symbol}/"
+    
+    def _init_romanization(self) -> str | None:
+        return self._romanization
 
 
 class DummyPhoneme(Phoneme):

@@ -1,2 +1,2 @@
-from common import DEFAULT_PATTERN_WILDCARDS
-from IPA import *
+from clck.ipa.common import DEFAULT_PATTERN_WILDCARDS
+from clck.ipa.IPA import *

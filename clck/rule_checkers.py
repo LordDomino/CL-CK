@@ -1,4 +1,4 @@
-from clck.phonotactics2 import GeneratorRule, Phonotactics, PostGenerationRule, PreGenerationRule
+from clck.phonology.phonotactics2 import GeneratorRule, Phonotactics, PostGenerationRule, PreGenerationRule
 
 
 def is_pre_generation_rule(rule: GeneratorRule) -> bool:
@@ -8,7 +8,7 @@ def is_pre_generation_rule(rule: GeneratorRule) -> bool:
         case _:
             return False
 
- 
+
 def is_post_generation_rule(rule: GeneratorRule) -> bool:
     match rule:
         case PostGenerationRule():

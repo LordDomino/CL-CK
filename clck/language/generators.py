@@ -1,8 +1,8 @@
 import random
-from clck.component import Component
-from clck.phonology import ConsonantPhoneme, Phoneme, PhonemicInventory, VowelPhoneme
-from clck.syllabics import SyllabicComponent
-from clck.containers import PhonemeGroup
+from clck.common.component import Component
+from clck.phonology.phonemes import ConsonantPhoneme, Phoneme, PhonemicInventory, VowelPhoneme
+from clck.phonology.syllabics import SyllabicComponent
+from clck.language.containers import PhonemeGroup
 
 
 class SyllableGenerator:

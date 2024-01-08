@@ -1,6 +1,6 @@
 from enum import Enum
 
-from clck.syllabics import Structure
+from clck.phonology.syllabics import Structure
 
 
 

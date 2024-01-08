@@ -1,10 +1,8 @@
-from clck.articulatory_properties import MannerOfArticulation
-from clck.articulatory_properties import Phonation
-from clck.articulatory_properties import PlaceOfArticulation
-from clck.containers import PhonemeGroup
-from clck.phonetics import PulmonicConsonantPhone
-from clck.phonology import ConsonantPhoneme
-from clck.phonology import VowelPhoneme
+from clck.phonetics.articulatory_properties import MannerOfArticulation
+from clck.phonetics.articulatory_properties import Phonation
+from clck.phonetics.articulatory_properties import PlaceOfArticulation
+from clck.phonetics.phones import PulmonicConsonantPhone
+from clck.phonology.phonemes import ConsonantPhoneme
 
 
 IPA_VOICED_BILABIAL_PLOSIVE     = ConsonantPhoneme(PulmonicConsonantPhone("\u0062", PlaceOfArticulation.BILABIAL, MannerOfArticulation.PLOSIVE, Phonation.VOICED, (), True))
@@ -31,8 +29,3 @@ IPA_VOICED_BILABIAL_TRILL       = ConsonantPhoneme(PulmonicConsonantPhone("\u029
 IPA_VOICED_ALVEOLAR_TRILL       = ConsonantPhoneme(PulmonicConsonantPhone("\u0072", PlaceOfArticulation.ALVEOLAR, MannerOfArticulation.TRILL, Phonation.VOICELESS, (), True))
 IPA_VOICED_UVULAR_TRILL         = ConsonantPhoneme(PulmonicConsonantPhone("\u0280", PlaceOfArticulation.UVULAR, MannerOfArticulation.TRILL, Phonation.VOICELESS, (), True))
 IPA_VOICED_LABIODENTAL_FLAP     = ConsonantPhoneme(PulmonicConsonantPhone("\u2c71", PlaceOfArticulation.LABIODENTAL, MannerOfArticulation.FLAP, Phonation.VOICELESS, (), True))
-
-DEFAULT_PATTERN_WILDCARDS: dict[str, PhonemeGroup] = {
-    "C" : PhonemeGroup.from_type("C", ConsonantPhoneme),
-    "V" : PhonemeGroup.from_type("V", VowelPhoneme),
-}

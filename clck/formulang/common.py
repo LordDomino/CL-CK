@@ -1,7 +1,7 @@
-from clck.formulang.parsing.parser import Parser
-from clck.formulang.parsing.tokenizer import Tokenizer
-from clck.phonology import Phoneme
-from clck.syllabics import Structure
+from clck.formulang.parsing.fl_parser import Parser
+from clck.formulang.parsing.fl_tokenizer import Tokenizer
+from clck.phonology.phonemes import Phoneme
+from clck.phonology.syllabics import Structure
 
 
 def generate(formula: str) -> Phoneme | Structure | None:

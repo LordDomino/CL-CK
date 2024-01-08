@@ -1,11 +1,17 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from types import NoneType
 from typing import TypeVar
 
-from clck.component import Component
-from clck.phonology import ConsonantPhoneme, DummyPhoneme, Phoneme, VowelPhoneme
-from clck.containers import PhonemeGroup, PhonemeGroupsManager
-from clck.utils import tuple_append, tuple_extend
+from clck.common.component import Component
+from clck.phonology.phonemes import ConsonantPhoneme
+from clck.phonology.phonemes import DummyPhoneme
+from clck.phonology.phonemes import Phoneme
+from clck.phonology.phonemes import VowelPhoneme
+from clck.language.containers import PhonemeGroup
+from clck.language.containers import PhonemeGroupsManager
+from clck.utils import tuple_append
+from clck.utils import tuple_extend
 
 
 __all__ = [

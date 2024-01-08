@@ -1,9 +1,9 @@
 from typing import List, Type
 
 from clck.articulation import PhonologicalProperty
-from clck.managers import Manager
-from clck.phonetics import *
-from clck.phonology import Phoneme
+from clck.language.managers import Manager
+from clck.phonetics.phones import *
+from clck.phonology.phonemes import Phoneme
 
 
 class PhonemeGroupsManager(Manager):

@@ -4,7 +4,7 @@ from enum import auto
 from enum import Enum
 from typing import TypeVar
 
-from clck.phonology import Phoneme
+from clck.phonology.phonemes import Phoneme
 
 
 T = TypeVar("T")
@@ -307,5 +307,5 @@ class BinaryOperations(Operations):
     )
 
 
-class Conditionals(Operations): ...
-class Comparisons(Operations): ...
+class Conditionals(Operations): pass
+class Comparisons(Operations): pass

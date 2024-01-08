@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, override
 
 
 
@@ -19,10 +19,12 @@ class PhonologicalProperty(ABC):
         self.__class__.properties.append(self)
         self.__class__.property_names.append(self._name)
 
+    @override
     def __str__(self) -> str:
         return (f"{self.__class__.__name__} property (id={self._id}) "
             f"\"{self.name.capitalize()}\"")
 
+    @override
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} (id={self._id}) \"{self._name}\">"
 

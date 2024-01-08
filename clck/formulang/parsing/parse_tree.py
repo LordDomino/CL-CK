@@ -1,7 +1,7 @@
 import random
-from clck.component import Component
-from clck.phonology import DummyPhoneme
-from clck.syllabics import Structure
+from clck.common.component import Component
+from clck.phonology.phonemes import DummyPhoneme
+from clck.phonology.syllabics import Structure
 from clck.utils import clean_collection
 
 

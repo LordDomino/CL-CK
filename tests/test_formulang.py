@@ -1,4 +1,4 @@
-from clck.formulang.common import generate_multiple
+from clck.formulang import generate_multiple
 
 "(a)((yu)bc)(d)"  # Example
 

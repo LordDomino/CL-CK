@@ -1,11 +1,11 @@
-from clck.component import Component
-from clck.phonetics import ConsonantPhone
-from clck.phonetics import DummyPhone
-from clck.phonetics import Phone
-from clck.phonetics import VowelPhone
-from clck.articulatory_properties import ArticulatoryProperty
-from clck.articulatory_properties import MannerOfArticulation
-from clck.articulatory_properties import PlaceOfArticulation
+from clck.common.component import Component
+from clck.phonetics.phones import ConsonantPhone
+from clck.phonetics.phones import DummyPhone
+from clck.phonetics.phones import Phone
+from clck.phonetics.phones import VowelPhone
+from clck.phonetics.articulatory_properties import ArticulatoryProperty
+from clck.phonetics.articulatory_properties import MannerOfArticulation
+from clck.phonetics.articulatory_properties import PlaceOfArticulation
 
 
 class Phoneme(Component):

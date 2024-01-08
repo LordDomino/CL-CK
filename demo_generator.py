@@ -1,4 +1,4 @@
-from clck.IPA import *
+from clck.ipa.IPA import *
 from clck.generators.generators import SyllableGenerator
 from clck.language.language import Language
 from clck.fundamentals.phonology import PhonemicInventory

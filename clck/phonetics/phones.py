@@ -1,5 +1,5 @@
-from clck.component import Component
-from clck.articulatory_properties import (
+from clck.common.component import Component
+from clck.phonetics.articulatory_properties import (
     AirstreamMechanism,
     ArticulatoryProperty,
     ConsonantArticulatoryProperty,

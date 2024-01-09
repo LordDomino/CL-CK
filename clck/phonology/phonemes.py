@@ -1,7 +1,6 @@
 from clck.common.component import Component
-from clck.phonetics.phones import ConsonantPhone
+from clck.phonetics.phones import ConsonantPhone, Phone
 from clck.phonetics.phones import DummyPhone
-from clck.phonetics.phones import Phone
 from clck.phonetics.phones import VowelPhone
 from clck.phonetics.articulatory_properties import ArticulatoryProperty
 from clck.phonetics.articulatory_properties import MannerOfArticulation
@@ -62,13 +61,13 @@ class Phoneme(Component):
 
     def _init_output(self) -> str:
         return self._symbol
-    
+
     def _init_ipa_transcript(self) -> str:
         return f"/{self._symbol}/"
 
     def _init_formulang_transcript(self) -> str:
         return f"/{self._symbol}/"
-    
+
     def _init_romanization(self) -> str | None:
         return self._romanization
 

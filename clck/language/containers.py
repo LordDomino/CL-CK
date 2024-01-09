@@ -1,5 +1,3 @@
-from typing import List, Type
-
 from clck.articulation import PhonologicalProperty
 from clck.language.managers import Manager
 from clck.phonetics.phones import *
@@ -8,13 +6,13 @@ from clck.phonology.phonemes import Phoneme
 
 class PhonemeGroupsManager(Manager):
 
-    global_list: List["PhonemeGroup"] = []
+    global_list: list["PhonemeGroup"] = []
     """
     The global list of all phoneme groups across all `Language`
     instances.
     """
 
-    labels: List[str] = []
+    labels: list[str] = []
 
     @classmethod  
     def global_register(cls, *phoneme_groups: "PhonemeGroup") -> None:
@@ -31,7 +29,7 @@ class PhonemeGroup:
         PhonemeGroupsManager.global_register(self)
 
     @classmethod
-    def from_type(cls, label: str, phoneme_type: Type[Phoneme]) -> "PhonemeGroup":
+    def from_type(cls, label: str, phoneme_type: type[Phoneme]) -> "PhonemeGroup":
         phonemes: list[Phoneme] = []
 
         for phoneme in Phoneme.DEFAULT_IPA_PHONEMES:

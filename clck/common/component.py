@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from clck.config import print_debug
+# from clck.formulang.common import generate
 
 
 class Component(ABC):
@@ -78,3 +79,11 @@ class Component(ABC):
     @property
     def formulang_transcript(self) -> str:
         return self._formulang_transcript
+    
+    # @classmethod
+    # def from_formulang(cls, formula: str) -> "Component":
+    #     generated = generate(formula)
+    #     if generated == None:
+    #         raise Exception("Cannot create component from None")
+    #     else:
+    #         return generated

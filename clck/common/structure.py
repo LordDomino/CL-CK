@@ -3,13 +3,17 @@ from types import NoneType
 from typing import TypeVar
 from clck.common.component import Component
 
-from clck.phonology.phonemes import ConsonantPhoneme, DummyPhoneme, Phoneme, VowelPhoneme
-from clck.utils import tuple_append, tuple_extend
+from clck.phonology.phonemes import ConsonantPhoneme
+from clck.phonology.phonemes import DummyPhoneme
+from clck.phonology.phonemes import Phoneme
+from clck.phonology.phonemes import VowelPhoneme
+from clck.utils import tuple_append
+from clck.utils import tuple_extend
 
 
 T = TypeVar("T")
-ComponentType = TypeVar("ComponentType", bound=Component)
-PhonemeType = TypeVar("PhonemeType", bound="Phoneme")
+ComponentT = TypeVar("ComponentT", bound=Component)
+PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
 
 
 class Structure(Component, ABC):
@@ -20,8 +24,8 @@ class Structure(Component, ABC):
     """
 
     @abstractmethod
-    def __init__(self, _valid_comp_types: tuple[type[ComponentType], ...],
-            components: tuple[ComponentType, ...]) -> None:
+    def __init__(self, _valid_comp_types: tuple[type[ComponentT], ...],
+            components: tuple[ComponentT, ...]) -> None:
         """Creates a new instance of `Structure` given the only valid
         component types that this can contain and its initial
         components.
@@ -41,7 +45,7 @@ class Structure(Component, ABC):
         allowed types in `_valid_comp_types`.
         """
         self._valid_comp_types = tuple([*_valid_comp_types])
-        self._components = self._filter_none(components)
+        self._components = Structure.filter_none(components)
         self._assert_components()
 
         self._phonemes = self._get_phonemes()
@@ -130,7 +134,7 @@ class Structure(Component, ABC):
         self._substructures = tuple_append(self._substructures, substructure)
 
     def get_phonemes_by_type(self,
-            type: type[PhonemeType] = Phoneme) -> tuple[PhonemeType, ...]:
+            type: type[PhonemeT] = Phoneme) -> tuple[PhonemeT, ...]:
         """
         Returns a tuple of phones that are of the specified `Phone`
         type. If no argument is given, it returns all the phonemes of
@@ -140,7 +144,7 @@ class Structure(Component, ABC):
         ----------
         - `type` - is the `Phone` subtype to find. Defaults to `Phone`.
         """
-        rl: list[PhonemeType] = []
+        rl: list[PhonemeT] = []
         for s in self._components:
             if isinstance(s, type):
                 rl.append(s)
@@ -261,8 +265,8 @@ class Structure(Component, ABC):
 
         return "".join(comps)
 
-    def _filter_none(self,
-            collection: tuple[T | NoneType, ...]) -> tuple[T, ...]:
+    @staticmethod
+    def filter_none(collection: tuple[T | NoneType, ...]) -> tuple[T, ...]:
         """
         Returns a modified version of the given collection in which all
         `None` or `NoneType` values are removed.

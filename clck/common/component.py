@@ -80,10 +80,12 @@ class Component(ABC):
     def formulang_transcript(self) -> str:
         return self._formulang_transcript
     
-    # @classmethod
-    # def from_formulang(cls, formula: str) -> "Component":
-    #     generated = generate(formula)
-    #     if generated == None:
-    #         raise Exception("Cannot create component from None")
-    #     else:
-    #         return generated
+    def set_romanization(self, romanization: str) -> None:
+        """Sets the romanized string value for this component.
+
+        Parameters
+        ----------
+            romanization (str)
+                the string to set this component's romanization
+        """
+        self._romanization = romanization

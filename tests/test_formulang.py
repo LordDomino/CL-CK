@@ -1,5 +1,39 @@
 import time
-from clck.formulang.common import generate_multiple
+from clck.formulang.common import Formulang
+
+
+"""
+{
+	"folders": [
+		{
+			"path": "CL-CK"
+		}
+	],
+	"settings": {
+		"cSpell.words": [
+			"clck",
+			"formulang"
+		],
+		"python.analysis.diagnosticSeverityOverrides": {
+			"reportUnusedImport": "warning",
+			"reportUninitializedInstanceVariable": "warning",
+			"reportIncompatibleMethodOverride": "warning",
+			"reportIncompatibleVariableOverride": "warning",
+			"reportImportCycles": "warning",
+			"reportAssertAlwaysTrue": "warning",
+			"reportInconsistentConstructor": "warning",
+			"reportUnboundVariable": "warning",
+			"reportUnusedVariable": "warning",
+			"reportInvalidStringEscapeSequence": "warning",
+			"reportUnnecessaryCast": "warning",
+			"reportUnnecessaryContains": "warning",
+			"reportUnusedClass": "warning",
+			"reportWildcardImportFromLibrary": "warning",
+		}
+	}
+}
+"""
+
 
 "(a)((yu)bc)(d)"  # Example
 
@@ -21,7 +55,8 @@ from clck.formulang.common import generate_multiple
 # DEMONSTRATION
 iters: int = 10
 start = time.time()
-generate_multiple("{m | n | p} + {a | e | i | o | u} + {t | g | m}", iters)
+result = Formulang.generate("{m | n | p} + {a | e | i | o | u} + {t | g | m}")
 stop = time.time()
 
 print(f"{stop - start} elapsed time for {iters} iterations")
+print(result.output)

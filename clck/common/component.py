@@ -1,5 +1,8 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
+import time
 
+import clck
 from clck.config import print_debug
 # from clck.formulang.common import generate
 
@@ -82,7 +85,7 @@ class Component(ABC):
     def _init_romanization(self) -> str | None:
         pass
 
-    @abstractmethod
+    #@abstractmethod
     def _init_component_blueprint(self) -> "ComponentBlueprint":
         pass
 
@@ -103,6 +106,15 @@ class Component(ABC):
     @property
     def formulang_transcript(self) -> str:
         return self._formulang_transcript
+
+    @property
+    def romanization(self) -> str | None:
+        return self._romanization
+    
+    @property
+    def blueprint(self) -> "ComponentBlueprint":
+        return self._blueprint
+
     
     def set_romanization(self, romanization: str) -> None:
         """Sets the romanized string value for this component.
@@ -114,6 +126,68 @@ class Component(ABC):
         """
         self._romanization = romanization
 
-
 class ComponentBlueprint:
-    pass
+    def __init__(self, id: "str | tuple[ComponentBlueprint | str, ...]") -> None:
+        self._id = id
+        self._level = self._get_level()
+        self._structure = self._get_structure()
+
+    def __eq__(self, __value: object) -> bool:
+        if isinstance(__value, ComponentBlueprint):
+            if __value._structure == self._structure:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} size={len(self._id)}>"
+
+    @property
+    def id(self) -> "str | tuple[ComponentBlueprint | str, ...]":
+        return self._id
+    
+    @property
+    def level(self) -> int:
+        return self._level
+    
+    @property
+    def structure(self) -> str:
+        return self._structure
+
+    def _get_structure(self) -> str:
+        if isinstance(self._id, str):
+            return self._id
+        else:
+            bp: list[str] = []
+            for cb in self._id:
+                if isinstance(cb, str):
+                    bp.append(cb)
+                else:
+                    bp.append(cb._get_structure())
+            return f"{{{'+'.join(bp)}}}"
+    
+    def _get_level(self) -> int:
+        if isinstance(self._id, str):
+            return 0
+        else:
+            lvl = 0
+            for cb in self._id:
+                if isinstance(cb, ComponentBlueprint):
+                    lvl += 1 + cb._get_level()
+                    break
+            return lvl
+
+    def subset(self, structure: str) -> bool: 
+        ast = clck.Formulang.generate_ast(structure)
+
+        from clck.formulang.parsing.fl_parser import EllipsisNode
+
+        ast = ast._subset()
+        print(ast)
+        print(ast.__class__)
+
+        while not isinstance(ast, EllipsisNode):
+            ast = ast._subset()
+            print(ast.__class__)

@@ -2,7 +2,7 @@ from typing import Callable
 from clck.formulang.definitions.tokens import CommonGroupings, Literals, StandardTokens, TypeGroupings
 from clck.formulang.definitions.tokens import Operators
 from clck.formulang.parsing.fl_tokenizer import EPSILON_TOKEN, Token
-from clck.formulang.parsing.parse_tree import Concatenation, Factor, FormulangPhoneme, ProbabilityNode, Selection, StructureNode, Operation, TreeNode
+from clck.formulang.parsing.parse_tree import Concatenation, EllipsisNode, Factor, FormulangPhoneme, ProbabilityNode, Selection, StructureNode, Operation, TreeNode
 from clck.formulang.parsing.parse_tree import Expression
 from clck.formulang.parsing.parse_tree import Formula
 from clck.formulang.parsing.parse_tree import Subtraction
@@ -117,6 +117,10 @@ class Parser:
             term = Term((self._parse_structure(),), brace_level)
             self._advance(1)
             return term
+        elif self._next_tokens[0].type == Literals.ELLIPSIS:
+            dummy_phoneme = EllipsisNode(brace_level)
+            self._advance(1)
+            return dummy_phoneme
         else:
             return self._parse_phoneme()
 

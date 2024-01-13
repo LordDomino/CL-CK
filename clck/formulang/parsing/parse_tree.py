@@ -129,6 +129,24 @@ class TreeNode:
     def _get_indentation(self, indent_size: int) -> str:
         return " " * TreeNode._indent_count * indent_size
     
+    def _subset(self) -> "TreeNode":
+        _pure_ellipses = True
+        for i, subnode in enumerate(self._subnodes):
+            if isinstance(subnode, EllipsisNode):
+                continue
+            else:
+                _pure_ellipses = False
+                ellipsis = subnode._subset()
+                new_subnodes = list(self._subnodes)
+                new_subnodes[i] = ellipsis
+                self._subnodes = tuple(new_subnodes)
+                break
+
+        if _pure_ellipses:
+            return EllipsisNode(self._brace_level)
+        else:
+            return self
+
     @classmethod
     def _indent_in(cls) -> None:
         cls._indent_count += 1
@@ -166,6 +184,9 @@ class FormulangPhoneme(DummyPhoneme, TreeNode):
         TreeNode._indent_out()
         _str += self._get_indentation(indent) + "}"
         return _str
+    
+    def _subset(self) -> TreeNode:
+        return EllipsisNode(self._brace_level)
 
 
 class FormulangStructure(Structure, TreeNode):
@@ -312,3 +333,15 @@ class ProbabilityNode(TreeNode):
     def eval(self) -> FormulangPhoneme | FormulangStructure | None:
         if random.random() < self._probability:
             return super().eval()
+        
+
+class EllipsisNode(FormulangPhoneme, TreeNode):
+    def __init__(self, brace_level: int) -> None:
+        super().__init__("...", brace_level)
+        self._subnodes = ()
+
+    def __repr__(self) -> str:
+        return "<EllipsisNode ...>"
+    
+    def __str__(self) -> str:
+        return "EllipsisNode ..."

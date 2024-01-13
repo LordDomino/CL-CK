@@ -194,6 +194,7 @@ class Literals(NativeTokens):
     STRING_LITERAL = r"[a-zA-Z]+"
     NUMERIC_LITERAL = r"[0-9]+"
     EPSILON = ""
+    ELLIPSIS = r"\.\.\."
     # IPA_CHARS = rf"[{''.join(Phoneme.DEFAULT_IPA_SYMBOLS)}]+" 
 
 

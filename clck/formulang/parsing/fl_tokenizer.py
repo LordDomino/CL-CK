@@ -207,20 +207,24 @@ class Tokenizer:
         brace_level: int = 0
 
         # Create Token objects from strings
-        for token in raw_tokens:
+        for token_str in raw_tokens:
 
             # Used to indicate closing brace levels
-            if token in ("}", ")"):
+            if token_str in ("}", ")"):
                 brace_level -= 1
+
+            if token_str == "...":
+                ret.append(Token(Literals.ELLIPSIS, "...", brace_level))
+                continue
 
             for token_definition in STANDARD_TOKENS:
                 # Actually match the tokens to the definitions
-                if re.match(token_definition.value, token):
-                    ret.append(Token(token_definition, token, brace_level))
+                if re.match(token_definition.value, token_str):
+                    ret.append(Token(token_definition, token_str, brace_level))
                     break
 
             # Used to indicate opening brace levels
-            if token in ("{", "("):
+            if token_str in ("{", "("):
                 brace_level += 1
 
         ret.append(EPSILON_TOKEN)
@@ -260,10 +264,13 @@ class Tokenizer:
         str
             the delimiter string based on the defined standard tokens
         """
+        d: str = "|".join(self._sort_token_delims())
+
+        return d
+    
+    def _sort_token_delims(self) -> tuple[str, ...]:
         dls: list[str] = []
         for token_definition in STANDARD_TOKENS:
             dls.append(token_definition.value)
         dls.sort(key=len, reverse=True)
-        d: str = "|".join(dls)
-
-        return d
+        return tuple(dls)

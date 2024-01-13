@@ -1,10 +1,20 @@
 from clck.formulang.parsing.fl_parser import Parser
 from clck.formulang.parsing.fl_tokenizer import Tokenizer
+from clck.formulang.parsing.parse_tree import TreeNode
 from clck.phonology.phonemes import Phoneme
 from clck.phonology.syllabics import Structure, Syllable
 
 
 class Formulang:
+
+    @staticmethod
+    def generate_ast(formula: str) -> TreeNode:
+        tokenizer = Tokenizer(formula)
+        tokenizer.analyze()
+        parser = Parser(tokenizer.get_tokens())
+        ast = parser.parse()
+        return ast
+
     @staticmethod
     def generate(formula: str) -> Phoneme | Structure | None:
         """Generate a result from the given formula string.
@@ -19,10 +29,7 @@ class Formulang:
         Phoneme | Structure | None
             the generated result after evaluating the formula string
         """
-        tokenizer = Tokenizer(formula)
-        tokenizer.analyze()
-        parser = Parser(tokenizer.get_tokens())
-        ast = parser.parse()
+        ast = Formulang.generate_ast(formula)
         return ast.eval()
     
     @staticmethod

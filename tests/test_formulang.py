@@ -1,4 +1,5 @@
 import time
+from clck.common.component import ComponentBlueprint
 from clck.formulang.common import Formulang
 
 
@@ -53,10 +54,26 @@ from clck.formulang.common import Formulang
     # CONDITIONAL. If "a" is equal to "b" then perform "c"
 
 # DEMONSTRATION
-iters: int = 10
-start = time.time()
-result = Formulang.generate("{m | n | p} + {a | e | i | o | u} + {t | g | m}")
-stop = time.time()
+# iters: int = 10
+# start = time.time()
+# result = Formulang.generate("{m | n | p} + {a | e | i | o | u} + {t | g | m}")
+# stop = time.time()
 
-print(f"{stop - start} elapsed time for {iters} iterations")
-print(result.output)
+# print(f"{stop - start} elapsed time for {iters} iterations")
+# print(result.output)
+
+c1 = ComponentBlueprint("C")
+b1 = ComponentBlueprint((c1,c1))
+a1 = ComponentBlueprint((b1,"A"))
+
+print(a1._structure)
+a1.subset("{A + {B + C} + D}")
+
+
+"""
+{ { A + B } + C }
+{ { ... + B }  + C}
+
+
+
+"""

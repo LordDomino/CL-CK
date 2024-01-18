@@ -1,3 +1,4 @@
+from typing import Any
 from clck.common.component import Component
 from clck.phonetics.phones import ConsonantPhone, Phone
 from clck.phonetics.phones import DummyPhone
@@ -70,6 +71,10 @@ class Phoneme(Component):
 
     def _init_romanization(self) -> str | None:
         return self._romanization
+    
+    @staticmethod
+    def make(*args: Any) -> Component:
+        pass
 
 
 class DummyPhoneme(Phoneme):

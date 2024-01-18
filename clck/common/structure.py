@@ -1,31 +1,32 @@
 from abc import ABC, abstractmethod
 from types import NoneType
-from typing import TypeVar
+from typing import Self, TypeAlias, TypeVar, Union
 from clck.common.component import Component
 
 from clck.phonology.phonemes import ConsonantPhoneme
 from clck.phonology.phonemes import DummyPhoneme
 from clck.phonology.phonemes import Phoneme
 from clck.phonology.phonemes import VowelPhoneme
-from clck.utils import tuple_append
+from clck.utils import filter_none, get_types, tuple_append
 from clck.utils import tuple_extend
 
 
 T = TypeVar("T")
 ComponentT = TypeVar("ComponentT", bound=Component)
 PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
+ComponentTypes: TypeAlias = tuple[type[ComponentT], ...]
+Structurable: TypeAlias = Union[tuple[ComponentT, ...], "Structure"]
 
 
 class Structure(Component, ABC):
-    """The class that represents all linguistic structures.
+    """The class that represents all CLCK structures.
 
-    A linguistic structure is a component that can contain other
+    A structure is a component that can contain other
     components.
     """
 
-    @abstractmethod
-    def __init__(self, _valid_comp_types: tuple[type[ComponentT], ...],
-            components: tuple[ComponentT, ...]) -> None:
+    def __init__(self, components: Structurable[ComponentT],
+        _valid_types: ComponentTypes[ComponentT] = (Component,)) -> None:
         """Creates a new instance of `Structure` given the only valid
         component types that this can contain and its initial
         components.
@@ -44,8 +45,9 @@ class Structure(Component, ABC):
         - `TypeError` if any element in `components` is not any of the
         allowed types in `_valid_comp_types`.
         """
-        self._valid_comp_types = tuple([*_valid_comp_types])
-        self._components = Structure.filter_none(components)
+        _c = self._derive_components(components)
+        self._components = filter_none(_c)
+        self._valid_types = tuple([*_valid_types])
         self._assert_components()
 
         self._phonemes = self._get_phonemes()
@@ -196,6 +198,18 @@ class Structure(Component, ABC):
     def remove_structure_duplicates(self,
             bank: list["Structure"]) -> list["Structure"]:
         return [*set(bank)]
+    
+    @classmethod
+    def make(cls, *args: Component) -> "Structure":
+        args_count: int = len(args)
+
+        if args_count == 0:
+            return cls(())
+        elif args_count == 1:
+            return cls((args[0],), (args[0].__class__,))
+        else:
+            types = get_types(args)
+            return cls(args, types)
 
     def _append_dummies(self, to: tuple[T, ...]) -> tuple[T | DummyPhoneme, ...]:
         nl: list[T | DummyPhoneme] = [*to]
@@ -204,6 +218,25 @@ class Structure(Component, ABC):
                 nl.append(c)
 
         return tuple(nl)
+
+    def _derive_components(self, c: Structurable[ComponentT]) -> tuple[Component, ...]:
+        """Properly unpack the components before assigning them to the
+        instance field.
+
+        Parameters
+        ----------
+        c : Structurable[ComponentT]
+            the object to be unpacked
+
+        Returns
+        -------
+        tuple[ComponentT, ...]
+            the actual component attributable to the instance field
+        """
+        if isinstance(c, Structure):
+            return c.components
+        else:
+            return c
 
     def _assert_components(self) -> None:
         """
@@ -227,7 +260,7 @@ class Structure(Component, ABC):
         """
         for c in self._components:
             mistype: bool = False
-            for t in self._valid_comp_types:
+            for t in self._valid_types:
                 if isinstance(c, t):
                     mistype = False
                     break
@@ -239,7 +272,7 @@ class Structure(Component, ABC):
                     continue
             if mistype:
                 raise TypeError(f"Component {c} is not of any type "
-                    f"in allowed types: {self._valid_comp_types}")
+                    f"in allowed types: {self._valid_types}")
 
     def _classify_component(self, component: Component) -> None:
         """
@@ -264,19 +297,6 @@ class Structure(Component, ABC):
             comps.append(c.output)
 
         return "".join(comps)
-
-    @staticmethod
-    def filter_none(collection: tuple[T | NoneType, ...]) -> tuple[T, ...]:
-        """
-        Returns a modified version of the given collection in which all
-        `None` or `NoneType` values are removed.
-        """
-        rl: list[T] = []
-        for c in collection:
-            if c is not None:
-                rl.append(c)
-
-        return tuple(rl)
 
     def _get_phonemes(self) -> tuple[Phoneme, ...]:
         """

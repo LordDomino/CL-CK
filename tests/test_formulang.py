@@ -1,39 +1,11 @@
 import time
 from clck.common.component import ComponentBlueprint
+from clck.common.structure import Structure
 from clck.formulang.common import Formulang
+from clck.formulang.parsing.parse_tree import FormulangStructure
+from clck.phonology.phonemes import DummyPhoneme
+from clck.phonology.syllabics import SyllabicComponent
 
-
-"""
-{
-	"folders": [
-		{
-			"path": "CL-CK"
-		}
-	],
-	"settings": {
-		"cSpell.words": [
-			"clck",
-			"formulang"
-		],
-		"python.analysis.diagnosticSeverityOverrides": {
-			"reportUnusedImport": "warning",
-			"reportUninitializedInstanceVariable": "warning",
-			"reportIncompatibleMethodOverride": "warning",
-			"reportIncompatibleVariableOverride": "warning",
-			"reportImportCycles": "warning",
-			"reportAssertAlwaysTrue": "warning",
-			"reportInconsistentConstructor": "warning",
-			"reportUnboundVariable": "warning",
-			"reportUnusedVariable": "warning",
-			"reportInvalidStringEscapeSequence": "warning",
-			"reportUnnecessaryCast": "warning",
-			"reportUnnecessaryContains": "warning",
-			"reportUnusedClass": "warning",
-			"reportWildcardImportFromLibrary": "warning",
-		}
-	}
-}
-"""
 
 
 "(a)((yu)bc)(d)"  # Example
@@ -59,15 +31,16 @@ from clck.formulang.common import Formulang
 # result = Formulang.generate("{m | n | p} + {a | e | i | o | u} + {t | g | m}")
 # stop = time.time()
 
-# print(f"{stop - start} elapsed time for {iters} iterations")
-# print(result.output)
+# # print(f"{stop - start} elapsed time for {iters} iterations")
+# # if result != None:
+# #     print(result.output)
 
-c1 = ComponentBlueprint("C")
-b1 = ComponentBlueprint((c1,c1))
-a1 = ComponentBlueprint((b1,"A"))
+# c1 = ComponentBlueprint("C")
+# b1 = ComponentBlueprint((c1,c1))
+# a1 = ComponentBlueprint((b1,"A"))
 
-print(a1._structure)
-a1.subset("{A + {B + C} + D}")
+# print(a1._structure)
+# a1.subset("{A + {B + C} + D}")
 
 
 """
@@ -77,3 +50,13 @@ a1.subset("{A + {B + C} + D}")
 
 
 """
+
+
+s = Structure((DummyPhoneme(),))
+print(s)
+
+s = SyllabicComponent(s)
+print(s)
+
+s = FormulangStructure(s, 1)
+print(s)

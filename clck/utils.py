@@ -1,3 +1,4 @@
+from types import NoneType
 from typing import TypeVar
 
 
@@ -26,6 +27,36 @@ def clean_collection(c: list[T] | tuple[T, ...]) -> tuple[T, ...]:
             temp.append(e)
     return tuple(temp)
 
+
+def filter_none(collection: list[T] | tuple[T, ...]) -> tuple[T, ...]:
+    """Returns a modified version of the given collection in which all
+    `None` or `NoneType` values are removed.
+    """
+    rl: list[T] = []
+    for c in collection:
+        if c is not None:
+            rl.append(c)
+    return tuple(rl)
+
+
+def get_types(collection: list[T] | tuple[T, ...]) -> tuple[type, ...]:
+    """Returns all the found types of all the elements in the
+    collection.
+
+    Parameters
+    ----------
+    collection : list[T] | tuple[T, ...]
+        the given list or tuple
+
+    Returns
+    -------
+    tuple[type, ...]
+        the tuple of all types found in the given list or tuple
+    """
+    types: list[type] = []
+    for o in collection:
+        types.append(o.__class__)
+    return tuple(types)
 
 def strip_whitespace(s: str) -> str:
     """Returns the version of the given string `s` with all its

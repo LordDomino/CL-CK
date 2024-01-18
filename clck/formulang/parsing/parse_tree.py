@@ -1,5 +1,6 @@
 import random
 from clck.common.component import Component
+from clck.common.structure import ComponentT, ComponentTypes, Structurable
 from clck.phonology.syllabics import Structure
 from clck.phonology.phonemes import DummyPhoneme
 from clck.utils import clean_collection
@@ -190,9 +191,9 @@ class FormulangPhoneme(DummyPhoneme, TreeNode):
 
 
 class FormulangStructure(Structure, TreeNode):
-    def __init__(self, _valid_comp_types: tuple[type[Component], ...],
-        components: tuple[Component, ...], brace_level: int) -> None:
-        super().__init__(_valid_comp_types, components)
+    def __init__(self, components: Structurable[ComponentT], brace_level: int,
+        _valid_types: ComponentTypes[ComponentT] = (Component,)) -> None:
+        super().__init__(components, _valid_types)
         self._brace_level = brace_level
 
     @property
@@ -276,8 +277,7 @@ class Concatenation(Operation):
         if components == []:
             return None
         else:
-            return FormulangStructure((Component,), tuple(components),
-            self._brace_level)
+            return FormulangStructure(tuple(components), self._brace_level)
 
 
 class Subtraction(Operation):
@@ -319,9 +319,9 @@ class StructureNode(TreeNode):
             if isinstance(expr, StructureNode):
                 return expr
             else:
-                return FormulangStructure((Component,), (expr,), self._brace_level)
+                return FormulangStructure((expr,), self._brace_level)
         else:
-            return FormulangStructure((Component,), (expr,), self._brace_level)
+            return FormulangStructure((expr,), self._brace_level)
 
 
 class ProbabilityNode(TreeNode):

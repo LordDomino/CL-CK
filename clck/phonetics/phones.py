@@ -1,3 +1,4 @@
+from typing import Any
 from clck.common.component import Component
 from clck.phonetics.articulatory_properties import (
     AirstreamMechanism,
@@ -129,9 +130,13 @@ class Phone(Component):
         """
         return [property.name for property in self._articulatory_properties]
 
-    @classmethod
-    def _append_to_defaults(cls, phoneme: "Phone") -> None:
+    @staticmethod
+    def _append_to_defaults(phoneme: "Phone") -> None:
         Phone.DEFAULT_IPA_PHONES = tuple([*Phone.DEFAULT_IPA_PHONES, phoneme])
+
+    @staticmethod
+    def make(*args: Any) -> Component:
+        pass
 
 
 class DummyPhone(Phone):

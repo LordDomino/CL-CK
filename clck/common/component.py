@@ -1,6 +1,6 @@
 from abc import ABC
 from abc import abstractmethod
-import time
+from typing import Any
 
 import clck
 from clck.config import print_debug
@@ -89,6 +89,16 @@ class Component(ABC):
     def _init_component_blueprint(self) -> "ComponentBlueprint":
         pass
 
+    def set_romanization(self, romanization: str) -> None:
+        """Sets the romanized string value for this component.
+
+        Parameters
+        ----------
+            romanization (str)
+                the string to set this component's romanization
+        """
+        self._romanization = romanization
+
     @property
     def output(self) -> str:
         """The printable string version that previews the 'actual'
@@ -114,17 +124,11 @@ class Component(ABC):
     @property
     def blueprint(self) -> "ComponentBlueprint":
         return self._blueprint
-
     
-    def set_romanization(self, romanization: str) -> None:
-        """Sets the romanized string value for this component.
-
-        Parameters
-        ----------
-            romanization (str)
-                the string to set this component's romanization
-        """
-        self._romanization = romanization
+    @classmethod
+    @abstractmethod
+    def make(cls, *args: Any) -> "Component":
+        pass
 
 class ComponentBlueprint:
     def __init__(self, id: "str | tuple[ComponentBlueprint | str, ...]") -> None:

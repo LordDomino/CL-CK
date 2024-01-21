@@ -1,5 +1,5 @@
 from typing import Any
-from clck.common.component import Component
+from clck.common.component import Component, ComponentBlueprint
 from clck.phonetics.articulatory_properties import (
     AirstreamMechanism,
     ArticulatoryProperty,
@@ -122,6 +122,9 @@ class Phone(Component):
     
     def _init_romanization(self) -> str | None:
         return super()._init_romanization()
+
+    def _init_blueprint(self) -> ComponentBlueprint:
+        pass
 
     def _get_property_names(self) -> list[str]:
         """

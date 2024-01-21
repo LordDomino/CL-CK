@@ -1,21 +1,17 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from types import NoneType
-from typing import Self, TypeAlias, TypeVar, Union
-from clck.common.component import Component
+from typing import TypeAlias, TypeVar, Union
 
-from clck.phonology.phonemes import ConsonantPhoneme
-from clck.phonology.phonemes import DummyPhoneme
-from clck.phonology.phonemes import Phoneme
-from clck.phonology.phonemes import VowelPhoneme
-from clck.utils import filter_none, get_types, tuple_append
-from clck.utils import tuple_extend
+from clck.common.component import Component, ComponentBlueprint, ComponentT
+from clck.exceptions import CLCKException
+from clck.phonology.phonemes import ConsonantPhoneme, DummyPhoneme, Phoneme, VowelPhoneme
+from clck.utils import filter_none, get_types, tuple_append, tuple_extend
 
 
 T = TypeVar("T")
-ComponentT = TypeVar("ComponentT", bound=Component)
 PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
 ComponentTypes: TypeAlias = tuple[type[ComponentT], ...]
-Structurable: TypeAlias = Union[tuple[ComponentT, ...], "Structure"]
+Structurable: TypeAlias = Union[tuple[ComponentT, ...], "Structure", Phoneme]
 
 
 class Structure(Component, ABC):
@@ -46,9 +42,12 @@ class Structure(Component, ABC):
         allowed types in `_valid_comp_types`.
         """
         _c = self._derive_components(components)
-        self._components = filter_none(_c)
-        self._valid_types = tuple([*_valid_types])
-        self._assert_components()
+        try:
+            self._components = filter_none(_c)
+            self._valid_types = tuple([*_valid_types])
+            self._assert_components()
+        except TypeError:
+            raise CLCKException(f"{_c} cannot be created to a structure")
 
         self._phonemes = self._get_phonemes()
         self._substructures = self._get_substructures()
@@ -85,6 +84,9 @@ class Structure(Component, ABC):
 
     def _init_romanization(self) -> str | None:
         return "_create_romanization() WIP"
+
+    def _init_blueprint(self) -> ComponentBlueprint:
+        return ComponentBlueprint(self._components)
 
     @property
     def components(self) -> tuple[Component, ...]:
@@ -198,7 +200,7 @@ class Structure(Component, ABC):
     def remove_structure_duplicates(self,
             bank: list["Structure"]) -> list["Structure"]:
         return [*set(bank)]
-    
+
     @classmethod
     def make(cls, *args: Component) -> "Structure":
         args_count: int = len(args)
@@ -211,8 +213,8 @@ class Structure(Component, ABC):
             types = get_types(args)
             return cls(args, types)
 
-    def _append_dummies(self, to: tuple[T, ...]) -> tuple[T | DummyPhoneme, ...]:
-        nl: list[T | DummyPhoneme] = [*to]
+    def _append_dummies(self, to: tuple[ComponentT, ...]) -> tuple[ComponentT | DummyPhoneme, ...]:
+        nl: list[ComponentT | DummyPhoneme] = [*to]
         for c in self._components:
             if isinstance(c, DummyPhoneme):
                 nl.append(c)
@@ -235,6 +237,8 @@ class Structure(Component, ABC):
         """
         if isinstance(c, Structure):
             return c.components
+        elif isinstance(c, Phoneme):
+            return (c,)
         else:
             return c
 
@@ -324,3 +328,6 @@ class Structure(Component, ABC):
                 rl.append(c)
 
         return tuple(rl)
+
+    def _get_blueprints(self) -> ComponentBlueprint:
+        pass

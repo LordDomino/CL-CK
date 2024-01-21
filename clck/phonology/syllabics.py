@@ -1,12 +1,12 @@
 from abc import ABC
-from typing import TypeAlias
-from clck.common.structure import Structurable, Structure
-from clck.config import print_debug
+from typing import TypeAlias, Union
+from clck.common.structure import Structure
+from clck.common.structure import Structurable
 from clck.phonology.phonemes import Phoneme
 from clck.utils import filter_none
 
 
-SyllabicComponentT: TypeAlias = "SyllabicComponent | Phoneme"
+SyllabicComponentT: TypeAlias = Union["SyllabicComponent", Phoneme]
 
 
 class SyllabicComponent(Structure, ABC):
@@ -28,25 +28,13 @@ class SyllabicComponent(Structure, ABC):
 
 class Syllable(SyllabicComponent):
     def __init__(self,
-        left_margin: tuple[SyllabicComponent | Phoneme, ...],
-        nucleus: tuple[SyllabicComponent | Phoneme, ...],
-        right_margin: tuple[SyllabicComponent | Phoneme, ...]) -> None:
+        left_margin: Structurable[SyllabicComponentT],
+        nucleus: Structurable[SyllabicComponentT],
+        right_margin: Structurable[SyllabicComponentT]) -> None:
         super().__init__(filter_none(left_margin + nucleus + right_margin))
         self._nucleus = nucleus
         self._left_margin = left_margin
         self._right_margin = right_margin
-
-    @staticmethod
-    def from_structure(structure: Structure) -> "Syllable":
-        size = len(structure.components)
-        if size != 3:
-            print_debug(f"Structure conversion warning: {structure} of component size {s} is incompatible to Syllable")
-        
-        lmargin = structure.components[0]
-        nucleus = structure.components[1]
-        rmargin = structure.components[2]
-
-        return Syllable((lmargin,), nucleus, rmargin)
 
     @property
     def nucleus(self) -> tuple[SyllabicComponent | Phoneme, ...]:

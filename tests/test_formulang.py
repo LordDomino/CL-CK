@@ -1,10 +1,5 @@
-import time
 from clck.common.component import ComponentBlueprint
-from clck.common.structure import Structure
-from clck.formulang.common import Formulang
-from clck.formulang.parsing.parse_tree import FormulangStructure
-from clck.phonology.phonemes import DummyPhoneme
-from clck.phonology.syllabics import SyllabicComponent
+from clck.phonology.phonemes import ConsonantPhoneme, DummyPhoneme, Phoneme
 
 
 
@@ -26,37 +21,20 @@ from clck.phonology.syllabics import SyllabicComponent
     # CONDITIONAL. If "a" is equal to "b" then perform "c"
 
 # DEMONSTRATION
-# iters: int = 10
-# start = time.time()
-# result = Formulang.generate("{m | n | p} + {a | e | i | o | u} + {t | g | m}")
-# stop = time.time()
+iters: int = 10
+# result = Formulang.generate("(a) + ((yu) + bc) + (d)")
 
-# # print(f"{stop - start} elapsed time for {iters} iterations")
-# # if result != None:
-# #     print(result.output)
+# if result != None:
+#     print(result.output)
+#     print(result.blueprint)
 
-# c1 = ComponentBlueprint("C")
-# b1 = ComponentBlueprint((c1,c1))
-# a1 = ComponentBlueprint((b1,"A"))
+a = ComponentBlueprint((DummyPhoneme(), Phoneme))
+b = ComponentBlueprint((Phoneme, ConsonantPhoneme))
 
-# print(a1._structure)
-# a1.subset("{A + {B + C} + D}")
+if b == a:
+    print("Equal blueprints")
+else:
+    print("Unequal blueprints")
 
-
-"""
-{ { A + B } + C }
-{ { ... + B }  + C}
-
-
-
-"""
-
-
-s = Structure((DummyPhoneme(),))
-print(s)
-
-s = SyllabicComponent(s)
-print(s)
-
-s = FormulangStructure(s, 1)
-print(s)
+if isinstance(DummyPhoneme(), ConsonantPhoneme):
+    print("Isintance")

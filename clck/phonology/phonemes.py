@@ -1,5 +1,5 @@
 from typing import Any
-from clck.common.component import Component
+from clck.common.component import Component, ComponentBlueprint
 from clck.phonetics.phones import ConsonantPhone, Phone
 from clck.phonetics.phones import DummyPhone
 from clck.phonetics.phones import VowelPhone
@@ -72,8 +72,7 @@ class Phoneme(Component):
     def _init_romanization(self) -> str | None:
         return self._romanization
     
-    @staticmethod
-    def make(*args: Any) -> Component:
+    def _init_blueprint(self) -> ComponentBlueprint:
         pass
 
 

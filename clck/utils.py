@@ -1,4 +1,3 @@
-from types import NoneType
 from typing import TypeVar
 
 
@@ -36,6 +35,13 @@ def filter_none(collection: list[T] | tuple[T, ...]) -> tuple[T, ...]:
     for c in collection:
         if c is not None:
             rl.append(c)
+    return tuple(rl)
+
+
+def get_classes(collection: list[T] | tuple[T, ...]) -> tuple[type, ...]:
+    rl: list[type] = []
+    for c in collection:
+        rl.append(c.__class__)
     return tuple(rl)
 
 

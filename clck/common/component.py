@@ -1,10 +1,11 @@
 from abc import ABC
 from abc import abstractmethod
-from typing import Any
+from typing import TypeVar
 
-import clck
 from clck.config import print_debug
 # from clck.formulang.common import generate
+
+ComponentT = TypeVar("ComponentT", bound="Component")
 
 
 class Component(ABC):
@@ -18,9 +19,9 @@ class Component(ABC):
     directly previewed as its output string.
 
     `Component`s contain several base properties which are initialized
-    upon from a subclass super call. The base properties are `output`,
-    `ipa_transcript`, `formulang_transcript`, `romanization`, and
-    `blueprint`.
+    by calling the `__init__` of this class. The base properties are
+    `output`, `ipa_transcript`, `formulang_transcript`, `romanization`,
+    and `blueprint`.
     """
 
     @abstractmethod
@@ -32,21 +33,26 @@ class Component(ABC):
         self._ipa_transcript: str = self._init_ipa_transcript()
         self._formulang_transcript: str = self._init_formulang_transcript()
         self._romanization: str | None = self._init_romanization()
-        self._blueprint = self._init_component_blueprint()
-
+        self._blueprint = self._init_blueprint()
         print_debug(f"{self} base properties initialized")
 
     def __eq__(self, __value: object) -> bool:
-        if self.__class__ != __value.__class__:
-            return False
-        else:
-            if isinstance(__value, Component):
-                if self.__dict__ == __value.__dict__:
-                    return True
-                else:
-                    return False
+        if isinstance(__value, ComponentBlueprint):
+            if self._blueprint == __value:
+                return True
             else:
                 return False
+        else:
+            if self.__class__ != __value.__class__:
+                return False
+            else:
+                if isinstance(__value, Component):
+                    if self.__dict__ == __value.__dict__:
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
 
     @abstractmethod
     def _init_ipa_transcript(self) -> str:
@@ -85,9 +91,9 @@ class Component(ABC):
     def _init_romanization(self) -> str | None:
         pass
 
-    #@abstractmethod
-    def _init_component_blueprint(self) -> "ComponentBlueprint":
-        pass
+    @abstractmethod
+    def _init_blueprint(self) -> "ComponentBlueprint":
+        return ComponentBlueprint((self,))
 
     def set_romanization(self, romanization: str) -> None:
         """Sets the romanized string value for this component.
@@ -122,76 +128,51 @@ class Component(ABC):
         return self._romanization
     
     @property
-    def blueprint(self) -> "ComponentBlueprint":
+    def blueprint(self) -> "ComponentBlueprint | type":
         return self._blueprint
     
-    @classmethod
-    @abstractmethod
-    def make(cls, *args: Any) -> "Component":
-        pass
 
 class ComponentBlueprint:
-    def __init__(self, id: "str | tuple[ComponentBlueprint | str, ...]") -> None:
-        self._id = id
-        self._level = self._get_level()
-        self._structure = self._get_structure()
+    def __init__(self, comps: tuple["ComponentBlueprint | Component | type[Component]", ...]) -> None:
+        self._bp = comps
 
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, ComponentBlueprint):
-            if __value._structure == self._structure:
-                return True
-            else:
+            if len(self._bp) != len(__value._bp):
                 return False
+
+            for i, b in enumerate(__value._bp):
+                a = self._bp[i]
+                if a == b:
+                    continue
+                elif isinstance(a, Component) and isinstance(b, type):
+                    if isinstance(a, b):
+                        continue
+                    else:
+                        return False
+                elif isinstance(a, type) and isinstance(b, Component):
+                    if isinstance(b, a):
+                        continue
+                    else:
+                        return False
+                elif isinstance(a, type) and isinstance(b, type):
+                    if issubclass(a, b):
+                        continue
+                    else:
+                        return False
+                else:
+                    return False
+            return True
         else:
             return False
 
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} size={len(self._id)}>"
-
-    @property
-    def id(self) -> "str | tuple[ComponentBlueprint | str, ...]":
-        return self._id
+    def __str__(self) -> str:
+        s: list[str] = []
+        for c in self._bp:
+            s.append(c.__class__.__name__)
+        return f"<ComponentBlueprint ({', '.join(s)})>"
     
-    @property
-    def level(self) -> int:
-        return self._level
-    
-    @property
-    def structure(self) -> str:
-        return self._structure
 
-    def _get_structure(self) -> str:
-        if isinstance(self._id, str):
-            return self._id
-        else:
-            bp: list[str] = []
-            for cb in self._id:
-                if isinstance(cb, str):
-                    bp.append(cb)
-                else:
-                    bp.append(cb._get_structure())
-            return f"{{{'+'.join(bp)}}}"
-    
-    def _get_level(self) -> int:
-        if isinstance(self._id, str):
-            return 0
-        else:
-            lvl = 0
-            for cb in self._id:
-                if isinstance(cb, ComponentBlueprint):
-                    lvl += 1 + cb._get_level()
-                    break
-            return lvl
-
-    def subset(self, structure: str) -> bool: 
-        ast = clck.Formulang.generate_ast(structure)
-
-        from clck.formulang.parsing.fl_parser import EllipsisNode
-
-        ast = ast._subset()
-        print(ast)
-        print(ast.__class__)
-
-        while not isinstance(ast, EllipsisNode):
-            ast = ast._subset()
-            print(ast.__class__)
+class AnyComponent(Component):
+    def __init__(self) -> None:
+        super().__init__()

@@ -1,7 +1,7 @@
 import random
 from clck.common.component import Component
 from clck.common.structure import ComponentT, ComponentTypes, Structurable
-from clck.phonology.syllabics import Structure
+from clck.common.structure import Structure
 from clck.phonology.phonemes import DummyPhoneme
 from clck.utils import clean_collection
 
@@ -195,6 +195,12 @@ class FormulangStructure(Structure, TreeNode):
         _valid_types: ComponentTypes[ComponentT] = (Component,)) -> None:
         super().__init__(components, _valid_types)
         self._brace_level = brace_level
+
+    def __repr__(self) -> str:
+        return super().__str__()
+
+    def __str__(self) -> str:
+        return super().__str__()
 
     @property
     def brace_level(self) -> int:

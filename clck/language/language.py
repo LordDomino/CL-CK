@@ -4,7 +4,7 @@ import clck.language.generators as generators
 from clck.phonology.phonemes import PhonemicInventory
 from clck.language.managers import Manager, PhonemesManager
 from clck.language.containers import PhonemeGroupsManager
-from clck.phonology.syllabics import Structure
+from clck.common.component import Structure
 
 
 class Language:
@@ -13,7 +13,7 @@ class Language:
         self._structures: List[Structure] = []
         self._syllable_generator: generators.SyllableGenerator
         self._phonological_inventory: PhonemicInventory | None = None
-        
+
         # Manager classes
         self._phonemes_manager: PhonemesManager = PhonemesManager()
         self._phonemegroups_manager = PhonemeGroupsManager

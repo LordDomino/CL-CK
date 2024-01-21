@@ -1,8 +1,9 @@
+from clck.common.structure import Structure
 from clck.formulang.parsing.fl_parser import Parser
 from clck.formulang.parsing.fl_tokenizer import Tokenizer
 from clck.formulang.parsing.parse_tree import TreeNode
 from clck.phonology.phonemes import Phoneme
-from clck.phonology.syllabics import Structure, Syllable
+from clck.phonology.syllabics import Syllable
 
 
 class Formulang:

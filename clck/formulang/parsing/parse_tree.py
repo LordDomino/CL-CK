@@ -68,7 +68,7 @@ class TreeNode:
         """
         return self._subnodes
 
-    def eval(self) -> "FormulangPhoneme | FormulangStructure | None":
+    def eval(self) -> "FormulangPhoneme | FormulangStructure":
         """Evaluates each subnode of this current `TreeNode` and returns
         a resultant `Phoneme`, `Structure`, or `None` based on the
         recursive evaluation in the parse tree.
@@ -86,7 +86,7 @@ class TreeNode:
         """
         for subnode in self._subnodes:
             return subnode.eval()
-        raise Exception("Evaluation error")
+        return FormulangStructure((), brace_level=self._brace_level)
 
     def get_json(self, indent: int = 4) -> str:
         """Returns a JSON string copy of the parse tree branch starting
@@ -191,9 +191,9 @@ class FormulangPhoneme(DummyPhoneme, TreeNode):
 
 
 class FormulangStructure(Structure, TreeNode):
-    def __init__(self, components: Structurable[ComponentT], brace_level: int,
+    def __init__(self, *components: Structurable[ComponentT], brace_level: int = 0,
         _valid_types: ComponentTypes[ComponentT] = (Component,)) -> None:
-        super().__init__(components, _valid_types)
+        super().__init__(*components, _valid_types=_valid_types)
         self._brace_level = brace_level
 
     def __repr__(self) -> str:
@@ -263,7 +263,7 @@ class Concatenation(Operation):
         super().__init__(operands, brace_level)
         self._operands = operands
 
-    def eval(self) -> FormulangStructure | None:
+    def eval(self) -> FormulangStructure:
         # The following code allows detection of 'chained' operations to
         # add either as structures or phonemes depending on the brace level
         components: list[Component] = []
@@ -272,8 +272,6 @@ class Concatenation(Operation):
             operand = o.eval()
             if isinstance(operand, FormulangPhoneme):
                 components.append(operand)
-            elif operand == None:
-                pass
             else:
                 if operand.brace_level == self.brace_level:
                     components.extend(operand.components)
@@ -281,9 +279,9 @@ class Concatenation(Operation):
                     components.append(operand)
 
         if components == []:
-            return None
+            return FormulangStructure((), brace_level=self._brace_level)
         else:
-            return FormulangStructure(tuple(components), self._brace_level)
+            return FormulangStructure(*components, brace_level=self._brace_level)
 
 
 class Subtraction(Operation):
@@ -292,7 +290,7 @@ class Subtraction(Operation):
         super().__init__(operands, brace_level)
         self._operands = operands
 
-    def eval(self) -> FormulangPhoneme | FormulangStructure | None:
+    def eval(self) -> FormulangPhoneme | FormulangStructure:
         return super().eval()
 
 class Selection(Operation):
@@ -301,7 +299,7 @@ class Selection(Operation):
         super().__init__(options, brace_level)
         self._options = options
 
-    def eval(self) -> FormulangPhoneme | FormulangStructure | None:
+    def eval(self) -> FormulangPhoneme | FormulangStructure:
         selected = random.choice(self._options).eval()
         return selected
 
@@ -317,17 +315,15 @@ class StructureNode(TreeNode):
         super().__init__((subnode,), brace_level)
         self._subnode = subnode
 
-    def eval(self) -> FormulangPhoneme | FormulangStructure | None:
+    def eval(self) -> FormulangPhoneme | FormulangStructure:
         expr = self._subnode.eval()
-        if expr == None:
-            return None
-        elif expr.brace_level == self.brace_level:
+        if expr.brace_level == self.brace_level:
             if isinstance(expr, StructureNode):
                 return expr
             else:
-                return FormulangStructure((expr,), self._brace_level)
+                return FormulangStructure(expr, brace_level=self._brace_level)
         else:
-            return FormulangStructure((expr,), self._brace_level)
+            return FormulangStructure(expr, brace_level=self._brace_level)
 
 
 class ProbabilityNode(TreeNode):
@@ -336,9 +332,11 @@ class ProbabilityNode(TreeNode):
         super().__init__(subnodes, brace_level)
         self._probability = probability
 
-    def eval(self) -> FormulangPhoneme | FormulangStructure | None:
+    def eval(self) -> FormulangPhoneme | FormulangStructure:
         if random.random() < self._probability:
             return super().eval()
+        else:
+            return FormulangStructure((), brace_level=self._brace_level)
         
 
 class EllipsisNode(FormulangPhoneme, TreeNode):

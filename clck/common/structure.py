@@ -2,16 +2,22 @@ from abc import ABC
 from types import NoneType
 from typing import TypeAlias, TypeVar, Union
 
-from clck.common.component import Component, ComponentBlueprint, ComponentT
+from clck.common.component import Component, FlexibleBlueprint
+from clck.common.component import ComponentBlueprint
+from clck.common.component import ComponentT
 from clck.exceptions import CLCKException
-from clck.phonology.phonemes import ConsonantPhoneme, DummyPhoneme, Phoneme, VowelPhoneme
-from clck.utils import filter_none, get_types, tuple_append, tuple_extend
+from clck.phonology.phonemes import ConsonantPhoneme
+from clck.phonology.phonemes import DummyPhoneme
+from clck.phonology.phonemes import Phoneme
+from clck.phonology.phonemes import VowelPhoneme
+from clck.utils import filter_none
+from clck.utils import tuple_append
 
 
 T = TypeVar("T")
 PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
 ComponentTypes: TypeAlias = tuple[type[ComponentT], ...]
-Structurable: TypeAlias = Union[tuple[ComponentT, ...], "Structure", Phoneme]
+Structurable: TypeAlias = Union[ComponentT, "Structure", Phoneme]
 
 
 class Structure(Component, ABC):
@@ -21,7 +27,7 @@ class Structure(Component, ABC):
     components.
     """
 
-    def __init__(self, components: Structurable[ComponentT],
+    def __init__(self, *components: ComponentT,
         _valid_types: ComponentTypes[ComponentT] = (Component,)) -> None:
         """Creates a new instance of `Structure` given the only valid
         component types that this can contain and its initial
@@ -41,13 +47,12 @@ class Structure(Component, ABC):
         - `TypeError` if any element in `components` is not any of the
         allowed types in `_valid_comp_types`.
         """
-        _c = self._derive_components(components)
         try:
-            self._components = filter_none(_c)
+            self._components = filter_none(components)
             self._valid_types = tuple([*_valid_types])
             self._assert_components()
         except TypeError:
-            raise CLCKException(f"{_c} cannot be created to a structure")
+            raise CLCKException(f"{components} cannot be created to a structure")
 
         self._phonemes = self._get_phonemes()
         self._substructures = self._get_substructures()
@@ -55,6 +60,8 @@ class Structure(Component, ABC):
         # Only then call the parent constructor after all necessary
         # attributes are initialized
         super().__init__()
+        
+        self._assert_blueprint_compatibility()
 
         self._size = len(self._phonemes)
         self._topmost_type = self.__class__
@@ -82,16 +89,23 @@ class Structure(Component, ABC):
             strs.append(c.formulang_transcript)
         return f"{{{'.'.join(strs)}}}"
 
+    def _init_output(self) -> str:
+        comps: list[str] = []
+        for c in self._phonemes:
+            comps.append(c.output)
+
+        return "".join(comps)
+
     def _init_romanization(self) -> str | None:
         return "_create_romanization() WIP"
 
     def _init_blueprint(self) -> ComponentBlueprint:
-        return ComponentBlueprint(self._components)
+        return ComponentBlueprint(*self._components)
 
     @property
     def components(self) -> tuple[Component, ...]:
         """The components of this structure."""
-        return tuple(self._components)
+        return self._components
 
     @property
     def output(self) -> str:
@@ -111,31 +125,6 @@ class Structure(Component, ABC):
     def substructures(self) -> tuple["Structure", ...]:
         """The substructures of this structure."""
         return tuple(self._substructures)
-
-    def add_components(self, *components: Component) -> None:
-        """
-        Adds components to this structure.
-
-        Parameters
-        ----------
-        - `components` - the components to add.
-        """
-        self._assert_components()
-        self._components = tuple_extend(self._components, components)
-        for component in components:
-            self._classify_component(component)
-
-    def add_substructure(self, substructure: "Structure") -> None:
-        """
-        Adds a structure to this one.
-
-        Parameters
-        ----------
-        - `substructure`: the structure to be parented (added) to this
-            structure.
-        """
-        self._assert_components()
-        self._substructures = tuple_append(self._substructures, substructure)
 
     def get_phonemes_by_type(self,
             type: type[PhonemeT] = Phoneme) -> tuple[PhonemeT, ...]:
@@ -202,16 +191,8 @@ class Structure(Component, ABC):
         return [*set(bank)]
 
     @classmethod
-    def make(cls, *args: Component) -> "Structure":
-        args_count: int = len(args)
-
-        if args_count == 0:
-            return cls(())
-        elif args_count == 1:
-            return cls((args[0],), (args[0].__class__,))
-        else:
-            types = get_types(args)
-            return cls(args, types)
+    def get_default_blueprint(cls) -> ComponentBlueprint:
+        return FlexibleBlueprint()
 
     def _append_dummies(self, to: tuple[ComponentT, ...]) -> tuple[ComponentT | DummyPhoneme, ...]:
         nl: list[ComponentT | DummyPhoneme] = [*to]
@@ -221,26 +202,14 @@ class Structure(Component, ABC):
 
         return tuple(nl)
 
-    def _derive_components(self, c: Structurable[ComponentT]) -> tuple[Component, ...]:
-        """Properly unpack the components before assigning them to the
-        instance field.
-
-        Parameters
-        ----------
-        c : Structurable[ComponentT]
-            the object to be unpacked
-
-        Returns
-        -------
-        tuple[ComponentT, ...]
-            the actual component attributable to the instance field
-        """
-        if isinstance(c, Structure):
-            return c.components
-        elif isinstance(c, Phoneme):
-            return (c,)
+    def _assert_blueprint_compatibility(self, bp: ComponentBlueprint | None = None) -> None:
+        if bp:
+            if bp.is_compatible_to(self.__class__.get_default_blueprint()):
+                return
         else:
-            return c
+            if self._blueprint.is_compatible_to(self.__class__.get_default_blueprint()):
+                return
+        raise CLCKException("Cannot create structure because of blueprint incompatibility")
 
     def _assert_components(self) -> None:
         """
@@ -295,13 +264,6 @@ class Structure(Component, ABC):
 
         return "_".join(names)
 
-    def _init_output(self) -> str:
-        comps: list[str] = []
-        for c in self._phonemes:
-            comps.append(c.output)
-
-        return "".join(comps)
-
     def _get_phonemes(self) -> tuple[Phoneme, ...]:
         """
         Returns a tuple of all found phones within the hierarchy of this
@@ -328,6 +290,3 @@ class Structure(Component, ABC):
                 rl.append(c)
 
         return tuple(rl)
-
-    def _get_blueprints(self) -> ComponentBlueprint:
-        pass

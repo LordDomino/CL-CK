@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any
 from typing import TypeAlias
 
-from clck.formulang.definitions.tokens import STANDARD_TOKENS, Literals, StandardTokens
+from clck.formulang.definitions.tokens import STANDARD_TOKENS, Literals, StandardTokenType
 from clck.formulang.definitions.tokens import VALID_CHARS
 from clck.utils import clean_collection
 from clck.utils import strip_whitespace
@@ -14,7 +14,7 @@ ResultName: TypeAlias = str
 
 @dataclass()
 class Token:
-    type: StandardTokens
+    type: StandardTokenType
     value: Any
     brace_level: int
 

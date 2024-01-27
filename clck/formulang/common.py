@@ -1,9 +1,9 @@
 from clck.common.structure import Structure
 from clck.formulang.parsing.fl_parser import Parser
 from clck.formulang.parsing.fl_tokenizer import Tokenizer
-from clck.formulang.parsing.parse_tree import TreeNode
+from clck.formulang.parsing.parse_tree import FormulangStructure, TreeNode
 from clck.phonology.phonemes import Phoneme
-from clck.phonology.syllabics import Syllable
+from clck.phonology.syllabics import Nucleus, Syllable
 
 
 class Formulang:
@@ -57,9 +57,17 @@ class Formulang:
     @staticmethod
     def generate_syllable(left_margin: str | None, nucleus: str,
         right_margin: str | None) -> Syllable:
-        if not left_margin and not right_margin:
-            g = Formulang.generate(nucleus)
-            if not g:
-                raise Exception("Cannot create a syllable with at least no nucleus!")
-            elif isinstance(g, Structure):
-                return Syllable((), g.components[0], ())
+        lm_n = FormulangStructure((), 0)
+        rm_n = FormulangStructure((), 0)
+
+        if left_margin:
+            lm_n = Formulang.generate(left_margin)
+
+        n = Formulang.generate(nucleus)
+        if n != None:
+            n = Nucleus(n)
+
+        if right_margin:
+            rm_n = Formulang.generate(right_margin)
+
+        return Syllable(Structure((lm_n, n, rm_n)))

@@ -10,7 +10,7 @@ from clck.phonology.phonemes import Phoneme
 T = TypeVar("T")
 
 
-STANDARD_TOKENS: list["StandardTokens"] = []
+STANDARD_TOKENS: list["StandardTokenType"] = []
 """The list of all recognized `StandardToken` enum members"""
 
 
@@ -19,13 +19,13 @@ class SyntaxObjectTypes(Enum):
     PHONEME = auto()
     LITERAL = auto()
 
-class StandardTokens(Enum):
+class StandardTokenType(Enum):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
 
     @classmethod
-    def get_all_subclasses(cls) -> tuple[type["StandardTokens"], ...]:
+    def get_all_subclasses(cls) -> tuple[type["StandardTokenType"], ...]:
         """Returns a tuple of all `StandardTokens` enum subclasses.
 
         Returns
@@ -33,7 +33,7 @@ class StandardTokens(Enum):
         tuple[type[StandardTokens]]
             the tuple of all `StandardTokens`
         """
-        temp: list[type[StandardTokens]] = []
+        temp: list[type[StandardTokenType]] = []
 
         temp.extend(cls.__subclasses__())
         for c in cls.__subclasses__():
@@ -43,7 +43,7 @@ class StandardTokens(Enum):
 
     @staticmethod
     def register_enums_from_classes(
-        enum_classes: tuple[type["StandardTokens"], ...]) -> None:
+        enum_classes: tuple[type["StandardTokenType"], ...]) -> None:
         """Registers all defined enumerations from the given enum
         classes in `enum_classes`.
 
@@ -72,7 +72,7 @@ class StandardTokens(Enum):
         chars.extend(list(string.ascii_letters))
         chars.extend(list(string.digits))
     
-        for enum_class in StandardTokens.get_all_subclasses():
+        for enum_class in StandardTokenType.get_all_subclasses():
             for enum in enum_class:
                 if isinstance(enum.value, str):
                     chars.extend(list(enum.value))
@@ -116,7 +116,7 @@ class StandardTokens(Enum):
             superclass type
         """
         temp: list[type[T]] = []
-        for c in StandardTokens.get_all_subclasses():
+        for c in StandardTokenType.get_all_subclasses():
             if issubclass(c, cls_type):
                 temp.append(c)
 
@@ -124,14 +124,14 @@ class StandardTokens(Enum):
     
     @staticmethod
     def get_identifier_classes() -> tuple[type["Groupings"], ...]:
-        return StandardTokens.get_enum_classes_by_type(Groupings)
+        return StandardTokenType.get_enum_classes_by_type(Groupings)
 
     @staticmethod
     def get_wildcard_classes() -> tuple[type["Wildcards"], ...]:
-        return StandardTokens.get_enum_classes_by_type(Wildcards)
+        return StandardTokenType.get_enum_classes_by_type(Wildcards)
     
     @staticmethod
-    def get_token_definitions_by_type(cls_type: type["StandardTokens"]) -> tuple["StandardTokens", ...]:
+    def get_token_definitions_by_type(cls_type: type["StandardTokenType"]) -> tuple["StandardTokenType", ...]:
         """Returns the tuple of strings representing the tokens of the
         given type `cls_type`.
 
@@ -146,8 +146,8 @@ class StandardTokens(Enum):
             the tuple of strings representing the tokens of the given
             type `cls_type`
         """
-        temp: list[StandardTokens] = []
-        for enum_cls in StandardTokens.get_enum_classes_by_type(cls_type):
+        temp: list[StandardTokenType] = []
+        for enum_cls in StandardTokenType.get_enum_classes_by_type(cls_type):
             for enum in enum_cls:
                 temp.append(enum)
 
@@ -176,13 +176,13 @@ class StandardTokens(Enum):
         return tuple(temp)
 
 
-class SyntaxTokens(StandardTokens):
+class SyntaxTokens(StandardTokenType):
     """Syntax tokens are tokens that are essential to the formulation
     of the formula meta-syntax.
     """
 
 
-class NativeTokens(StandardTokens):
+class NativeTokens(StandardTokenType):
     """Native tokens are non-special tokens containing literals etc.
     """
 
@@ -254,15 +254,15 @@ class TypeGroupings(Groupings):
     STRUCTURE_CLOSE = r"\}"
 
 
-TOKEN_CLASSES: tuple[type[StandardTokens], ...] = StandardTokens.get_all_subclasses()
+TOKEN_CLASSES: tuple[type[StandardTokenType], ...] = StandardTokenType.get_all_subclasses()
 """The tuple of all `StandardToken` enum classes"""
 
-VALID_CHARS: tuple[str, ...] = StandardTokens.get_valid_chars()
+VALID_CHARS: tuple[str, ...] = StandardTokenType.get_valid_chars()
 """The tuple of all valid characters acceptable in a string formula."""
 
 # It's important to register all tokens to STANDARD_TOKENS.
 # Without this, tokens will not be able to be recognized by CLCK.
-StandardTokens.register_enums_from_classes(TOKEN_CLASSES)
+StandardTokenType.register_enums_from_classes(TOKEN_CLASSES)
 
 
 class SyntaxDefinitions(Enum): ...

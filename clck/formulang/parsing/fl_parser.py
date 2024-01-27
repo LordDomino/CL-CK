@@ -1,5 +1,5 @@
 from typing import Callable
-from clck.formulang.definitions.tokens import CommonGroupings, Literals, StandardTokens, TypeGroupings
+from clck.formulang.definitions.tokens import CommonGroupings, Literals, StandardTokenType, TypeGroupings
 from clck.formulang.definitions.tokens import Operators
 from clck.formulang.parsing.fl_tokenizer import EPSILON_TOKEN, Token
 from clck.formulang.parsing.parse_tree import Concatenation, EllipsisNode, Factor, FormulangPhoneme, ProbabilityNode, Selection, StructureNode, Operation, TreeNode
@@ -27,12 +27,15 @@ class Parser:
         return ast
 
     def _raw_parse(self) -> Formula:
-        expr = self._parse_expr()
-
-        if self._sequence_pos < len(self._tokens) - 2:
-            raise Exception(f"Leftover, token unknown {self._next_tokens[0]}")
+        if self._next_tokens[0] == EPSILON_TOKEN:
+            return Formula(())
         else:
-            return Formula((expr,))
+            expr = self._parse_expr()
+
+            if self._sequence_pos < len(self._tokens) - 2:
+                raise Exception(f"Leftover, token unknown {self._next_tokens[0]}")
+            else:
+                return Formula((expr,))
 
     def _parse_expr(self) -> Expression:
         expr = Expression((self._parse_selection(),), self._current_brace_level)
@@ -113,10 +116,15 @@ class Parser:
             self._advance(1)
             return term
         elif self._next_tokens[0].type == TypeGroupings.STRUCTURE_OPEN:
-            self._advance(1)
-            term = Term((self._parse_structure(),), brace_level)
-            self._advance(1)
-            return term
+            try:
+                self._advance(1)
+                term = Term((self._parse_structure(),), brace_level)
+                self._advance(1)
+                return term
+            except Exception as e:
+                print(e.args)
+                self._advance(1)
+                return Term((), brace_level)
         elif self._next_tokens[0].type == Literals.ELLIPSIS:
             dummy_phoneme = EllipsisNode(brace_level)
             self._advance(1)
@@ -130,7 +138,7 @@ class Parser:
             self._advance(1)
             return phoneme
         else:
-            raise Exception(f"{self._next_tokens} is not a phoneme")
+            raise Exception(f"Found {self._next_tokens[0]} but expected a phoneme")
 
     def _parse_structure(self) -> StructureNode | TreeNode:
         return StructureNode(self._parse_expr(), self._current_brace_level)
@@ -189,9 +197,9 @@ class Parser:
         else:
             return False
         
-    def _match_next_token(self, match_to: dict[StandardTokens,
+    def _match_next_token(self, match_to: dict[StandardTokenType,
             Callable[..., TreeNode]]
-            ) -> tuple[TreeNode, StandardTokens] | None:
+            ) -> tuple[TreeNode, StandardTokenType] | None:
         for key in match_to.keys():
             if self._next_tokens[0].type == key:
                 self._advance(1)

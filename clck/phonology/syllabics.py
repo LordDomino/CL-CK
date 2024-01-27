@@ -1,9 +1,8 @@
 from abc import ABC
 from typing import TypeAlias, Union
+from clck.common.component import AnyBlueprint, ComponentBlueprint, FlexibleBlueprint
 from clck.common.structure import Structure
-from clck.common.structure import Structurable
 from clck.phonology.phonemes import Phoneme
-from clck.utils import filter_none
 
 
 SyllabicComponentT: TypeAlias = Union["SyllabicComponent", Phoneme]
@@ -16,54 +15,65 @@ class SyllabicComponent(Structure, ABC):
     such as phonemes and consonant clusters. Syllabic components are the
     base components 
     """
-    def __init__(self, components: Structurable[SyllabicComponentT]) -> None:
-        super().__init__(components, (SyllabicComponent, Phoneme))
+    def __init__(self, *components: SyllabicComponentT) -> None:
+        super().__init__(*components, _valid_types=(SyllabicComponent, Phoneme))
 
     def _init_ipa_transcript(self) -> str:
         t: str = ""
         for c in self._components:
             t += c.ipa_transcript
         return t
+    
+    @classmethod
+    def get_default_blueprint(cls) -> ComponentBlueprint:
+        return FlexibleBlueprint(AnyBlueprint(SyllabicComponent, Phoneme))
+
+
+SyllableMargin = AnyBlueprint(SyllabicComponent, Phoneme)
 
 
 class Syllable(SyllabicComponent):
-    def __init__(self,
-        left_margin: Structurable[SyllabicComponentT],
-        nucleus: Structurable[SyllabicComponentT],
-        right_margin: Structurable[SyllabicComponentT]) -> None:
-        super().__init__(filter_none(left_margin + nucleus + right_margin))
-        self._nucleus = nucleus
-        self._left_margin = left_margin
-        self._right_margin = right_margin
+    def __init__(self, *components: SyllabicComponentT) -> None:
+        super().__init__(*components)
+        self._left_margin = components[0]
+        self._nucleus = Nucleus(components[1])
+        self._right_margin = components[2]
+
+        if not self._blueprint.is_compatible_to(Syllable.get_default_blueprint()):
+            raise Exception(f"Cannot create a component of less than the elements required (Number of required components is 3 while given is only {len(components)})")
 
     @property
-    def nucleus(self) -> tuple[SyllabicComponent | Phoneme, ...]:
+    def nucleus(self) -> "Nucleus":
         return self._nucleus
     
     @property
-    def left_margin(self) -> tuple[SyllabicComponent | Phoneme, ...]:
+    def left_margin(self) -> SyllabicComponentT:
         return self._left_margin
     
     @property
-    def right_margin(self) -> tuple[SyllabicComponent | Phoneme, ...]:
+    def right_margin(self) -> SyllabicComponentT:
         return self._right_margin
+    
+    @classmethod
+    def get_default_blueprint(cls) -> ComponentBlueprint:
+        return ComponentBlueprint(SyllableMargin, Nucleus, SyllableMargin)
 
 
 class Nucleus(SyllabicComponent):
-    def __init__(self, components: tuple[SyllabicComponent | Phoneme, ...]) -> None:
-        super().__init__(components)
+    def __init__(self, *components: SyllabicComponentT) -> None:
+        super().__init__(*components)
 
 
 class Onset(SyllabicComponent):
     def __init__(self, components: tuple[SyllabicComponent | Phoneme, ...]) -> None:
-        super().__init__(components)
+        super().__init__(*components)
 
 
 class Coda(SyllabicComponent):
     def __init__(self, components: tuple[SyllabicComponent | Phoneme, ...]) -> None:
-        super().__init__(components)
+        super().__init__(*components)
 
 
 class Rime(SyllabicComponent):
     def __init__(self, nucleus: Nucleus, coda: Coda) -> None:
-        super().__init__((nucleus, coda))
+        super().__init__(nucleus, coda)

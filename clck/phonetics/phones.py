@@ -1,4 +1,3 @@
-from typing import Any
 from clck.common.component import Component, ComponentBlueprint
 from clck.phonetics.articulatory_properties import (
     AirstreamMechanism,
@@ -110,6 +109,10 @@ class Phone(Component):
         otherwise returns `False`.
         """
         return self._is_default
+    
+    @classmethod
+    def get_default_blueprint(cls) -> ComponentBlueprint:
+        return ComponentBlueprint(Phone)
 
     def _init_output(self) -> str:
         return self._symbol
@@ -124,7 +127,7 @@ class Phone(Component):
         return super()._init_romanization()
 
     def _init_blueprint(self) -> ComponentBlueprint:
-        pass
+        return super()._init_blueprint()
 
     def _get_property_names(self) -> list[str]:
         """
@@ -136,10 +139,6 @@ class Phone(Component):
     @staticmethod
     def _append_to_defaults(phoneme: "Phone") -> None:
         Phone.DEFAULT_IPA_PHONES = tuple([*Phone.DEFAULT_IPA_PHONES, phoneme])
-
-    @staticmethod
-    def make(*args: Any) -> Component:
-        pass
 
 
 class DummyPhone(Phone):

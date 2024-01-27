@@ -1,6 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
-from typing import TypeVar
+from types import UnionType
+from typing import TypeAlias, TypeVar, Union
 
 from clck.config import print_debug
 # from clck.formulang.common import generate
@@ -26,8 +27,7 @@ class Component(ABC):
 
     @abstractmethod
     def __init__(self) -> None:
-        """Convenience method to execute common post-initialization to
-        work with inheritance.
+        """Initializes common properties of this `Component` instance.
         """
         self._output: str = self._init_output()
         self._ipa_transcript: str = self._init_ipa_transcript()
@@ -47,7 +47,7 @@ class Component(ABC):
                 return False
             else:
                 if isinstance(__value, Component):
-                    if self.__dict__ == __value.__dict__:
+                    if self._ipa_transcript == __value._ipa_transcript:
                         return True
                     else:
                         return False
@@ -93,7 +93,7 @@ class Component(ABC):
 
     @abstractmethod
     def _init_blueprint(self) -> "ComponentBlueprint":
-        return ComponentBlueprint((self,))
+        return ComponentBlueprint(self)
 
     def set_romanization(self, romanization: str) -> None:
         """Sets the romanized string value for this component.
@@ -107,7 +107,7 @@ class Component(ABC):
 
     @property
     def output(self) -> str:
-        """The printable string version that previews the 'actual'
+        """The printable string version that previews the Latin script
         orthographic representation of this component.
         """
         return self._output
@@ -121,6 +121,8 @@ class Component(ABC):
     
     @property
     def formulang_transcript(self) -> str:
+        """The Formulang representation of this component.
+        """
         return self._formulang_transcript
 
     @property
@@ -128,51 +130,186 @@ class Component(ABC):
         return self._romanization
     
     @property
-    def blueprint(self) -> "ComponentBlueprint | type":
+    def blueprint(self) -> "ComponentBlueprint":
         return self._blueprint
     
+    @classmethod
+    @abstractmethod
+    def get_default_blueprint(cls) -> "ComponentBlueprint":
+        return ComponentBlueprint(Component)
+
+
+BlueprintElement: TypeAlias = Union["ComponentBlueprint", Component, type[ComponentT]]
+
 
 class ComponentBlueprint:
-    def __init__(self, comps: tuple["ComponentBlueprint | Component | type[Component]", ...]) -> None:
+    """The class for all component blueprints.
+
+    A component blueprint is a representation of a component's
+    structure and sub-components. It describes what CLCK classes or
+    types are present in a component's structure hierarchy. Each
+    `Component` instance is attributed to a default `ComponentBlueprint`
+    during initialization, but it can be attributed to other
+    `ComponentBlueprint`s if such component is compatible.
+
+    Blueprint Compatibility
+    -----------------------
+    Two `ComponentBlueprint` instances, `A` and `B`, can be compared
+    together to test their compatibility, that is, if `A`'s blueprint
+    elements can be substituted to that of `B`'s.
+    ::
+
+        ComponentBlueprint((ConsonantPhoneme,))
+        ComponentBlueprint((Phoneme,))
+
+    A component blueprint `A` is compatible to another component
+    blueprint `B` if `B` contains the type of `A`'s elements::
+
+        # blueprint of an instance
+        A = ComponentBlueprint((ConsonantPhoneme(...),))
+
+        # blueprint of the instance's class
+        B = ComponentBlueprint((ConsonantPhoneme,))
+
+        A.is_compatible_to(B)  # -> True
+    
+    But not if `B` contains a different instance even if it's the same
+    type as `A`'s.
+
+    --------------------------------------------------------------------
+
+    
+    """
+    def __init__(self, *comps: BlueprintElement[ComponentT]) -> None:
         self._bp = comps
 
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, ComponentBlueprint):
-            if len(self._bp) != len(__value._bp):
+            if self._bp == __value._bp:
+                return True
+            else:
                 return False
-
-            for i, b in enumerate(__value._bp):
-                a = self._bp[i]
-                if a == b:
-                    continue
-                elif isinstance(a, Component) and isinstance(b, type):
-                    if isinstance(a, b):
-                        continue
-                    else:
-                        return False
-                elif isinstance(a, type) and isinstance(b, Component):
-                    if isinstance(b, a):
-                        continue
-                    else:
-                        return False
-                elif isinstance(a, type) and isinstance(b, type):
-                    if issubclass(a, b):
-                        continue
-                    else:
-                        return False
-                else:
-                    return False
-            return True
         else:
             return False
 
     def __str__(self) -> str:
         s: list[str] = []
         for c in self._bp:
-            s.append(c.__class__.__name__)
+            if isinstance(c, ComponentBlueprint):
+                s.append(c.__class__.__name__)
+            elif isinstance(c, Component):
+                s.append(c.__str__())
+            elif isinstance(c, UnionType):
+                s.append(str(c))
+            else:
+                s.append(c.__name__)
         return f"<ComponentBlueprint ({', '.join(s)})>"
-    
 
-class AnyComponent(Component):
-    def __init__(self) -> None:
+    @property
+    def size(self) -> int:
+        return len(self._bp)
+
+    def is_compatible_to(self, cb: "ComponentBlueprint") -> bool:
+        """Returns `True` if this component's `ComponentBlueprint` is
+        compatible to the given component blueprint `cb`, that is, if
+        the components of this instance's blueprint are an instance or
+        subclass of the components of `cb`. Otherwise, this returns
+        `False`.
+
+        Parameters
+        ----------
+        cb : ComponentBlueprint
+            the component blueprint to test the compatibility
+
+        Returns
+        -------
+        bool
+            whether or not this instance is compatible to the given
+            component blueprint
+        """
+
+        if cb.is_reverse_compatible(self):
+            pass
+        elif len(self._bp) != len(cb._bp):
+            return False
+
+        for i, b in enumerate(cb._bp):
+            a = self._bp[i]
+            if self._match_cases(a, b):
+                continue
+            else:
+                return False
+
+        return True
+
+    def is_reverse_compatible(self, cb: "ComponentBlueprint") -> bool:
+        return False
+
+    def _match_cases(self, a: BlueprintElement[ComponentT], b: BlueprintElement[ComponentT]) -> bool:
+        from clck.common.structure import Structure
+
+        if a == b:
+            return True
+        elif isinstance(a, AnyBlueprint):
+            return False
+        elif isinstance(b, type) and issubclass(b, AnyBlueprint):
+            return True
+        elif isinstance(b, AnyBlueprint) and ComponentBlueprint(a) == b:
+            return True
+        elif isinstance(a, Structure) and isinstance(b, ComponentBlueprint):
+            if a.blueprint.is_compatible_to(b):
+                return True
+        elif isinstance(a, Component) and isinstance(b, type):
+            if isinstance(a, b):
+                return True
+        elif isinstance(a, type) and isinstance(b, Component):
+            if isinstance(b, a):
+                return True
+        elif isinstance(a, type) and isinstance(b, type):
+            if issubclass(a, b):
+                return True
+        return False
+
+
+class BlueprintDelimiter: ...
+
+
+class AnyBlueprint(ComponentBlueprint, BlueprintDelimiter):
+    def __init__(self, *bound: BlueprintElement[ComponentT]) -> None:
         super().__init__()
+        self._bound = bound
+
+    def __eq__(self, __value: object) -> bool:
+        if isinstance(__value, ComponentBlueprint):
+            for b in self._bound:
+                for a in __value._bp:
+                    if self._match_cases(a, b):
+                        return True
+            return False
+        else:
+            return False
+
+
+class FlexibleBlueprint(ComponentBlueprint, BlueprintDelimiter):
+    def __init__(self, bound: AnyBlueprint = AnyBlueprint(), size: int = 0) -> None:
+        super().__init__()
+        self._bound = bound
+        self._limit_size = size
+
+    def is_reverse_compatible(self, cb: ComponentBlueprint) -> bool:
+        if self._limit_size == 0:
+            pass
+        elif self._limit_size > 0 and cb.size == self._limit_size:
+            pass
+        else:
+            return False
+
+        if self._bound._bound == ():
+            return True
+
+        for b in cb._bp:
+            for a in self._bound._bound:
+                if self._match_cases(b, a):
+                    return True
+        
+        return False

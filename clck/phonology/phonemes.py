@@ -1,4 +1,3 @@
-from typing import Any
 from clck.common.component import Component, ComponentBlueprint
 from clck.phonetics.phones import ConsonantPhone, Phone
 from clck.phonetics.phones import DummyPhone
@@ -59,6 +58,10 @@ class Phoneme(Component):
     def symbol(self) -> str:
         """The assigned Unicode symbol for this phoneme."""
         return self._symbol
+    
+    @classmethod
+    def get_default_blueprint(cls) -> ComponentBlueprint:
+        return ComponentBlueprint(Phoneme)
 
     def _init_output(self) -> str:
         return self._symbol
@@ -73,7 +76,7 @@ class Phoneme(Component):
         return self._romanization
     
     def _init_blueprint(self) -> ComponentBlueprint:
-        pass
+        return ComponentBlueprint(self)
 
 
 class DummyPhoneme(Phoneme):

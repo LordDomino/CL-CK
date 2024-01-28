@@ -33,7 +33,11 @@ def filter_none(collection: list[T] | tuple[T, ...]) -> tuple[T, ...]:
     """
     rl: list[T] = []
     for c in collection:
-        if c is not None:
+        if c is None:
+            pass
+        elif c == ():
+            pass
+        else:
             rl.append(c)
     return tuple(rl)
 

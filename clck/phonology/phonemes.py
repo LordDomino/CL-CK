@@ -21,11 +21,15 @@ class Phoneme(Component):
         - `base_phone`: is the initial allophone (a `Phone` instance)
             assigned to this phoneme
         """
+        super().__init__(
+            base_phone.symbol,
+            self._init_ipa_transcript(base_phone.symbol),
+            self._init_formulang_transcript(base_phone.symbol),
+            romanization,
+            self._init_blueprint()
+        )
         self._base_phone = base_phone
         self._symbol = base_phone.symbol
-        self._romanization = romanization
-        super().__init__()
-
         self._allophones: list[Phone] = [base_phone]
 
         if base_phone.is_default_IPA_phone():
@@ -63,19 +67,14 @@ class Phoneme(Component):
     def get_default_blueprint(cls) -> ComponentBlueprint:
         return ComponentBlueprint(Phoneme)
 
-    def _init_output(self) -> str:
-        return self._symbol
+    def _init_ipa_transcript(self, ipa_transcript: str = "", *args: object, **kwargs: object) -> str:
+        return f"/{ipa_transcript}/"
 
-    def _init_ipa_transcript(self) -> str:
-        return f"/{self._symbol}/"
-
-    def _init_formulang_transcript(self) -> str:
-        return f"/{self._symbol}/"
-
-    def _init_romanization(self) -> str | None:
-        return self._romanization
+    def _init_formulang_transcript(self, formulang_transcript: str, *args: object, **kwargs: object) -> str:
+        t = super()._init_formulang_transcript(formulang_transcript)
+        return f"/{t}/"
     
-    def _init_blueprint(self) -> ComponentBlueprint:
+    def _init_blueprint(self, *args: object, **kwargs: object) -> ComponentBlueprint:
         return ComponentBlueprint(self)
 
 

@@ -1,4 +1,3 @@
-from abc import ABC
 from abc import abstractmethod
 from types import UnionType
 from typing import TypeAlias, TypeVar, Union
@@ -9,7 +8,7 @@ from clck.config import print_debug
 ComponentT = TypeVar("ComponentT", bound="Component")
 
 
-class Component(ABC):
+class Component:
     """The class representing all abstract representations of linguistic
     objects from which most classes of CLCK inherit from.
     
@@ -26,14 +25,16 @@ class Component(ABC):
     """
 
     @abstractmethod
-    def __init__(self) -> None:
+    def __init__(self, output: str, ipa_transcript: str,
+        formulang_transcript: str, romanization: str | None,
+        blueprint: "ComponentBlueprint") -> None:
         """Initializes common properties of this `Component` instance.
         """
-        self._output: str = self._init_output()
-        self._ipa_transcript: str = self._init_ipa_transcript()
-        self._formulang_transcript: str = self._init_formulang_transcript()
-        self._romanization: str | None = self._init_romanization()
-        self._blueprint = self._init_blueprint()
+        self._output: str = output
+        self._ipa_transcript: str = ipa_transcript
+        self._formulang_transcript: str = formulang_transcript
+        self._romanization: str | None = romanization
+        self._blueprint: ComponentBlueprint = blueprint
         print_debug(f"{self} base properties initialized")
 
     def __eq__(self, __value: object) -> bool:
@@ -55,7 +56,7 @@ class Component(ABC):
                     return False
 
     @abstractmethod
-    def _init_ipa_transcript(self) -> str:
+    def _init_ipa_transcript(self, *args: object, **kwargs: object) -> str:
         """Initializes and returns the IPA transcription of this
         component.
 
@@ -67,14 +68,13 @@ class Component(ABC):
         str
             the IPA transcription of this component.
         """
-        pass
+        return ipa_transcript
 
-    @abstractmethod
-    def _init_formulang_transcript(self) -> str:
-        pass
+    def _init_formulang_transcript(self, formulang_transcript: str,
+        *args: object, **kwargs: object) -> str:
+        return formulang_transcript
 
-    @abstractmethod
-    def _init_output(self) -> str:
+    def _init_output(self, output: str, *args:object, **kwargs: object) -> str:
         """Initializes and returns the output string of this component.
         
         The output string of a component is its printable string version
@@ -85,15 +85,15 @@ class Component(ABC):
         str
             the output string of this component.
         """
-        pass
+        return output
 
-    @abstractmethod
-    def _init_romanization(self) -> str | None:
-        pass
+    def _init_romanization(self, romanization: str | None, *args: object,
+        **kwargs: object) -> str | None:
+        return romanization
 
-    @abstractmethod
-    def _init_blueprint(self) -> "ComponentBlueprint":
-        return ComponentBlueprint(self)
+    def _init_blueprint(self, blueprint: "ComponentBlueprint", *args: object,
+        **kwargs: object) -> "ComponentBlueprint":
+        return blueprint
 
     def set_romanization(self, romanization: str) -> None:
         """Sets the romanized string value for this component.

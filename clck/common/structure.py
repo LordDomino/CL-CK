@@ -59,7 +59,13 @@ class Structure(Component, ABC):
 
         # Only then call the parent constructor after all necessary
         # attributes are initialized
-        super().__init__()
+        super().__init__(
+            self._init_output(),
+            self._init_ipa_transcript(),
+            self._init_formulang_transcript(),
+            self._init_romanization(),
+            self._init_blueprint()
+        )
         
         self._assert_blueprint_compatibility()
 
@@ -81,7 +87,7 @@ class Structure(Component, ABC):
         return f"<{self.__class__.__name__} {{{'.'.join(comps)}}}>"
 
     def _init_ipa_transcript(self) -> str:
-        return f"/{self._output}/"
+        return f"/{self._init_output()}/"
 
     def _init_formulang_transcript(self) -> str:
         strs: list[str] = []
@@ -89,17 +95,19 @@ class Structure(Component, ABC):
             strs.append(c.formulang_transcript)
         return f"{{{'.'.join(strs)}}}"
 
-    def _init_output(self) -> str:
+    def _init_output(self, output: str,
+        phonemes: tuple[Phoneme, ...] | None = None, *args: object,
+        **kwargs: object) -> str:
         comps: list[str] = []
         for c in self._phonemes:
             comps.append(c.output)
 
         return "".join(comps)
 
-    def _init_romanization(self) -> str | None:
+    def _init_romanization(self, *args: object, **kwargs: object) -> str | None:
         return "_create_romanization() WIP"
 
-    def _init_blueprint(self) -> ComponentBlueprint:
+    def _init_blueprint(self, *args: object, **kwargs: object) -> ComponentBlueprint:
         return ComponentBlueprint(*self._components)
 
     @property
@@ -235,6 +243,9 @@ class Structure(Component, ABC):
             mistype: bool = False
             for t in self._valid_types:
                 if isinstance(c, t):
+                    mistype = False
+                    break
+                elif c == ():
                     mistype = False
                     break
                 elif isinstance(c, NoneType):

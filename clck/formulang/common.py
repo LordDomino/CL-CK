@@ -57,8 +57,8 @@ class Formulang:
     @staticmethod
     def generate_syllable(left_margin: str | None, nucleus: str,
         right_margin: str | None) -> Syllable:
-        lm_n = FormulangStructure((), 0)
-        rm_n = FormulangStructure((), 0)
+        lm_n = FormulangStructure(brace_level=0)
+        rm_n = FormulangStructure(brace_level=0)
 
         if left_margin:
             lm_n = Formulang.generate(left_margin)

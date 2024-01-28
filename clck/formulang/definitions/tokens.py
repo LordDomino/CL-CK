@@ -1,6 +1,4 @@
 import string
-from dataclasses import dataclass
-from enum import auto
 from enum import Enum
 from typing import TypeVar
 
@@ -13,11 +11,6 @@ T = TypeVar("T")
 STANDARD_TOKENS: list["StandardTokenType"] = []
 """The list of all recognized `StandardToken` enum members"""
 
-
-class SyntaxObjectTypes(Enum):
-    STRUCTURE = auto()
-    PHONEME = auto()
-    LITERAL = auto()
 
 class StandardTokenType(Enum):
 
@@ -188,14 +181,13 @@ class NativeTokens(StandardTokenType):
 
 
 class Literals(NativeTokens):
-    """`Literals` contain the string literal and numeric literal
+    """`Literals` contains the string literal and numeric literal
     definitions.
     """
     STRING_LITERAL = r"[a-zA-Z]+"
     NUMERIC_LITERAL = r"[0-9]+"
     EPSILON = ""
     ELLIPSIS = r"\.\.\."
-    # IPA_CHARS = rf"[{''.join(Phoneme.DEFAULT_IPA_SYMBOLS)}]+" 
 
 
 class Wildcards(NativeTokens):
@@ -263,50 +255,3 @@ VALID_CHARS: tuple[str, ...] = StandardTokenType.get_valid_chars()
 # It's important to register all tokens to STANDARD_TOKENS.
 # Without this, tokens will not be able to be recognized by CLCK.
 StandardTokenType.register_enums_from_classes(TOKEN_CLASSES)
-
-
-class SyntaxDefinitions(Enum): ...
-class Operations(SyntaxDefinitions): ...
-class Declarations(SyntaxDefinitions): ...
-
-
-@dataclass
-class OperationDefinition:
-    syntax: tuple[SyntaxTokens | SyntaxObjectTypes, ...]
-    is_chainable: bool
-
-
-class BinaryOperations(Operations):
-    ASSIGNMENT = OperationDefinition(
-        (SyntaxObjectTypes.STRUCTURE, Operators.ASSIGNER, SyntaxObjectTypes.STRUCTURE),
-        False
-    )
-
-    CONCATENATION = OperationDefinition(
-        (SyntaxObjectTypes.STRUCTURE, Operators.ASSIGNER, SyntaxObjectTypes.STRUCTURE),
-        True
-    )
-
-    MUTATION = OperationDefinition(
-        (SyntaxObjectTypes.STRUCTURE, Operators.MUTATOR, SyntaxObjectTypes.STRUCTURE),
-        False
-    )
-
-    SELECTION = OperationDefinition(
-        (SyntaxObjectTypes.STRUCTURE, Operators.SELECTOR, SyntaxObjectTypes.STRUCTURE),
-        True
-    )
-
-    SUBTRACTION = OperationDefinition(
-        (SyntaxObjectTypes.STRUCTURE, Operators.SUBTRACTOR, SyntaxObjectTypes.STRUCTURE),
-        True
-    )
-
-    PROBABILITY = OperationDefinition(
-        (CommonGroupings.PROBABILITY_GROUP_OPEN, SyntaxObjectTypes.STRUCTURE, CommonGroupings.PROBABILITY_GROUP_CLOSE),
-        False
-    )
-
-
-class Conditionals(Operations): pass
-class Comparisons(Operations): pass

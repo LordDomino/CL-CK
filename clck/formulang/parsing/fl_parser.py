@@ -9,6 +9,9 @@ from clck.formulang.parsing.parse_tree import Subtraction
 from clck.formulang.parsing.parse_tree import Term
 
 
+
+
+
 class Parser:
 
     def __init__(self, tokens: list[Token] | tuple[Token, ...]) -> None:
@@ -52,12 +55,15 @@ class Parser:
         )
 
         if matched:
-            # R --> F + R (chained)
             if operation.brace_level == matched[0].brace_level:
-                return Selection((operation, *matched[0].subnodes), brace_level)
-            # R --> F + R
+                # R --> F + R (chained)
+                if isinstance(matched[0], Selection):
+                    return Selection((operation, *matched[0].subnodes), brace_level)
+                # R --> F + R
+                else:
+                    return Selection((operation, matched[0]), brace_level)
             else:
-                return Selection((operation, matched[0]), brace_level)
+                raise Exception("Unknown match error")
         else:
             # R --> F
             return operation

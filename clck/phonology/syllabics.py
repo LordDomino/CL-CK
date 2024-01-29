@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import TypeAlias, Union
 from clck.common.component import AnyBlueprint, ComponentBlueprint, FlexibleBlueprint
-from clck.common.structure import Structure
+from clck.common.structure import Structurable, Structure
 from clck.phonology.phonemes import Phoneme
 
 
@@ -15,7 +15,7 @@ class SyllabicComponent(Structure, ABC):
     such as phonemes and consonant clusters. Syllabic components are the
     base components 
     """
-    def __init__(self, *components: SyllabicComponentT) -> None:
+    def __init__(self, *components: Structurable["SyllabicComponent"]) -> None:
         super().__init__(*components, _valid_types=(SyllabicComponent, Phoneme))
 
     def _init_ipa_transcript(self) -> str:
@@ -23,24 +23,24 @@ class SyllabicComponent(Structure, ABC):
         for c in self._components:
             t += c.ipa_transcript
         return t
-    
+
     @classmethod
     def get_default_blueprint(cls) -> ComponentBlueprint:
-        return FlexibleBlueprint(AnyBlueprint(SyllabicComponent, Phoneme))
+        return FlexibleBlueprint((SyllabicComponent, Phoneme))
 
 
 SyllableMargin = AnyBlueprint(SyllabicComponent, Phoneme)
 
 
 class Syllable(SyllabicComponent):
-    def __init__(self, *components: SyllabicComponentT) -> None:
+    def __init__(self, *components: Structurable[SyllabicComponent]) -> None:
         super().__init__(*components)
         self._left_margin = components[0]
         self._nucleus = Nucleus(components[1])
         self._right_margin = components[2]
 
-        if not self._blueprint.is_compatible_to(Syllable.get_default_blueprint()):
-            raise Exception(f"Cannot create a component of less than the elements required (Number of required components is 3 while given is only {len(components)})")
+        # if not self._blueprint.is_compatible_to(Syllable.get_default_blueprint()):
+            # raise Exception(f"Cannot create a component of less than the elements required (Number of required components is 3 while given is only {len(components)})")
 
     @property
     def nucleus(self) -> "Nucleus":
@@ -60,8 +60,12 @@ class Syllable(SyllabicComponent):
 
 
 class Nucleus(SyllabicComponent):
-    def __init__(self, *components: SyllabicComponentT) -> None:
+    def __init__(self, *components: Structurable[SyllabicComponent]) -> None:
         super().__init__(*components)
+
+    @classmethod
+    def get_default_blueprint(cls) -> ComponentBlueprint:
+        return ComponentBlueprint(FlexibleBlueprint((Phoneme,)))
 
 
 class Onset(SyllabicComponent):

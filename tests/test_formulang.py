@@ -1,14 +1,5 @@
-import time
-from clck.formulang.common import Formulang
+from clck.common.component import Component, ComponentBlueprint
+from clck.common.structure import Structure
+from clck.phonology.phonemes import DummyPhoneme, VowelPhoneme
 
-i = 1
-iters = 100
-start = time.time()
-
-while i < iters:
-    res = Formulang.generate("a")
-    i += 1
-
-stop = time.time()
-
-print(f"{iters} iterations: {stop - start} seconds")
+s = Structure((DummyPhoneme(), DummyPhoneme()), _bp=ComponentBlueprint(Component, VowelPhoneme))

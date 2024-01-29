@@ -45,15 +45,8 @@ class Phone(Component):
         """
         self._is_default = _is_IPA_default
         self._symbol = symbol
-        self._articulatory_properties = (articulatory_properties)
-        
-        super().__init__(
-            self._init_output(),
-            self._init_ipa_transcript(),
-            self._init_formulang_transcript(),
-            None,
-            ComponentBlueprint(Phone)
-        )
+        self._articulatory_properties = (articulatory_properties)  
+        super().__init__(self._init_blueprint())
 
         if self.is_default_IPA_phone():
             Phone._append_to_defaults(self)
@@ -128,6 +121,15 @@ class Phone(Component):
     
     def _init_formulang_transcript(self) -> str:
         return f"{self._symbol}"
+    
+    def _init_romanization(self) -> str:
+        return super()._init_romanization()
+    
+    def _init_default_bp(self, *args: object, **kwargs: object) -> ComponentBlueprint:
+        return self.__class__.get_default_blueprint()
+
+    def _init_blueprint(self, *args: object, **kwargs: object) -> ComponentBlueprint:
+        return ComponentBlueprint(self)
 
     def _get_property_names(self) -> list[str]:
         """Returns a list of string corresponding to the names of each

@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from types import UnionType
 from typing import TypeAlias, TypeVar, Union
 
@@ -8,7 +8,7 @@ from clck.config import print_debug
 ComponentT = TypeVar("ComponentT", bound="Component")
 
 
-class Component:
+class Component(ABC):
     """The class representing all abstract representations of linguistic
     objects from which most classes of CLCK inherit from.
     
@@ -25,16 +25,15 @@ class Component:
     """
 
     @abstractmethod
-    def __init__(self, output: str, ipa_transcript: str,
-        formulang_transcript: str, romanization: str | None,
-        blueprint: "ComponentBlueprint") -> None:
+    def __init__(self, _default_bp: "ComponentBlueprint") -> None:
         """Initializes common properties of this `Component` instance.
         """
-        self._output: str = output
-        self._ipa_transcript: str = ipa_transcript
-        self._formulang_transcript: str = formulang_transcript
-        self._romanization: str | None = romanization
-        self._blueprint: ComponentBlueprint = blueprint
+        self._output: str = self._init_output()
+        self._ipa_transcript: str = self._init_ipa_transcript()
+        self._formulang_transcript: str = self._init_formulang_transcript()
+        self._romanization: str | None = self._init_romanization()
+        self._default_blueprint: ComponentBlueprint = _default_bp
+        self._blueprint: ComponentBlueprint = self._init_blueprint()
         print_debug(f"{self} base properties initialized")
 
     def __eq__(self, __value: object) -> bool:
@@ -56,7 +55,7 @@ class Component:
                     return False
 
     @abstractmethod
-    def _init_ipa_transcript(self, *args: object, **kwargs: object) -> str:
+    def _init_ipa_transcript(self) -> str:
         """Initializes and returns the IPA transcription of this
         component.
 
@@ -68,13 +67,14 @@ class Component:
         str
             the IPA transcription of this component.
         """
-        return ipa_transcript
+        pass
 
-    def _init_formulang_transcript(self, formulang_transcript: str,
-        *args: object, **kwargs: object) -> str:
-        return formulang_transcript
+    @abstractmethod
+    def _init_formulang_transcript(self) -> str:
+        pass
 
-    def _init_output(self, output: str, *args:object, **kwargs: object) -> str:
+    @abstractmethod
+    def _init_output(self) -> str:
         """Initializes and returns the output string of this component.
         
         The output string of a component is its printable string version
@@ -85,15 +85,31 @@ class Component:
         str
             the output string of this component.
         """
-        return output
+        pass
 
-    def _init_romanization(self, romanization: str | None, *args: object,
-        **kwargs: object) -> str | None:
-        return romanization
+    @abstractmethod
+    def _init_romanization(self) -> str:
+        return f"{self.__class__.__name__} romanization WIP"
 
-    def _init_blueprint(self, blueprint: "ComponentBlueprint", *args: object,
-        **kwargs: object) -> "ComponentBlueprint":
-        return blueprint
+    @abstractmethod
+    def _init_default_bp(self, *args: object, **kwargs: object) -> "ComponentBlueprint":
+        """Initializes and returns the default `ComponentBlueprint` that
+        this instance obeys. The default component blueprint is the
+        specified component blueprint `_default_bp` during this
+        component's initialization. Otherwise, it is assigned as the
+        class default blueprint returned using the classmethod
+        `get_default_blueprint()`.
+
+        Returns
+        -------
+        ComponentBlueprint
+            the default component blueprint of this instance
+        """
+        return self.__class__.get_default_blueprint()
+
+    @abstractmethod
+    def _init_blueprint(self, *args: object, **kwargs: object) -> "ComponentBlueprint":
+        pass
 
     def set_romanization(self, romanization: str) -> None:
         """Sets the romanized string value for this component.
@@ -136,10 +152,18 @@ class Component:
     @classmethod
     @abstractmethod
     def get_default_blueprint(cls) -> "ComponentBlueprint":
+        """Returns the general default component blueprint that all
+        instances of this class will obey.
+
+        Returns
+        -------
+        ComponentBlueprint
+            the class' general default component blueprint
+        """
         return ComponentBlueprint(Component)
 
 
-BlueprintElement: TypeAlias = Union["ComponentBlueprint", Component, type[ComponentT]]
+BlueprintElement: TypeAlias = Union["ComponentBlueprint", ComponentT, type[ComponentT]]
 
 
 class ComponentBlueprint:
@@ -180,8 +204,9 @@ class ComponentBlueprint:
 
     
     """
-    def __init__(self, *comps: BlueprintElement[ComponentT]) -> None:
+    def __init__(self, *comps: BlueprintElement[ComponentT], strict: bool = True) -> None:
         self._bp = comps
+        self._is_strict = strict
 
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, ComponentBlueprint):
@@ -207,13 +232,15 @@ class ComponentBlueprint:
 
     @property
     def size(self) -> int:
+        """The number of allowed blueprint elements of this instance.
+        """
         return len(self._bp)
 
     def is_compatible_to(self, cb: "ComponentBlueprint") -> bool:
-        """Returns `True` if this component's `ComponentBlueprint` is
+        """Returns `True` if this component blueprint instance is
         compatible to the given component blueprint `cb`, that is, if
-        the components of this instance's blueprint are an instance or
-        subclass of the components of `cb`. Otherwise, this returns
+        the elements of this instance's blueprint are an instance or
+        subclass of the elements of `cb`. Otherwise, this returns
         `False`.
 
         Parameters
@@ -243,9 +270,24 @@ class ComponentBlueprint:
         return True
 
     def is_reverse_compatible(self, cb: "ComponentBlueprint") -> bool:
+        """Returns `True` if `cb` is compatible to this instance,
+        otherwise, returns `False`.
+
+        Parameters
+        ----------
+        cb : ComponentBlueprint
+            the component blueprint to test the compatibility
+
+        Returns
+        -------
+        bool
+            whether or not the given component blueprint is compatible
+            to this instance's component blueprint
+        """
         return False
 
-    def _match_cases(self, a: BlueprintElement[ComponentT], b: BlueprintElement[ComponentT]) -> bool:
+    def _match_cases(self, a: BlueprintElement[ComponentT],
+        b: BlueprintElement[ComponentT]) -> bool:
         from clck.common.structure import Structure
 
         if a == b:
@@ -271,10 +313,7 @@ class ComponentBlueprint:
         return False
 
 
-class BlueprintDelimiter: ...
-
-
-class AnyBlueprint(ComponentBlueprint, BlueprintDelimiter):
+class AnyBlueprint(ComponentBlueprint):
     def __init__(self, *bound: BlueprintElement[ComponentT]) -> None:
         super().__init__()
         self._bound = bound
@@ -288,13 +327,23 @@ class AnyBlueprint(ComponentBlueprint, BlueprintDelimiter):
             return False
         else:
             return False
+    
+    @property
+    def bound(self) -> tuple[ComponentBlueprint | Component | type[Component], ...]:
+        """The blueprint elements that this blueprint only allows.
+        """
+        return self._bound
 
 
-class FlexibleBlueprint(ComponentBlueprint, BlueprintDelimiter):
-    def __init__(self, bound: AnyBlueprint = AnyBlueprint(), size: int = 0) -> None:
-        super().__init__()
-        self._bound = bound
-        self._limit_size = size
+class FlexibleBlueprint(AnyBlueprint):
+    def __init__(self, bound: tuple[BlueprintElement[ComponentT], ...] = (),
+        limit_size: int = 0) -> None:
+        super().__init__(*bound)
+        self._limit_size = limit_size
+
+    @property
+    def limit_size(self) -> int:
+        return self._limit_size
 
     def is_reverse_compatible(self, cb: ComponentBlueprint) -> bool:
         if self._limit_size == 0:
@@ -304,11 +353,11 @@ class FlexibleBlueprint(ComponentBlueprint, BlueprintDelimiter):
         else:
             return False
 
-        if self._bound._bound == ():
+        if self._bound == ():
             return True
 
         for b in cb._bp:
-            for a in self._bound._bound:
+            for a in self._bound:
                 if self._match_cases(b, a):
                     return True
         

@@ -17,7 +17,7 @@ from clck.utils import tuple_append
 T = TypeVar("T")
 PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
 ComponentTypes: TypeAlias = tuple[type[ComponentT], ...]
-Structurable: TypeAlias = Union[ComponentT, "Structure", Phoneme]
+Structurable: TypeAlias = Union[Phoneme, "Structure", tuple[ComponentT, ...]]
 
 
 class Structure(Component, ABC):
@@ -27,8 +27,9 @@ class Structure(Component, ABC):
     components.
     """
 
-    def __init__(self, *components: ComponentT,
-        _valid_types: ComponentTypes[ComponentT] = (Component,)) -> None:
+    def __init__(self, structurable: Structurable[ComponentT] = (),
+        _valid_types: ComponentTypes[ComponentT] = (Component,),
+        _bp: ComponentBlueprint | None = None) -> None:
         """Creates a new instance of `Structure` given the only valid
         component types that this can contain and its initial
         components.
@@ -48,29 +49,22 @@ class Structure(Component, ABC):
         allowed types in `_valid_comp_types`.
         """
         try:
-            self._components = filter_none(components)
+            _c = self._derive_components(structurable)
+            self._components = filter_none(_c)
             self._valid_types = tuple([*_valid_types])
             self._assert_components()
         except TypeError:
-            raise CLCKException(f"{components} cannot be created to a structure")
+            raise CLCKException(f"{structurable} cannot be created to a structure")
 
         self._phonemes = self._get_phonemes()
         self._substructures = self._get_substructures()
+        self._size = len(self._phonemes)
+        self._topmost_type = self.__class__
 
         # Only then call the parent constructor after all necessary
         # attributes are initialized
-        super().__init__(
-            self._init_output(),
-            self._init_ipa_transcript(),
-            self._init_formulang_transcript(),
-            self._init_romanization(),
-            self._init_blueprint()
-        )
-        
+        super().__init__(self._init_blueprint(_bp))
         self._assert_blueprint_compatibility()
-
-        self._size = len(self._phonemes)
-        self._topmost_type = self.__class__
 
     def __str__(self) -> str:
         comps: list[str] = []
@@ -85,30 +79,6 @@ class Structure(Component, ABC):
             comps.append(c._formulang_transcript)
 
         return f"<{self.__class__.__name__} {{{'.'.join(comps)}}}>"
-
-    def _init_ipa_transcript(self) -> str:
-        return f"/{self._init_output()}/"
-
-    def _init_formulang_transcript(self) -> str:
-        strs: list[str] = []
-        for c in self._components:
-            strs.append(c.formulang_transcript)
-        return f"{{{'.'.join(strs)}}}"
-
-    def _init_output(self, output: str,
-        phonemes: tuple[Phoneme, ...] | None = None, *args: object,
-        **kwargs: object) -> str:
-        comps: list[str] = []
-        for c in self._phonemes:
-            comps.append(c.output)
-
-        return "".join(comps)
-
-    def _init_romanization(self, *args: object, **kwargs: object) -> str | None:
-        return "_create_romanization() WIP"
-
-    def _init_blueprint(self, *args: object, **kwargs: object) -> ComponentBlueprint:
-        return ComponentBlueprint(*self._components)
 
     @property
     def components(self) -> tuple[Component, ...]:
@@ -163,8 +133,7 @@ class Structure(Component, ABC):
         return tuple(self.get_phonemes_by_type(ConsonantPhoneme))
 
     def get_vowels(self) -> tuple[VowelPhoneme, ...]:
-        """
-        Returns all the vowels of this structure. This also returns
+        """Returns all the vowels of this structure. This also returns
         dummy vowel phonemes that are used as placeholders in
         vowel-based structures and positions.
         """
@@ -210,14 +179,22 @@ class Structure(Component, ABC):
 
         return tuple(nl)
 
-    def _assert_blueprint_compatibility(self, bp: ComponentBlueprint | None = None) -> None:
-        if bp:
-            if bp.is_compatible_to(self.__class__.get_default_blueprint()):
-                return
-        else:
-            if self._blueprint.is_compatible_to(self.__class__.get_default_blueprint()):
-                return
-        raise CLCKException("Cannot create structure because of blueprint incompatibility")
+    def _assert_blueprint_compatibility(self) -> None:
+        bp_default = self.__class__.get_default_blueprint()
+        match bp_default:
+            case FlexibleBlueprint():
+                if bp_default.limit_size == 0:
+                    pass
+                elif self._size > bp_default.limit_size:
+                    print(f"Warning: Class \"{self.__class__.__name__}\" has flexible blueprint size of {bp_default.size} but instance size is {self._size}")
+            case _:
+
+                if self._size > bp_default.size:
+                    print(f"Warning: Class \"{self.__class__.__name__}\" has blueprint size of {bp_default.size} but instance size is {self._size}")
+
+        if self._blueprint.is_compatible_to(self.__class__.get_default_blueprint()):
+            return
+        # raise CLCKException("Cannot create structure because of blueprint incompatibility")
 
     def _assert_components(self) -> None:
         """
@@ -275,6 +252,15 @@ class Structure(Component, ABC):
 
         return "_".join(names)
 
+    def _derive_components(self, structurable: Structurable[ComponentT]) -> tuple[Component, ...]:
+        match structurable:
+            case tuple():
+                return structurable
+            case Phoneme():
+                return (structurable,)
+            case Structure():
+                return structurable.components
+
     def _get_phonemes(self) -> tuple[Phoneme, ...]:
         """
         Returns a tuple of all found phones within the hierarchy of this
@@ -301,3 +287,46 @@ class Structure(Component, ABC):
                 rl.append(c)
 
         return tuple(rl)
+
+    def _init_output(self) -> str:
+        comps: list[str] = []
+        for c in self._phonemes:
+            comps.append(c.output)
+
+        return "".join(comps)
+
+    def _init_ipa_transcript(self) -> str:
+        return f"/{self._init_output()}/"
+
+    def _init_formulang_transcript(self) -> str:
+        strs: list[str] = []
+        for c in self._components:
+            strs.append(c.formulang_transcript)
+        return f"{{{'.'.join(strs)}}}"
+    
+    def _init_romanization(self) -> str:
+        return super()._init_romanization()
+
+    def _init_default_bp(self, _bp: ComponentBlueprint | None = None, *args: object, **kwargs: object) -> ComponentBlueprint:
+        if _bp:
+            return _bp
+        else:
+            return self.__class__.get_default_blueprint()
+        
+    def _init_blueprint(self, *args: object, **kwargs: object) -> ComponentBlueprint:
+        return ComponentBlueprint(*self._components)
+
+
+class EmptyStructure(Structure):
+    def __init__(self) -> None:
+        """Creates a new `EmptyStructure` instance, containing no
+        components. This can be used as an alternative representative to
+        the `NoneType`.
+        """
+        super().__init__()
+
+    def __repr__(self) -> str:
+        return "<EmptyStructure>"
+    
+    def __str__(self) -> str:
+        return "<EmptyStructure>"

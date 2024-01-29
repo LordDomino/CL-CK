@@ -1,7 +1,7 @@
-from clck.common.structure import Structure
+from clck.common.structure import EmptyStructure, Structure
 from clck.formulang.parsing.fl_parser import Parser
 from clck.formulang.parsing.fl_tokenizer import Tokenizer
-from clck.formulang.parsing.parse_tree import FormulangStructure, TreeNode
+from clck.formulang.parsing.parse_tree import TreeNode
 from clck.phonology.phonemes import Phoneme
 from clck.phonology.syllabics import Nucleus, Syllable
 
@@ -17,7 +17,7 @@ class Formulang:
         return ast
 
     @staticmethod
-    def generate(formula: str) -> Phoneme | Structure | None:
+    def generate(formula: str) -> Phoneme | Structure:
         """Generate a result from the given formula string.
 
         Parameters
@@ -31,7 +31,11 @@ class Formulang:
             the generated result after evaluating the formula string
         """
         ast = Formulang.generate_ast(formula)
-        return ast.eval()
+        result = ast.eval()
+        if result:
+            return result
+        else:
+            return EmptyStructure()
     
     @staticmethod
     def generate_multiple(formula: str, count: int) -> tuple[Phoneme | Structure | None, ...]:
@@ -57,17 +61,17 @@ class Formulang:
     @staticmethod
     def generate_syllable(left_margin: str | None, nucleus: str,
         right_margin: str | None) -> Syllable:
-        lm_n = FormulangStructure(brace_level=0)
-        rm_n = FormulangStructure(brace_level=0)
 
         if left_margin:
             lm_n = Formulang.generate(left_margin)
+        else:
+            lm_n = Formulang.generate("")
 
-        n = Formulang.generate(nucleus)
-        if n != None:
-            n = Nucleus(n)
+        n = Nucleus(Formulang.generate(nucleus))
 
         if right_margin:
             rm_n = Formulang.generate(right_margin)
+        else:
+            rm_n = Formulang.generate("")
 
-        return Syllable(Structure((lm_n, n, rm_n)))
+        return Syllable(lm_n, n, rm_n)

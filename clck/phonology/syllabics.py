@@ -1,22 +1,22 @@
 from abc import ABC
-from typing import TypeAlias, Union
+from typing import TypeVar
 from clck.common.component import AnyBlueprint, ComponentBlueprint, FlexibleBlueprint
-from clck.common.structure import Structurable, Structure
+from clck.common.structure import PhonemeT, Structurable, Structure
 from clck.phonology.phonemes import Phoneme
 
 
-SyllabicComponentT: TypeAlias = Union["SyllabicComponent", Phoneme]
+SyllabicComponentT = TypeVar("SyllabicComponentT", "SyllabicComponent", Phoneme)
 
 
-class SyllabicComponent(Structure, ABC):
+class SyllabicComponent(Structure[SyllabicComponentT], ABC):
     """Class for `SyllabicComponent`.
 
     A syllabic component is any component that comprises a syllable,
     such as phonemes and consonant clusters. Syllabic components are the
     base components 
     """
-    def __init__(self, components: Structurable["SyllabicComponent"]) -> None:
-        super().__init__(components, _valid_types=(SyllabicComponent, Phoneme))
+    def __init__(self, components: Structurable[SyllabicComponentT]) -> None:
+        super().__init__(components, _valid_types=(SyllabicComponent[SyllabicComponentT], Phoneme))
 
     def _init_ipa_transcript(self) -> str:
         t: str = ""
@@ -26,14 +26,14 @@ class SyllabicComponent(Structure, ABC):
 
     @classmethod
     def get_default_blueprint(cls) -> ComponentBlueprint:
-        return FlexibleBlueprint((SyllabicComponent, Phoneme))
+        return FlexibleBlueprint((SyllabicComponent[SyllabicComponentT], Phoneme))
 
 
 SyllableMargin = AnyBlueprint(SyllabicComponent, Phoneme)
 
 
-class Syllable(SyllabicComponent):
-    def __init__(self, components: Structurable[SyllabicComponent]) -> None:
+class Syllable(SyllabicComponent[SyllabicComponentT]):
+    def __init__(self, components: Structurable[SyllabicComponentT]) -> None:
         super().__init__(components)
         self._left_margin = self._components[0]
         self._nucleus = Nucleus(self._components[1])
@@ -59,8 +59,8 @@ class Syllable(SyllabicComponent):
         return ComponentBlueprint(SyllableMargin, Nucleus, SyllableMargin)
 
 
-class Nucleus(SyllabicComponent):
-    def __init__(self, components: Structurable[SyllabicComponent]) -> None:
+class Nucleus(SyllabicComponent[PhonemeT]):
+    def __init__(self, components: Structurable[PhonemeT]) -> None:
         super().__init__(components)
 
     @classmethod
@@ -68,16 +68,16 @@ class Nucleus(SyllabicComponent):
         return ComponentBlueprint(FlexibleBlueprint((Phoneme,)))
 
 
-class Onset(SyllabicComponent):
-    def __init__(self, components: tuple[SyllabicComponent | Phoneme, ...]) -> None:
-        super().__init__(*components)
+class Onset(SyllabicComponent[SyllabicComponentT]):
+    def __init__(self, components: Structurable[SyllabicComponentT]) -> None:
+        super().__init__(components)
 
 
-class Coda(SyllabicComponent):
-    def __init__(self, components: tuple[SyllabicComponent | Phoneme, ...]) -> None:
-        super().__init__(*components)
+class Coda(SyllabicComponent[SyllabicComponentT]):
+    def __init__(self, components: Structurable[SyllabicComponentT]) -> None:
+        super().__init__(components)
 
 
-class Rime(SyllabicComponent):
-    def __init__(self, nucleus: Nucleus, coda: Coda) -> None:
-        super().__init__(nucleus, coda)
+class Rime(SyllabicComponent[Nucleus | Coda[PhonemeT]]):
+    def __init__(self, nucleus: Nucleus, coda: Coda[PhonemeT]) -> None:
+        super().__init__((nucleus, coda))

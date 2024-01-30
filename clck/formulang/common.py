@@ -74,4 +74,4 @@ class Formulang:
         else:
             rm_n = Formulang.generate("")
 
-        return Syllable(lm_n, n, rm_n)
+        return Syllable((lm_n, n, rm_n))

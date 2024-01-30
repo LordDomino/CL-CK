@@ -1,6 +1,6 @@
 from abc import ABC
 from types import NoneType
-from typing import TypeAlias, TypeVar, Union
+from typing import Generic, TypeAlias, TypeVar, Union
 
 from clck.common.component import Component, FlexibleBlueprint
 from clck.common.component import ComponentBlueprint
@@ -17,18 +17,17 @@ from clck.utils import tuple_append
 T = TypeVar("T")
 PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
 ComponentTypes: TypeAlias = tuple[type[ComponentT], ...]
-Structurable: TypeAlias = Union[Phoneme, "Structure", tuple[ComponentT, ...]]
+Structurable: TypeAlias = Union[tuple[ComponentT, ...], "Structure[ComponentT]", ComponentT]
 
 
-class Structure(Component, ABC):
+class Structure(Component, ABC, Generic[ComponentT]):
     """The class that represents all CLCK structures.
 
     A structure is a component that can contain other
     components.
     """
-
     def __init__(self, structurable: Structurable[ComponentT] = (),
-        _valid_types: ComponentTypes[ComponentT] = (Component,),
+        _valid_types: tuple[type[Component], ...] = (Component,),
         _bp: ComponentBlueprint | None = None) -> None:
         """Creates a new instance of `Structure` given the only valid
         component types that this can contain and its initial
@@ -84,7 +83,7 @@ class Structure(Component, ABC):
         return f"<{self.__class__.__name__} {{{'.'.join(comps)}}}>"
 
     @property
-    def components(self) -> tuple[Component, ...]:
+    def components(self) -> tuple[ComponentT, ...]:
         """The components of this structure."""
         return self._components
 
@@ -103,7 +102,7 @@ class Structure(Component, ABC):
         return self._size
 
     @property
-    def substructures(self) -> tuple["Structure", ...]:
+    def substructures(self) -> tuple["Structure[ComponentT]", ...]:
         """The substructures of this structure."""
         return tuple(self._substructures)
 
@@ -143,7 +142,7 @@ class Structure(Component, ABC):
         return tuple(self.get_phonemes_by_type(VowelPhoneme))
 
     def get_structures_by_type(self,
-            type: type["Structure"]) -> tuple["Structure", ...]:
+            type: type["Structure[ComponentT]"]) -> tuple["Structure[ComponentT]", ...]:
         """
         Returns a tuple of all found structures that are of the given
         `Structure` subtype.
@@ -152,7 +151,7 @@ class Structure(Component, ABC):
         ----------
         - `type` - is the `Structure` subtype to find.
         """
-        rl: list[Structure] = []
+        rl: list[Structure[ComponentT]] = []
         for s in self._substructures:
             if isinstance(s, type):
                 rl.append(s)
@@ -167,7 +166,7 @@ class Structure(Component, ABC):
         return [*set(bank)]
 
     def remove_structure_duplicates(self,
-            bank: list["Structure"]) -> list["Structure"]:
+            bank: list["Structure[ComponentT]"]) -> list["Structure[ComponentT]"]:
         return [*set(bank)]
 
     @classmethod
@@ -255,7 +254,7 @@ class Structure(Component, ABC):
 
         return "_".join(names)
 
-    def _derive_components(self, structurable: Structurable[ComponentT]) -> tuple[Component, ...]:
+    def _derive_components(self, structurable: Structurable[ComponentT]) -> tuple[ComponentT, ...]:
         match structurable:
             case tuple():
                 return structurable
@@ -279,12 +278,12 @@ class Structure(Component, ABC):
 
         return tuple(rl)
 
-    def _get_substructures(self) -> tuple["Structure", ...]:
+    def _get_substructures(self) -> tuple["Structure[ComponentT]", ...]:
         """
         Returns a tuple of all children structures parented to this
         structure.
         """
-        rl: list[Structure] = []
+        rl: list[Structure[ComponentT]] = []
         for c in self._components:
             if isinstance(c, Structure):
                 rl.append(c)
@@ -319,10 +318,10 @@ class Structure(Component, ABC):
     def _init_blueprint(self, *args: object, **kwargs: object) -> ComponentBlueprint:
         return ComponentBlueprint(*self._components)
     
-    def _try_blueprints(self, c: tuple[Component, ...]) -> None:
+    def _try_blueprints(self, c: tuple[ComponentT, ...]) -> None:
         _components = c
         _bps = self._default_blueprint.elements
-        _n: list[Component] = []
+        _n: list[ComponentT] = []
         for _c, _bp in zip(_components, _bps):
             if _c.blueprint.is_compatible_to(ComponentBlueprint(_bp)):
                 _n.append(_c)
@@ -336,7 +335,7 @@ class Structure(Component, ABC):
         self._components = tuple(_n)
 
 
-class EmptyStructure(Structure):
+class EmptyStructure(Structure[ComponentT]):
     def __init__(self) -> None:
         """Creates a new `EmptyStructure` instance, containing no
         components. This can be used as an alternative representative to

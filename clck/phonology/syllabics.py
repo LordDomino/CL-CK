@@ -15,8 +15,8 @@ class SyllabicComponent(Structure, ABC):
     such as phonemes and consonant clusters. Syllabic components are the
     base components 
     """
-    def __init__(self, *components: Structurable["SyllabicComponent"]) -> None:
-        super().__init__(*components, _valid_types=(SyllabicComponent, Phoneme))
+    def __init__(self, components: Structurable["SyllabicComponent"]) -> None:
+        super().__init__(components, _valid_types=(SyllabicComponent, Phoneme))
 
     def _init_ipa_transcript(self) -> str:
         t: str = ""
@@ -33,11 +33,11 @@ SyllableMargin = AnyBlueprint(SyllabicComponent, Phoneme)
 
 
 class Syllable(SyllabicComponent):
-    def __init__(self, *components: Structurable[SyllabicComponent]) -> None:
-        super().__init__(*components)
-        self._left_margin = components[0]
-        self._nucleus = Nucleus(components[1])
-        self._right_margin = components[2]
+    def __init__(self, components: Structurable[SyllabicComponent]) -> None:
+        super().__init__(components)
+        self._left_margin = self._components[0]
+        self._nucleus = Nucleus(self._components[1])
+        self._right_margin = self._components[2]
 
         # if not self._blueprint.is_compatible_to(Syllable.get_default_blueprint()):
             # raise Exception(f"Cannot create a component of less than the elements required (Number of required components is 3 while given is only {len(components)})")
@@ -60,8 +60,8 @@ class Syllable(SyllabicComponent):
 
 
 class Nucleus(SyllabicComponent):
-    def __init__(self, *components: Structurable[SyllabicComponent]) -> None:
-        super().__init__(*components)
+    def __init__(self, components: Structurable[SyllabicComponent]) -> None:
+        super().__init__(components)
 
     @classmethod
     def get_default_blueprint(cls) -> ComponentBlueprint:

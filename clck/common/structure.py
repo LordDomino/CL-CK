@@ -63,8 +63,11 @@ class Structure(Component, ABC):
 
         # Only then call the parent constructor after all necessary
         # attributes are initialized
-        super().__init__(self._init_blueprint(_bp))
-        self._assert_blueprint_compatibility()
+        super().__init__(self._init_default_bp(_bp))
+        try:
+            self._assert_blueprint_compatibility()
+        except:
+            self._try_blueprints(self._components)
 
     def __str__(self) -> str:
         comps: list[str] = []
@@ -180,7 +183,7 @@ class Structure(Component, ABC):
         return tuple(nl)
 
     def _assert_blueprint_compatibility(self) -> None:
-        bp_default = self.__class__.get_default_blueprint()
+        bp_default = self._default_blueprint
         match bp_default:
             case FlexibleBlueprint():
                 if bp_default.limit_size == 0:
@@ -192,9 +195,9 @@ class Structure(Component, ABC):
                 if self._size > bp_default.size:
                     print(f"Warning: Class \"{self.__class__.__name__}\" has blueprint size of {bp_default.size} but instance size is {self._size}")
 
-        if self._blueprint.is_compatible_to(self.__class__.get_default_blueprint()):
+        if self._blueprint.is_compatible_to(self._default_blueprint):
             return
-        # raise CLCKException("Cannot create structure because of blueprint incompatibility")
+        raise CLCKException("Cannot create structure because of blueprint incompatibility")
 
     def _assert_components(self) -> None:
         """
@@ -315,6 +318,22 @@ class Structure(Component, ABC):
         
     def _init_blueprint(self, *args: object, **kwargs: object) -> ComponentBlueprint:
         return ComponentBlueprint(*self._components)
+    
+    def _try_blueprints(self, c: tuple[Component, ...]) -> None:
+        _components = c
+        _bps = self._default_blueprint.elements
+        _n: list[Component] = []
+        for _c, _bp in zip(_components, _bps):
+            if _c.blueprint.is_compatible_to(ComponentBlueprint(_bp)):
+                _n.append(_c)
+                continue
+            elif isinstance(_bp, type) and issubclass(_bp, Structure):
+                try:
+                    _nc = _bp((_c,))
+                    _n.append(_nc)
+                except:
+                    raise Exception("Cannot reconstruct")
+        self._components = tuple(_n)
 
 
 class EmptyStructure(Structure):

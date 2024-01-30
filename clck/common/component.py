@@ -205,12 +205,12 @@ class ComponentBlueprint:
     
     """
     def __init__(self, *comps: BlueprintElement[ComponentT], strict: bool = True) -> None:
-        self._bp = comps
+        self._e = comps
         self._is_strict = strict
 
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, ComponentBlueprint):
-            if self._bp == __value._bp:
+            if self._e == __value._e:
                 return True
             else:
                 return False
@@ -219,7 +219,7 @@ class ComponentBlueprint:
 
     def __str__(self) -> str:
         s: list[str] = []
-        for c in self._bp:
+        for c in self._e:
             if isinstance(c, ComponentBlueprint):
                 s.append(c.__class__.__name__)
             elif isinstance(c, Component):
@@ -231,10 +231,14 @@ class ComponentBlueprint:
         return f"<ComponentBlueprint ({', '.join(s)})>"
 
     @property
+    def elements(self) -> tuple["ComponentBlueprint | Component | type[Component]", ...]:
+        return self._e
+
+    @property
     def size(self) -> int:
         """The number of allowed blueprint elements of this instance.
         """
-        return len(self._bp)
+        return len(self._e)
 
     def is_compatible_to(self, cb: "ComponentBlueprint") -> bool:
         """Returns `True` if this component blueprint instance is
@@ -257,11 +261,11 @@ class ComponentBlueprint:
 
         if cb.is_reverse_compatible(self):
             pass
-        elif len(self._bp) != len(cb._bp):
+        elif len(self._e) != len(cb._e):
             return False
 
-        for i, b in enumerate(cb._bp):
-            a = self._bp[i]
+        for i, b in enumerate(cb._e):
+            a = self._e[i]
             if self._match_cases(a, b):
                 continue
             else:
@@ -321,7 +325,7 @@ class AnyBlueprint(ComponentBlueprint):
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, ComponentBlueprint):
             for b in self._bound:
-                for a in __value._bp:
+                for a in __value._e:
                     if self._match_cases(a, b):
                         return True
             return False
@@ -356,7 +360,7 @@ class FlexibleBlueprint(AnyBlueprint):
         if self._bound == ():
             return True
 
-        for b in cb._bp:
+        for b in cb._e:
             for a in self._bound:
                 if self._match_cases(b, a):
                     return True

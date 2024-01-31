@@ -59,8 +59,8 @@ class Syllable(SyllabicComponent[SyllabicComponentT]):
         return ComponentBlueprint(SyllableMargin, Nucleus, SyllableMargin)
 
 
-class Nucleus(SyllabicComponent[PhonemeT]):
-    def __init__(self, components: Structurable[PhonemeT]) -> None:
+class Nucleus(SyllabicComponent[Phoneme]):
+    def __init__(self, components: Structurable[Phoneme]) -> None:
         super().__init__(components)
 
     @classmethod

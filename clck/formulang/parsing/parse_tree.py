@@ -191,9 +191,9 @@ class FormulangPhoneme(DummyPhoneme, TreeNode):
 
 
 class FormulangStructure(Structure, TreeNode):
-    def __init__(self, *components: Structurable[ComponentT], brace_level: int = 0,
+    def __init__(self, components: Structurable[ComponentT], brace_level: int = 0,
         _valid_types: ComponentTypes[ComponentT] = (Component,)) -> None:
-        super().__init__(*components, _valid_types=_valid_types)
+        super().__init__(components, _valid_types=_valid_types)
         self._brace_level = brace_level
 
     def __repr__(self) -> str:
@@ -284,7 +284,7 @@ class Concatenation(Operation):
         if components == []:
             return None
         else:
-            return FormulangStructure(*components, brace_level=self._brace_level)
+            return FormulangStructure(tuple(components), brace_level=self._brace_level)
 
 
 class Subtraction(Operation):

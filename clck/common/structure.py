@@ -17,14 +17,14 @@ from clck.utils import tuple_append
 T = TypeVar("T")
 PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
 ComponentTypes: TypeAlias = tuple[type[ComponentT], ...]
+StructureT = TypeVar("StructureT", bound="Structure[Component]")
 Structurable: TypeAlias = Union[tuple[ComponentT, ...], "Structure[ComponentT]", ComponentT]
 
 
 class Structure(Component, ABC, Generic[ComponentT]):
-    """The class that represents all CLCK structures.
+    """The base class that represents all CLCK structures.
 
-    A structure is a component that can contain other
-    components.
+    A structure is a component that can contain other components.
     """
     def __init__(self, structurable: Structurable[ComponentT] = (),
         _valid_types: tuple[type[Component], ...] = (Component,),
@@ -237,7 +237,7 @@ class Structure(Component, ABC, Generic[ComponentT]):
                 raise TypeError(f"Component {c} is not of any type "
                     f"in allowed types: {self._valid_types}")
 
-    def _classify_component(self, component: Component) -> None:
+    def _classify_component(self, component: ComponentT) -> None:
         """
         Checks the type of each component and assigns them to their
         respective collection.
@@ -262,6 +262,8 @@ class Structure(Component, ABC, Generic[ComponentT]):
                 return (structurable,)
             case Structure():
                 return structurable.components
+            case _:
+                raise Exception()
 
     def _get_phonemes(self) -> tuple[Phoneme, ...]:
         """
@@ -335,7 +337,7 @@ class Structure(Component, ABC, Generic[ComponentT]):
         self._components = tuple(_n)
 
 
-class EmptyStructure(Structure[ComponentT]):
+class EmptyStructure(Structure[Component]):
     def __init__(self) -> None:
         """Creates a new `EmptyStructure` instance, containing no
         components. This can be used as an alternative representative to

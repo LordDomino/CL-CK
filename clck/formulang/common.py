@@ -1,4 +1,5 @@
-from clck.common.structure import EmptyStructure, Structure
+from clck.common.component import Component
+from clck.common.structure import EmptyStructure, Structurable, Structure
 from clck.formulang.parsing.fl_parser import Parser
 from clck.formulang.parsing.fl_tokenizer import Tokenizer
 from clck.formulang.parsing.parse_tree import TreeNode
@@ -14,10 +15,11 @@ class Formulang:
         tokenizer.analyze()
         parser = Parser(tokenizer.get_tokens())
         ast = parser.parse()
+        print(ast)
         return ast
 
     @staticmethod
-    def generate(formula: str) -> Phoneme | Structure:
+    def generate(formula: str) -> Phoneme | Structure[Component]:
         """Generate a result from the given formula string.
 
         Parameters
@@ -38,7 +40,7 @@ class Formulang:
             return EmptyStructure()
     
     @staticmethod
-    def generate_multiple(formula: str, count: int) -> tuple[Phoneme | Structure | None, ...]:
+    def generate_multiple(formula: str, count: int) -> tuple[Phoneme | Structure[Component] | None, ...]:
         """Generate a tuple of results from the given formula string.
 
         Parameters

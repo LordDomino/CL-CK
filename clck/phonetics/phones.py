@@ -1,4 +1,5 @@
 from clck.common.component import Component, ComponentBlueprint
+from clck.common.interfaces import Initializable
 from clck.phonetics.articulatory_properties import (
     AirstreamMechanism,
     ArticulatoryProperty,
@@ -13,7 +14,7 @@ from clck.phonetics.articulatory_properties import (
 )
 
 
-class Phone(Component):
+class Phone(Component, Initializable):
     """
     The class representing phones in phonetics.
 
@@ -46,7 +47,9 @@ class Phone(Component):
         self._is_default = _is_IPA_default
         self._symbol = symbol
         self._articulatory_properties = (articulatory_properties)  
-        super().__init__(self._init_blueprint())
+        super().__init__(self._init_output(), self._init_ipa_transcript(),
+            self._init_formulang_transcript(), self._init_romanization(),
+            self._init_default_bp(), self._init_blueprint())
 
         if self.is_default_IPA_phone():
             Phone._append_to_defaults(self)

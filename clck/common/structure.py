@@ -1,10 +1,10 @@
-from abc import ABC
 from types import NoneType
 from typing import Generic, TypeAlias, TypeVar, Union
 
 from clck.common.component import Component, FlexibleBlueprint
 from clck.common.component import ComponentBlueprint
 from clck.common.component import ComponentT
+from clck.common.interfaces import Initializable
 from clck.exceptions import CLCKException
 from clck.phonology.phonemes import ConsonantPhoneme
 from clck.phonology.phonemes import DummyPhoneme
@@ -16,17 +16,15 @@ from clck.utils import tuple_append
 
 T = TypeVar("T")
 PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
-ComponentTypes: TypeAlias = tuple[type[ComponentT], ...]
-StructureT = TypeVar("StructureT", bound="Structure[Component]")
-Structurable: TypeAlias = Union[tuple[ComponentT, ...], "Structure[ComponentT]", ComponentT]
+StructurableT = TypeVar("StructurableT", bound=Union[Phoneme, "Structure"])
+Structurable: TypeAlias = Union["tuple[StructurableT, ...]", StructurableT]
 
-
-class Structure(Component, ABC, Generic[ComponentT]):
+class Structure(Component, Initializable, Generic[StructurableT]):
     """The base class that represents all CLCK structures.
 
     A structure is a component that can contain other components.
     """
-    def __init__(self, structurable: Structurable[ComponentT] = (),
+    def __init__(self, structurable: "tuple[StructurableT, ...] | StructurableT",
         _valid_types: tuple[type[Component], ...] = (Component,),
         _bp: ComponentBlueprint | None = None) -> None:
         """Creates a new instance of `Structure` given the only valid
@@ -48,8 +46,8 @@ class Structure(Component, ABC, Generic[ComponentT]):
         allowed types in `_valid_comp_types`.
         """
         try:
-            _c = self._derive_components(structurable)
-            self._components = filter_none(_c)
+            _c = self._derive_components(*structurable)
+            self._components = filter_none(_c,)
             self._valid_types = tuple([*_valid_types])
             self._assert_components()
         except TypeError:
@@ -62,7 +60,13 @@ class Structure(Component, ABC, Generic[ComponentT]):
 
         # Only then call the parent constructor after all necessary
         # attributes are initialized
-        super().__init__(self._init_default_bp(_bp))
+        super().__init__(
+            self._init_output(),
+            self._init_ipa_transcript(),
+            self._init_formulang_transcript(),
+            self._init_romanization(),
+            self._init_default_bp(_bp),
+            self._init_blueprint())
         try:
             self._assert_blueprint_compatibility()
         except:
@@ -83,7 +87,7 @@ class Structure(Component, ABC, Generic[ComponentT]):
         return f"<{self.__class__.__name__} {{{'.'.join(comps)}}}>"
 
     @property
-    def components(self) -> tuple[ComponentT, ...]:
+    def components(self) -> tuple[StructurableT, ...]:
         """The components of this structure."""
         return self._components
 
@@ -102,7 +106,7 @@ class Structure(Component, ABC, Generic[ComponentT]):
         return self._size
 
     @property
-    def substructures(self) -> tuple["Structure[ComponentT]", ...]:
+    def substructures(self) -> tuple["Structure[StructurableT]", ...]:
         """The substructures of this structure."""
         return tuple(self._substructures)
 
@@ -142,7 +146,7 @@ class Structure(Component, ABC, Generic[ComponentT]):
         return tuple(self.get_phonemes_by_type(VowelPhoneme))
 
     def get_structures_by_type(self,
-            type: type["Structure[ComponentT]"]) -> tuple["Structure[ComponentT]", ...]:
+            type: type["Structure[StructurableT]"]) -> tuple["Structure[StructurableT]", ...]:
         """
         Returns a tuple of all found structures that are of the given
         `Structure` subtype.
@@ -151,7 +155,7 @@ class Structure(Component, ABC, Generic[ComponentT]):
         ----------
         - `type` - is the `Structure` subtype to find.
         """
-        rl: list[Structure[ComponentT]] = []
+        rl: list[Structure[StructurableT]] = []
         for s in self._substructures:
             if isinstance(s, type):
                 rl.append(s)
@@ -166,7 +170,7 @@ class Structure(Component, ABC, Generic[ComponentT]):
         return [*set(bank)]
 
     def remove_structure_duplicates(self,
-            bank: list["Structure[ComponentT]"]) -> list["Structure[ComponentT]"]:
+            bank: list["Structure[StructurableT]"]) -> list["Structure[StructurableT]"]:
         return [*set(bank)]
 
     @classmethod
@@ -237,14 +241,14 @@ class Structure(Component, ABC, Generic[ComponentT]):
                 raise TypeError(f"Component {c} is not of any type "
                     f"in allowed types: {self._valid_types}")
 
-    def _classify_component(self, component: ComponentT) -> None:
+    def _classify_component(self, component: StructurableT) -> None:
         """
         Checks the type of each component and assigns them to their
         respective collection.
         """
         if isinstance(component, Structure):
             self._substructures = tuple_append(self._substructures, component)
-        elif isinstance(component, Phoneme):
+        else:
             self._phonemes = tuple_append(self._phonemes, component)
 
     def _create_label(self) -> str:
@@ -254,16 +258,14 @@ class Structure(Component, ABC, Generic[ComponentT]):
 
         return "_".join(names)
 
-    def _derive_components(self, structurable: Structurable[ComponentT]) -> tuple[ComponentT, ...]:
+    def _derive_components(self, structurable: Structurable[StructurableT]) -> "tuple[StructurableT, ...]":
         match structurable:
-            case tuple():
-                return structurable
             case Phoneme():
                 return (structurable,)
             case Structure():
-                return structurable.components
+                return (structurable,)
             case _:
-                raise Exception()
+                return structurable
 
     def _get_phonemes(self) -> tuple[Phoneme, ...]:
         """
@@ -275,17 +277,16 @@ class Structure(Component, ABC, Generic[ComponentT]):
             if isinstance(s, Phoneme):
                 rl.append(s)
             else:
-                if isinstance(s, Structure):
-                    rl.extend(s._get_phonemes())
+                rl.extend(s._get_phonemes())
 
         return tuple(rl)
 
-    def _get_substructures(self) -> tuple["Structure[ComponentT]", ...]:
+    def _get_substructures(self) -> tuple["Structure[StructurableT]", ...]:
         """
         Returns a tuple of all children structures parented to this
         structure.
         """
-        rl: list[Structure[ComponentT]] = []
+        rl: list[Structure[StructurableT]] = []
         for c in self._components:
             if isinstance(c, Structure):
                 rl.append(c)
@@ -320,10 +321,10 @@ class Structure(Component, ABC, Generic[ComponentT]):
     def _init_blueprint(self, *args: object, **kwargs: object) -> ComponentBlueprint:
         return ComponentBlueprint(*self._components)
     
-    def _try_blueprints(self, c: tuple[ComponentT, ...]) -> None:
+    def _try_blueprints(self, c: tuple[StructurableT, ...]) -> None:
         _components = c
         _bps = self._default_blueprint.elements
-        _n: list[ComponentT] = []
+        _n: list[StructurableT] = []
         for _c, _bp in zip(_components, _bps):
             if _c.blueprint.is_compatible_to(ComponentBlueprint(_bp)):
                 _n.append(_c)
@@ -337,13 +338,13 @@ class Structure(Component, ABC, Generic[ComponentT]):
         self._components = tuple(_n)
 
 
-class EmptyStructure(Structure[Component]):
+class EmptyStructure(Structure[StructurableT]):
     def __init__(self) -> None:
         """Creates a new `EmptyStructure` instance, containing no
         components. This can be used as an alternative representative to
         the `NoneType`.
         """
-        super().__init__()
+        super().__init__((),)
 
     def __repr__(self) -> str:
         return "<EmptyStructure>"

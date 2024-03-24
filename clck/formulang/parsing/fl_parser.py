@@ -2,7 +2,7 @@ from typing import Callable
 from clck.formulang.definitions.tokens import CommonGroupings, Literals, StandardTokenType, TypeGroupings
 from clck.formulang.definitions.tokens import Operators
 from clck.formulang.parsing.fl_tokenizer import EPSILON_TOKEN, Token
-from clck.formulang.parsing.parse_tree import Concatenation, EllipsisNode, Factor, FormulangPhoneme, ProbabilityNode, Selection, StructureNode, Operation, TreeNode
+from clck.formulang.parsing.parse_tree import Concatenation, EllipsisNode, Factor, FormulangPhoneme, PhonemeAndStructT, ProbabilityNode, Selection, StructureNode, Operation, TreeNode
 from clck.formulang.parsing.parse_tree import Expression
 from clck.formulang.parsing.parse_tree import Formula
 from clck.formulang.parsing.parse_tree import Subtraction
@@ -44,7 +44,7 @@ class Parser:
         expr = Expression((self._parse_selection(),), self._current_brace_level)
         return expr
 
-    def _parse_selection(self) -> Selection | TreeNode:
+    def _parse_selection(self) -> Selection | TreeNode[PhonemeAndStructT]:
         operation = self._parse_operation()
         brace_level = self._current_brace_level
         
@@ -68,7 +68,7 @@ class Parser:
             # R --> F
             return operation
 
-    def _parse_operation(self) -> Operation | TreeNode:
+    def _parse_operation(self) -> Operation | TreeNode[PhonemeAndStructT]:
         factor = self._parse_factor()
         brace_level = self._current_brace_level
 
@@ -95,7 +95,7 @@ class Parser:
             # M --> R
             return factor
 
-    def _parse_factor(self) -> Factor | TreeNode:
+    def _parse_factor(self) -> Factor | TreeNode[PhonemeAndStructT]:
         term = self._parse_term()
         brace_level = self._current_brace_level
 
@@ -113,7 +113,7 @@ class Parser:
     def _parse_modifier(self) -> ...:
         pass
 
-    def _parse_term(self) -> Term | TreeNode:
+    def _parse_term(self) -> Term | TreeNode[PhonemeAndStructT] | FormulangPhoneme:
         brace_level = self._current_brace_level
 
         if self._next_tokens[0].type == CommonGroupings.PROBABILITY_GROUP_OPEN:
@@ -146,10 +146,10 @@ class Parser:
         else:
             raise Exception(f"Found {self._next_tokens[0]} but expected a phoneme")
 
-    def _parse_structure(self) -> StructureNode | TreeNode:
+    def _parse_structure(self) -> StructureNode | TreeNode[PhonemeAndStructT]:
         return StructureNode(self._parse_expr(), self._current_brace_level)
 
-    def _parse_probability(self) -> ProbabilityNode | TreeNode:
+    def _parse_probability(self) -> ProbabilityNode | TreeNode[PhonemeAndStructT]:
         return ProbabilityNode((self._parse_expr(),), self._current_brace_level)
 
     def _get_next_tokens(self, ahead: int) -> tuple[Token, ...]:
@@ -204,8 +204,8 @@ class Parser:
             return False
         
     def _match_next_token(self, match_to: dict[StandardTokenType,
-            Callable[..., TreeNode]]
-            ) -> tuple[TreeNode, StandardTokenType] | None:
+            Callable[..., TreeNode[PhonemeAndStructT]]]
+            ) -> tuple[TreeNode[PhonemeAndStructT], StandardTokenType] | None:
         for key in match_to.keys():
             if self._next_tokens[0].type == key:
                 self._advance(1)

@@ -1,19 +1,23 @@
 import random
+from typing import Generic, TypeVar
 from clck.common.component import Component
 from clck.common.structure import ComponentT, ComponentTypes, Structurable
 from clck.common.structure import Structure
-from clck.phonology.phonemes import DummyPhoneme
+from clck.phonology.phonemes import DummyPhoneme, Phoneme
 from clck.utils import clean_collection
 
 
-class TreeNode:
+PhonemeAndStructT = TypeVar("PhonemeAndStructT", "FormulangPhoneme", Structure[Component])
+TreeNodeT = TypeVar("TreeNodeT", bound="TreeNode[FormulangPhoneme]")
+
+class TreeNode(Generic[PhonemeAndStructT]):
     """Class for all Formulang parse tree nodes.
     """
 
     _indent_count: int = 0
     _indent_size: int = 4
 
-    def __init__(self, subnodes: tuple["TreeNode", ...],
+    def __init__(self, subnodes: tuple["TreeNode[PhonemeAndStructT]", ...],
         brace_level: int) -> None:
         """Creates a new `TreeNode` object.
 
@@ -63,12 +67,12 @@ class TreeNode:
         return self._brace_level
     
     @property
-    def subnodes(self) -> tuple["TreeNode", ...]:
+    def subnodes(self) -> tuple["TreeNode[PhonemeAndStructT]", ...]:
         """The subnodes of this `TreeNode`.
         """
         return self._subnodes
 
-    def eval(self) -> "FormulangPhoneme | FormulangStructure | None":
+    def eval(self) -> "FormulangPhoneme | FormulangStructure[Phoneme] | None":
         """Evaluates each subnode of this current `TreeNode` and returns
         a resultant `Phoneme`, `Structure`, or `None` based on the
         recursive evaluation in the parse tree.
@@ -130,23 +134,23 @@ class TreeNode:
     def _get_indentation(self, indent_size: int) -> str:
         return " " * TreeNode._indent_count * indent_size
     
-    def _subset(self) -> "TreeNode":
-        _pure_ellipses = True
-        for i, subnode in enumerate(self._subnodes):
-            if isinstance(subnode, EllipsisNode):
-                continue
-            else:
-                _pure_ellipses = False
-                ellipsis = subnode._subset()
-                new_subnodes = list(self._subnodes)
-                new_subnodes[i] = ellipsis
-                self._subnodes = tuple(new_subnodes)
-                break
+    # def _subset(self) -> "TreeNode[PhonemeAndStructT]":
+    #     _pure_ellipses = True
+    #     for i, subnode in enumerate(self._subnodes):
+    #         if isinstance(subnode, EllipsisNode):
+    #             continue
+    #         else:
+    #             _pure_ellipses = False
+    #             ellipsis = subnode._subset()
+    #             new_subnodes = list(self._subnodes)
+    #             new_subnodes[i] = ellipsis
+    #             self._subnodes = tuple(new_subnodes)
+    #             break
 
-        if _pure_ellipses:
-            return EllipsisNode(self._brace_level)
-        else:
-            return self
+    #     if _pure_ellipses:
+    #         return EllipsisNode(self._brace_level)
+    #     else:
+    #         return self
 
     @classmethod
     def _indent_in(cls) -> None:
@@ -157,7 +161,7 @@ class TreeNode:
         cls._indent_count -= 1
 
 
-class FormulangPhoneme(DummyPhoneme, TreeNode):
+class FormulangPhoneme(DummyPhoneme, TreeNode["FormulangPhoneme, FormulangPhoneme"]):
     def __init__(self, symbol: str, brace_level: int) -> None:
         super().__init__(symbol)
         self._brace_level = brace_level
@@ -186,11 +190,10 @@ class FormulangPhoneme(DummyPhoneme, TreeNode):
         _str += self._get_indentation(indent) + "}"
         return _str
     
-    def _subset(self) -> TreeNode:
-        return EllipsisNode(self._brace_level)
+    # def _subset(self) -> TreeNode["EllipsisNode"]:
+    #     return EllipsisNode(self._brace_level)
 
-
-class FormulangStructure(Structure, TreeNode):
+class FormulangStructure(Structure[ComponentT]):
     def __init__(self, components: Structurable[ComponentT], brace_level: int = 0,
         _valid_types: ComponentTypes[ComponentT] = (Component,)) -> None:
         super().__init__(components, _valid_types=_valid_types)
@@ -207,48 +210,48 @@ class FormulangStructure(Structure, TreeNode):
         return self._brace_level
     
     @property
-    def subnodes(self) -> tuple["FormulangStructure"]:
+    def subnodes(self) -> tuple["FormulangStructure[ComponentT]"]:
         return (self,)
 
-    def eval(self) -> "FormulangStructure":
-        return self
+    # def eval(self) -> "FormulangStructure[ComponentT]":
+    #     return self
 
     def _init_ipa_transcript(self) -> str:
         return super()._init_ipa_transcript()
 
 
-class Formula(TreeNode):
-    def __init__(self, subnodes: tuple[TreeNode | FormulangPhoneme | FormulangStructure, ...]) -> None:
+class Formula(TreeNode[PhonemeAndStructT]):
+    def __init__(self, subnodes: tuple[TreeNode[PhonemeAndStructT], ...]) -> None:
         super().__init__(subnodes, -1)
 
 
-class Expression(TreeNode):
-    def __init__(self, subnodes: tuple[TreeNode | FormulangPhoneme | FormulangStructure, ...],
+class Expression(TreeNode[PhonemeAndStructT]):
+    def __init__(self, subnodes: tuple[TreeNode[PhonemeAndStructT], ...],
         brace_level: int) -> None:
         super().__init__(subnodes, brace_level)
 
 
-class Factor(TreeNode):
-    def __init__(self, subnodes: tuple[TreeNode | FormulangPhoneme | FormulangStructure, ...],
+class Factor(TreeNode[PhonemeAndStructT]):
+    def __init__(self, subnodes: tuple[TreeNode[PhonemeAndStructT], ...],
         brace_level: int) -> None:
         super().__init__(subnodes, brace_level)
 
 
-class Modifier(TreeNode):
-    def __init__(self, subnodes: tuple[TreeNode | FormulangPhoneme | FormulangStructure, ...],
+class Modifier(TreeNode[PhonemeAndStructT]):
+    def __init__(self, subnodes: tuple[TreeNode[PhonemeAndStructT], ...],
         brace_level: int) -> None:
         super().__init__(subnodes, brace_level)
 
 
-class Operation(TreeNode):
-    def __init__(self, subnodes: tuple[TreeNode | FormulangPhoneme | FormulangStructure, ...],
+class Operation(TreeNode[PhonemeAndStructT]):
+    def __init__(self, subnodes: tuple[TreeNode[PhonemeAndStructT], ...],
         brace_level: int) -> None:
         super().__init__(clean_collection(subnodes), brace_level)
 
 
-class BinaryOperation(Operation):
-    def __init__(self, left: TreeNode,
-        right: TreeNode | None, brace_level: int) -> None:
+class BinaryOperation(Operation[ PhonemeAndStructT]):
+    def __init__(self, left: TreeNode[ PhonemeAndStructT],
+        right: TreeNode[PhonemeAndStructT] | None, brace_level: int) -> None:
         if right == None:
             super().__init__((left,), brace_level)
         else:
@@ -257,23 +260,23 @@ class BinaryOperation(Operation):
         self._right = right
 
 
-class Concatenation(Operation):
-    def __init__(self, operands: tuple[TreeNode, ...],
+class Concatenation(Operation[PhonemeAndStructT]):
+    def __init__(self, operands: tuple[TreeNode[PhonemeAndStructT], ...],
         brace_level: int) -> None:
         super().__init__(operands, brace_level)
         self._operands = operands
 
-    def eval(self) -> FormulangStructure | None:
+    def eval(self) -> FormulangStructure[PhonemeAndStructT] | None:
         # The following code allows detection of 'chained' operations to
         # add either as structures or phonemes depending on the brace level
-        components: list[Component] = []
+        components: list[Phoneme | Structure[Phoneme]] = []
 
         for o in self._operands:
             operand = o.eval()
             if operand == None:
                 continue
 
-            if isinstance(operand, FormulangPhoneme):
+            if isinstance(operand, Phoneme):
                 components.append(operand)
             else:
                 if operand.brace_level == self.brace_level:
@@ -287,8 +290,8 @@ class Concatenation(Operation):
             return FormulangStructure(tuple(components), brace_level=self._brace_level)
 
 
-class Subtraction(Operation):
-    def __init__(self, operands: tuple[TreeNode, ...],
+class Subtraction(Operation[PhonemeAndStructT]):
+    def __init__(self, operands: tuple[TreeNode[PhonemeAndStructT], ...],
         brace_level: int) -> None:
         super().__init__(operands, brace_level)
         self._operands = operands
@@ -296,8 +299,8 @@ class Subtraction(Operation):
     def eval(self) -> FormulangPhoneme | FormulangStructure | None:
         return super().eval()
 
-class Selection(Operation):
-    def __init__(self, options: tuple[TreeNode, ...],
+class Selection(Operation[PhonemeAndStructT]):
+    def __init__(self, options: tuple[TreeNode[PhonemeAndStructT], ...],
             brace_level: int) -> None:
         super().__init__(options, brace_level)
         self._options = options
@@ -307,14 +310,14 @@ class Selection(Operation):
         return selected
 
 
-class Term(TreeNode):
-    def __init__(self, subnodes: tuple[TreeNode | FormulangPhoneme | FormulangStructure, ...],
+class Term(TreeNode[PhonemeAndStructT]):
+    def __init__(self, subnodes: tuple[TreeNode[PhonemeAndStructT] | FormulangPhoneme | FormulangStructure, ...],
         brace_level: int) -> None:
         super().__init__(clean_collection(subnodes), brace_level)
 
 
-class StructureNode(TreeNode):
-    def __init__(self, subnode: TreeNode, brace_level: int) -> None:
+class StructureNode(TreeNode[PhonemeAndStructT]):
+    def __init__(self, subnode: TreeNode[PhonemeAndStructT], brace_level: int) -> None:
         super().__init__((subnode,), brace_level)
         self._subnode = subnode
 
@@ -332,8 +335,8 @@ class StructureNode(TreeNode):
             return FormulangStructure(expr, brace_level=self._brace_level)
 
 
-class ProbabilityNode(TreeNode):
-    def __init__(self, subnodes: tuple[TreeNode, ...], brace_level: int,
+class ProbabilityNode(TreeNode[PhonemeAndStructT]):
+    def __init__(self, subnodes: tuple[TreeNode[PhonemeAndStructT], ...], brace_level: int,
         probability: float = 0.5) -> None:
         super().__init__(subnodes, brace_level)
         self._probability = probability
@@ -345,7 +348,7 @@ class ProbabilityNode(TreeNode):
             return None
         
 
-class EllipsisNode(FormulangPhoneme, TreeNode):
+class EllipsisNode(FormulangPhoneme, TreeNode[PhonemeAndStructT]):
     def __init__(self, brace_level: int) -> None:
         super().__init__("...", brace_level)
         self._subnodes = ()

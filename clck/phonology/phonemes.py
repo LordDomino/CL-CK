@@ -1,4 +1,5 @@
 from clck.common.component import Component, ComponentBlueprint
+from clck.common.interfaces import Initializable
 from clck.phonetics.phones import ConsonantPhone, Phone
 from clck.phonetics.phones import DummyPhone
 from clck.phonetics.phones import VowelPhone
@@ -7,14 +8,14 @@ from clck.phonetics.articulatory_properties import MannerOfArticulation
 from clck.phonetics.articulatory_properties import PlaceOfArticulation
 
 
-class Phoneme(Component):
+class Phoneme(Component, Initializable):
 
     DEFAULT_IPA_PHONEMES: list["Phoneme"] = []
     DEFAULT_IPA_SYMBOLS: list[str] = []
 
     def __init__(self, base_phone: Phone, romanization: str | None = None) -> None:
         """
-        Creates a `Phoneme` instance having one initial allophone.
+        Creates a `Phoneme` object having one initial allophone.
 
         Parameters
         ----------
@@ -24,7 +25,9 @@ class Phoneme(Component):
         self._base_phone = base_phone
         self._symbol = base_phone.symbol
         self._allophones: list[Phone] = [base_phone]
-        super().__init__(self._init_blueprint())
+        super().__init__(self._init_output(), self._init_ipa_transcript(),
+            self._init_formulang_transcript(), self._init_romanization(),
+            self._init_default_bp(), self._init_blueprint())
 
         if base_phone.is_default_IPA_phone():
             Phoneme.DEFAULT_IPA_PHONEMES.append(self)

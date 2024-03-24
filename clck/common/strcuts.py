@@ -16,9 +16,12 @@ class French(Roman[OffspringT]):
         super().__init__(offsprings)
 
 
-class Italian(Roman[French[OffspringT] | "Italian[OffspringT]"]):
-    def __init__(self, son1: French[OffspringT], son2: "Italian[OffspringT]") -> None:
+class Italian(Roman[OffspringT]):
+    def __init__(self, son1: OffspringT, son2: OffspringT) -> None:
         super().__init__((son1, son2))
 
 
-g = Italian(French(Offspring()))
+class DefaultOffspring(Offspring): ...
+
+
+g = Italian(French(DefaultOffspring()), French(French(DefaultOffspring())))

@@ -343,7 +343,7 @@ class EmptyStructure(Structure[DummyPhoneme]):
         components. This can be used as an alternative representative to
         the `NoneType`.
         """
-        super().__init__(DummyPhoneme())
+        super().__init__(DummyPhoneme(), _valid_types=(DummyPhoneme,))
 
     def __repr__(self) -> str:
         return "<EmptyStructure>"

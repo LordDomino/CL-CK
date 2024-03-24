@@ -14,7 +14,7 @@ class SyllabicComponent(Structure[SyllabicComponentT]):
     such as phonemes and consonant clusters. Syllabic components are the
     base components 
     """
-    def __init__(self, components: tuple[SyllabicComponentT, ...]) -> None:
+    def __init__(self, components: tuple[SyllabicComponentT, ...] | SyllabicComponentT) -> None:
         super().__init__(components, _valid_types=(SyllabicComponent[SyllabicComponentT], Phoneme))
 
     def _init_ipa_transcript(self) -> str:
@@ -32,7 +32,7 @@ SyllableMargin = FlexibleBlueprint(bound=(SyllabicComponent, Phoneme))
 
 
 class Syllable(SyllabicComponent[SyllabicComponentT]):
-    def __init__(self, components: tuple[SyllabicComponentT, ...]) -> None:
+    def __init__(self, components: tuple[SyllabicComponentT, ...] | SyllabicComponentT) -> None:
         super().__init__(components)
         self._left_margin = self._components[0]
         self._nucleus = Nucleus(self._components[1])

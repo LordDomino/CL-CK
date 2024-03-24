@@ -1,5 +1,5 @@
 from clck.common.component import Component
-from clck.common.structure import EmptyStructure, Structurable, Structure
+from clck.common.structure import EmptyStructure, StructurableT, Structure
 from clck.formulang.parsing.fl_parser import Parser
 from clck.formulang.parsing.fl_tokenizer import Tokenizer
 from clck.formulang.parsing.parse_tree import TreeNode
@@ -19,7 +19,7 @@ class Formulang:
         return ast
 
     @staticmethod
-    def generate(formula: str) -> Phoneme | Structure[Component]:
+    def generate(formula: str) -> Component:
         """Generate a result from the given formula string.
 
         Parameters

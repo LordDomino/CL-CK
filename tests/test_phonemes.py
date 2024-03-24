@@ -1,10 +1,6 @@
 from clck.common.structure import Structure
-from clck.phonetics.phones import DummyPhone
-from clck.phonology.phonemes import DummyPhoneme, Phoneme
-from clck.phonology.syllabics import Onset, Syllable
+from clck.phonology.phonemes import DummyPhoneme
+from clck.phonology.syllabics import Syllable
 
 
-structure = Structure((Syllable((Phoneme(DummyPhone()), DummyPhoneme(), DummyPhoneme(), DummyPhoneme())),
-    DummyPhoneme(),
-    Onset((DummyPhoneme(),)),
-    Structure((Phoneme(DummyPhone()), DummyPhoneme()))))
+structure = Structure(Syllable(DummyPhoneme()))

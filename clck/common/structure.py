@@ -16,7 +16,7 @@ from clck.utils import tuple_append
 
 T = TypeVar("T")
 PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
-StructurableT = TypeVar("StructurableT", bound=Union[Phoneme, "Structure"])
+StructurableT = TypeVar("StructurableT", bound=Union[Component, "Structure"])
 Structurable: TypeAlias = Union["tuple[StructurableT, ...]", StructurableT]
 
 class Structure(Component, Initializable, Generic[StructurableT]):
@@ -24,8 +24,8 @@ class Structure(Component, Initializable, Generic[StructurableT]):
 
     A structure is a component that can contain other components.
     """
-    def __init__(self, structurable: "tuple[StructurableT, ...] | StructurableT",
-        _valid_types: tuple[type[Component], ...] = (Component,),
+    def __init__(self, structurable: tuple[StructurableT, ...] | StructurableT,
+        _valid_types: tuple[type[StructurableT], ...] = (Component,),
         _bp: ComponentBlueprint | None = None) -> None:
         """Creates a new instance of `Structure` given the only valid
         component types that this can contain and its initial
@@ -242,13 +242,12 @@ class Structure(Component, Initializable, Generic[StructurableT]):
                     f"in allowed types: {self._valid_types}")
 
     def _classify_component(self, component: StructurableT) -> None:
-        """
-        Checks the type of each component and assigns them to their
+        """Checks the type of each component and assigns them to their
         respective collection.
         """
         if isinstance(component, Structure):
             self._substructures = tuple_append(self._substructures, component)
-        else:
+        elif isinstance(component, Phoneme):
             self._phonemes = tuple_append(self._phonemes, component)
 
     def _create_label(self) -> str:
@@ -276,7 +275,7 @@ class Structure(Component, Initializable, Generic[StructurableT]):
         for s in self._components:
             if isinstance(s, Phoneme):
                 rl.append(s)
-            else:
+            elif isinstance(s, Structure):
                 rl.extend(s._get_phonemes())
 
         return tuple(rl)
@@ -338,13 +337,13 @@ class Structure(Component, Initializable, Generic[StructurableT]):
         self._components = tuple(_n)
 
 
-class EmptyStructure(Structure[StructurableT]):
+class EmptyStructure(Structure[DummyPhoneme]):
     def __init__(self) -> None:
         """Creates a new `EmptyStructure` instance, containing no
         components. This can be used as an alternative representative to
         the `NoneType`.
         """
-        super().__init__((),)
+        super().__init__(DummyPhoneme())
 
     def __repr__(self) -> str:
         return "<EmptyStructure>"

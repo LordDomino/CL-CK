@@ -11,4 +11,4 @@ s = Structure(
 
 s2 = Formulang.generate("abc")
 
-s2.base_phone
+print(s2.base_phone)

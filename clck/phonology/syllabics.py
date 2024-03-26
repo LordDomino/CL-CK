@@ -15,7 +15,7 @@ class SyllabicComponent(Structure[SyllabicComponentT]):
     base components 
     """
     def __init__(self, components: tuple[SyllabicComponentT, ...] | SyllabicComponentT) -> None:
-        super().__init__(components, _valid_types=(SyllabicComponent[SyllabicComponentT], Phoneme))
+        super().__init__(components)
 
     def _init_ipa_transcript(self) -> str:
         t: str = ""

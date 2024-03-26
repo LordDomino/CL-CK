@@ -1,7 +1,8 @@
+from email.policy import default
 from types import NoneType
 from typing import Generic, TypeAlias, TypeVar, Union
 
-from clck.common.component import Component, FlexibleBlueprint
+from clck.common.component import Component, DummyComponent, FlexibleBlueprint
 from clck.common.component import ComponentBlueprint
 from clck.common.component import ComponentT
 from clck.common.interfaces import Initializable
@@ -25,7 +26,6 @@ class Structure(Component, Initializable, Generic[StructurableT]):
     A structure is a component that can contain other components.
     """
     def __init__(self, structurable: tuple[StructurableT, ...] | StructurableT,
-        _valid_types: tuple[type[StructurableT], ...] = (Component,),
         _bp: ComponentBlueprint | None = None) -> None:
         """Creates a new instance of `Structure` given the only valid
         component types that this can contain and its initial
@@ -45,11 +45,15 @@ class Structure(Component, Initializable, Generic[StructurableT]):
         - `TypeError` if any element in `components` is not any of the
         allowed types in `_valid_comp_types`.
         """
+        _c = self._derive_components(*tuple((structurable,)))
+
         try:
-            _c = self._derive_components(*structurable)
             self._components = filter_none(_c,)
-            self._valid_types = tuple([*_valid_types])
-            self._assert_components()
+
+            # Component valid types will soon be replaced with
+            # ComponentBlueprint enforcement
+            # self._valid_types = tuple([*_valid_types])
+            # self._assert_components()
         except TypeError:
             raise CLCKException(f"{structurable} cannot be created to a structure")
 
@@ -336,14 +340,20 @@ class Structure(Component, Initializable, Generic[StructurableT]):
                     raise Exception("Cannot reconstruct")
         self._components = tuple(_n)
 
+    def _unpack_components(self, c: tuple[StructurableT, ...] | StructurableT) -> tuple[StructurableT, ...]:
+        if isinstance(c, tuple):
+            return c
+        else:
+            return (c,)
 
-class EmptyStructure(Structure[DummyPhoneme]):
+
+class EmptyStructure(Structure[DummyComponent]):
     def __init__(self) -> None:
         """Creates a new `EmptyStructure` instance, containing no
         components. This can be used as an alternative representative to
         the `NoneType`.
         """
-        super().__init__(DummyPhoneme(), _valid_types=(DummyPhoneme,))
+        super().__init__(DummyComponent())
 
     def __repr__(self) -> str:
         return "<EmptyStructure>"

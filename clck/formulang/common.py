@@ -1,8 +1,8 @@
 from clck.common.component import Component
-from clck.common.structure import EmptyStructure, StructurableT, Structure
+from clck.common.structure import EmptyStructure, Structure
 from clck.formulang.parsing.fl_parser import Parser
 from clck.formulang.parsing.fl_tokenizer import Tokenizer
-from clck.formulang.parsing.parse_tree import TreeNode
+from clck.formulang.parsing.parse_tree import Formula, TreeNode
 from clck.phonology.phonemes import Phoneme
 from clck.phonology.syllabics import Nucleus, Syllable
 
@@ -10,7 +10,7 @@ from clck.phonology.syllabics import Nucleus, Syllable
 class Formulang:
 
     @staticmethod
-    def generate_ast(formula: str) -> TreeNode:
+    def generate_ast(formula: str) -> Formula:
         tokenizer = Tokenizer(formula)
         tokenizer.analyze()
         parser = Parser(tokenizer.get_tokens())
@@ -77,3 +77,9 @@ class Formulang:
             rm_n = Formulang.generate("")
 
         return Syllable((lm_n, n, rm_n))
+    
+
+class FormulangTempContainer:
+    def __init__(self, formulang_result: TreeNode) -> None:
+        self._result = formulang_result
+        

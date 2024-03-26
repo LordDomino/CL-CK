@@ -1,6 +1,4 @@
-from clck.common.structure import Structure
-from clck.phonology.phonemes import DummyPhoneme
-from clck.phonology.syllabics import Syllable
+from clck.formulang.common import Formulang
 
-
-structure = Structure(Syllable(DummyPhoneme()))
+result = Formulang.generate("a")
+print(result)

@@ -42,3 +42,11 @@ class Syllable(SyllableComponent[SyllabicStructureT]):
 
 s = Structure(Vowel(), Phoneme(), Structure(Phoneme()))
 syl = Syllable(Syllable(Vowel(), Phoneme()))
+
+
+class A: ...
+class B: ...
+
+class C(A, B): ...
+
+l: list[B] = [C()]

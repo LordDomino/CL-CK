@@ -134,6 +134,15 @@ class Component(ABC):
         return ComponentBlueprint(Component)
 
 
+class DummyComponent(Component):
+    def __init__(self) -> None:
+        super().__init__("$", "", "$", "", ComponentBlueprint(), ComponentBlueprint())
+
+    @classmethod
+    def get_default_blueprint(cls) -> "ComponentBlueprint":
+        return super().get_default_blueprint()
+
+
 BlueprintElement: TypeAlias = Union["ComponentBlueprint", ComponentT, type[ComponentT]]
 
 

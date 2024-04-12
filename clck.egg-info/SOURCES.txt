@@ -24,6 +24,8 @@ clck/phonetics/phones.py
 clck/phonology/__init__.py
 clck/phonology/phonemes.py
 clck/phonology/syllabics.py
+tests/test_classes.py
 tests/test_formulang.py
 tests/test_parsetree.py
+tests/test_phonemes.py
 tests/test_structurable.py

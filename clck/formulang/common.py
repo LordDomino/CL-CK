@@ -1,11 +1,13 @@
+from typing import TypeVar
 from clck.common.component import Component
 from clck.common.structure import EmptyStructure, Structure
 from clck.formulang.parsing.fl_parser import Parser
 from clck.formulang.parsing.fl_tokenizer import Tokenizer
 from clck.formulang.parsing.parse_tree import Formula, TreeNode
-from clck.phonology.phonemes import Phoneme
-from clck.phonology.syllabics import Nucleus, Syllable
+from clck.phonology.syllabics import Nucleus, SyllabicComponent, Syllable
+from tests.test_classes import SyllableComponent
 
+StructureT = TypeVar("StructureT", bound="Structure")
 
 class Formulang:
 
@@ -15,7 +17,6 @@ class Formulang:
         tokenizer.analyze()
         parser = Parser(tokenizer.get_tokens())
         ast = parser.parse()
-        print(ast)
         return ast
 
     @staticmethod
@@ -38,9 +39,14 @@ class Formulang:
             return result
         else:
             return EmptyStructure()
+        
+    @staticmethod
+    def generate_of_type(formula: str, type: type[StructureT]) -> StructureT:
+        _g = Formulang.generate(formula)
+        return type(_g)
     
     @staticmethod
-    def generate_multiple(formula: str, count: int) -> tuple[Phoneme | Structure[Component] | None, ...]:
+    def generate_multiple(formula: str, count: int) -> tuple[Component, ...]:
         """Generate a tuple of results from the given formula string.
 
         Parameters
@@ -55,7 +61,7 @@ class Formulang:
         tuple[Phoneme | Structure | None, ...]
             the tuple of results after evaluating the formula string
         """
-        ret: list[Phoneme | Structure | None] = []
+        ret: list[Component] = []
         for _ in range(count):
             ret.append(Formulang.generate(formula))
         return tuple(ret)
@@ -65,16 +71,16 @@ class Formulang:
         right_margin: str | None) -> Syllable:
 
         if left_margin:
-            lm_n = Formulang.generate(left_margin)
+            lm_n = Formulang.generate_of_type(left_margin, SyllabicComponent)
         else:
-            lm_n = Formulang.generate("")
+            lm_n = Formulang.generate_of_type("", SyllabicComponent)
 
-        n = Nucleus(Formulang.generate(nucleus))
+        n = Formulang.generate_of_type(nucleus, Nucleus)
 
         if right_margin:
-            rm_n = Formulang.generate(right_margin)
+            rm_n = Formulang.generate_of_type(right_margin, SyllabicComponent)
         else:
-            rm_n = Formulang.generate("")
+            rm_n = Formulang.generate_of_type("", SyllabicComponent)
 
         return Syllable((lm_n, n, rm_n))
     

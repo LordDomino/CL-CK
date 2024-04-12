@@ -1,10 +1,7 @@
-from email.policy import default
-from types import NoneType
-from typing import Generic, TypeAlias, TypeVar, Union
+from typing import Union
 
 from clck.common.component import Component, DummyComponent, FlexibleBlueprint
 from clck.common.component import ComponentBlueprint
-from clck.common.component import ComponentT
 from clck.common.interfaces import Initializable
 from clck.exceptions import CLCKException
 from clck.phonology.phonemes import ConsonantPhoneme
@@ -14,18 +11,20 @@ from clck.phonology.phonemes import VowelPhoneme
 from clck.utils import filter_none
 from clck.utils import tuple_append
 
+# Deprecated type alias
+# T = TypeVar("T")
+# PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
+# Structurable: TypeAlias = Union["tuple[StructurableT, ...]", StructurableT]
+# StructurableT = TypeVar("StructurableT", bound=Union[Component, "Structure"])
 
-T = TypeVar("T")
-PhonemeT = TypeVar("PhonemeT", bound=Phoneme)
-StructurableT = TypeVar("StructurableT", bound=Union[Component, "Structure"])
-Structurable: TypeAlias = Union["tuple[StructurableT, ...]", StructurableT]
+type Structurable[C: Component] = Union[tuple[C, ...], C, Structure[C]]
 
-class Structure(Component, Initializable, Generic[StructurableT]):
+class Structure[C: Component](Component, Initializable):
     """The base class that represents all CLCK structures.
 
     A structure is a component that can contain other components.
     """
-    def __init__(self, structurable: tuple[StructurableT, ...] | StructurableT,
+    def __init__(self, structurable: Structurable[C],
         _bp: ComponentBlueprint | None = None) -> None:
         """Creates a new instance of `Structure` given the only valid
         component types that this can contain and its initial
@@ -45,10 +44,10 @@ class Structure(Component, Initializable, Generic[StructurableT]):
         - `TypeError` if any element in `components` is not any of the
         allowed types in `_valid_comp_types`.
         """
-        _c = self._derive_components(*tuple((structurable,)))
+        _c = self._derive_components(structurable)
 
         try:
-            self._components = filter_none(_c,)
+            self._components = filter_none(_c)
 
             # Component valid types will soon be replaced with
             # ComponentBlueprint enforcement
@@ -91,7 +90,7 @@ class Structure(Component, Initializable, Generic[StructurableT]):
         return f"<{self.__class__.__name__} {{{'.'.join(comps)}}}>"
 
     @property
-    def components(self) -> tuple[StructurableT, ...]:
+    def components(self) -> tuple[C, ...]:
         """The components of this structure."""
         return self._components
 
@@ -110,12 +109,12 @@ class Structure(Component, Initializable, Generic[StructurableT]):
         return self._size
 
     @property
-    def substructures(self) -> tuple["Structure[StructurableT]", ...]:
+    def substructures(self) -> tuple["Structure[C]", ...]:
         """The substructures of this structure."""
         return tuple(self._substructures)
 
-    def get_phonemes_by_type(self,
-            type: type[PhonemeT] = Phoneme) -> tuple[PhonemeT, ...]:
+    def get_phonemes_by_type[P: Phoneme](self,
+            type: type[P] = Phoneme) -> tuple[P, ...]:
         """
         Returns a tuple of phones that are of the specified `Phone`
         type. If no argument is given, it returns all the phonemes of
@@ -125,7 +124,7 @@ class Structure(Component, Initializable, Generic[StructurableT]):
         ----------
         - `type` - is the `Phone` subtype to find. Defaults to `Phone`.
         """
-        rl: list[PhonemeT] = []
+        rl: list[P] = []
         for s in self._components:
             if isinstance(s, type):
                 rl.append(s)
@@ -150,7 +149,7 @@ class Structure(Component, Initializable, Generic[StructurableT]):
         return tuple(self.get_phonemes_by_type(VowelPhoneme))
 
     def get_structures_by_type(self,
-            type: type["Structure[StructurableT]"]) -> tuple["Structure[StructurableT]", ...]:
+            type: type["Structure[C]"]) -> tuple["Structure[C]", ...]:
         """
         Returns a tuple of all found structures that are of the given
         `Structure` subtype.
@@ -159,7 +158,7 @@ class Structure(Component, Initializable, Generic[StructurableT]):
         ----------
         - `type` - is the `Structure` subtype to find.
         """
-        rl: list[Structure[StructurableT]] = []
+        rl: list[Structure[C]] = []
         for s in self._substructures:
             if isinstance(s, type):
                 rl.append(s)
@@ -167,22 +166,22 @@ class Structure(Component, Initializable, Generic[StructurableT]):
                 rl.extend(s.get_structures_by_type(type))
         return tuple(rl)
 
-    def remove_component_duplicates(self, bank: tuple[T]) -> tuple[T, ...]:
+    def remove_component_duplicates[T](self, bank: tuple[T]) -> tuple[T, ...]:
         return tuple([*set(bank)])
 
     def remove_phoneme_duplicates(self, bank: list[Phoneme]) -> list[Phoneme]:
         return [*set(bank)]
 
     def remove_structure_duplicates(self,
-            bank: list["Structure[StructurableT]"]) -> list["Structure[StructurableT]"]:
+            bank: list["Structure[C]"]) -> list["Structure[C]"]:
         return [*set(bank)]
 
     @classmethod
     def get_default_blueprint(cls) -> ComponentBlueprint:
         return FlexibleBlueprint()
 
-    def _append_dummies(self, to: tuple[ComponentT, ...]) -> tuple[ComponentT | DummyPhoneme, ...]:
-        nl: list[ComponentT | DummyPhoneme] = [*to]
+    def _append_dummies(self, to: tuple[C, ...]) -> tuple[C | DummyPhoneme, ...]:
+        nl: list[C | DummyPhoneme] = [*to]
         for c in self._components:
             if isinstance(c, DummyPhoneme):
                 nl.append(c)
@@ -206,46 +205,46 @@ class Structure(Component, Initializable, Generic[StructurableT]):
             return
         raise CLCKException("Cannot create structure because of blueprint incompatibility")
 
-    def _assert_components(self) -> None:
-        """
-        Runs checker functions that validates the components of this
-        structure. This raises an exception if one of the checker
-        functions fails.
-        """
+    # def _assert_components(self) -> None:
+    #     """
+    #     Runs checker functions that validates the components of this
+    #     structure. This raises an exception if one of the checker
+    #     functions fails.
+    #     """
 
-        # Run the following checker functions
-        self._check_component_types_validity()
+    #     # Run the following checker functions
+    #     self._check_component_types_validity()
 
-    def _check_component_types_validity(self) -> None:
-        """
-        Checks if the components are of the given types in
-        `_valid_comp_types`.
+    # def _check_component_types_validity(self) -> None:
+    #     """
+    #     Checks if the components are of the given types in
+    #     `_valid_comp_types`.
 
-        Raises
-        ------
-        - `TypeError` if any of the components are not of the given
-            types in `_valid_comp_types`.
-        """
-        for c in self._components:
-            mistype: bool = False
-            for t in self._valid_types:
-                if isinstance(c, t):
-                    mistype = False
-                    break
-                elif c == ():
-                    mistype = False
-                    break
-                elif isinstance(c, NoneType):
-                    mistype = False
-                    break
-                else:
-                    mistype = True
-                    continue
-            if mistype:
-                raise TypeError(f"Component {c} is not of any type "
-                    f"in allowed types: {self._valid_types}")
+    #     Raises
+    #     ------
+    #     - `TypeError` if any of the components are not of the given
+    #         types in `_valid_comp_types`.
+    #     """
+    #     for c in self._components:
+    #         mistype: bool = False
+    #         for t in self._valid_types:
+    #             if isinstance(c, t):
+    #                 mistype = False
+    #                 break
+    #             elif c == ():
+    #                 mistype = False
+    #                 break
+    #             elif isinstance(c, NoneType):
+    #                 mistype = False
+    #                 break
+    #             else:
+    #                 mistype = True
+    #                 continue
+    #         if mistype:
+    #             raise TypeError(f"Component {c} is not of any type "
+    #                 f"in allowed types: {self._valid_types}")
 
-    def _classify_component(self, component: StructurableT) -> None:
+    def _classify_component(self, component: C) -> None:
         """Checks the type of each component and assigns them to their
         respective collection.
         """
@@ -261,13 +260,15 @@ class Structure(Component, Initializable, Generic[StructurableT]):
 
         return "_".join(names)
 
-    def _derive_components(self, structurable: Structurable[StructurableT]) -> "tuple[StructurableT, ...]":
+    def _derive_components(self, structurable: Structurable[C]) -> "tuple[C, ...]":
         match structurable:
-            case Phoneme():
-                return (structurable,)
             case Structure():
                 return (structurable,)
-            case _:
+            case Phoneme():
+                return (structurable,)
+            case Component():
+                return (structurable,)
+            case tuple():
                 return structurable
 
     def _get_phonemes(self) -> tuple[Phoneme, ...]:
@@ -284,12 +285,12 @@ class Structure(Component, Initializable, Generic[StructurableT]):
 
         return tuple(rl)
 
-    def _get_substructures(self) -> tuple["Structure[StructurableT]", ...]:
+    def _get_substructures(self) -> tuple["Structure[C]", ...]:
         """
         Returns a tuple of all children structures parented to this
         structure.
         """
-        rl: list[Structure[StructurableT]] = []
+        rl: list[Structure[C]] = []
         for c in self._components:
             if isinstance(c, Structure):
                 rl.append(c)
@@ -324,10 +325,10 @@ class Structure(Component, Initializable, Generic[StructurableT]):
     def _init_blueprint(self, *args: object, **kwargs: object) -> ComponentBlueprint:
         return ComponentBlueprint(*self._components)
     
-    def _try_blueprints(self, c: tuple[StructurableT, ...]) -> None:
+    def _try_blueprints(self, c: tuple[C, ...]) -> None:
         _components = c
         _bps = self._default_blueprint.elements
-        _n: list[StructurableT] = []
+        _n: list[C] = []
         for _c, _bp in zip(_components, _bps):
             if _c.blueprint.is_compatible_to(ComponentBlueprint(_bp)):
                 _n.append(_c)
@@ -340,7 +341,7 @@ class Structure(Component, Initializable, Generic[StructurableT]):
                     raise Exception("Cannot reconstruct")
         self._components = tuple(_n)
 
-    def _unpack_components(self, c: tuple[StructurableT, ...] | StructurableT) -> tuple[StructurableT, ...]:
+    def _unpack_components(self, c: tuple[C, ...] | C) -> tuple[C, ...]:
         if isinstance(c, tuple):
             return c
         else:
